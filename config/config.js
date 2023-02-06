@@ -14,8 +14,6 @@ module.exports = {
     jwtTokenExpireTime: process.env.JWT_TOKEN_EXPIRE_TIME,
     refreshTokenExpiryTime: process.env.REFRESH_TOKEN_EXPIRY_TIME,
     demoUserToken: process.env.DEMO_USER_TOKEN,
-    appBaseUrl: process.env.LOCAL_APP_BASE_URL,
-    apiBaseUrl: process.env.LOCAL_API_BASE_URL
   },
   dev: {
     database: process.env.DEV_DB,
@@ -31,8 +29,6 @@ module.exports = {
     jwtTokenExpireTime: process.env.JWT_TOKEN_EXPIRE_TIME,
     refreshTokenExpiryTime: process.env.REFRESH_TOKEN_EXPIRY_TIME,
     demoUserToken: process.env.DEMO_USER_TOKEN,
-    appBaseUrl: process.env.DEV_APP_BASE_URL,
-    apiBaseUrl: process.env.DEV_API_BASE_URL
   },
   uat: {
     database: process.env.UAT_DB,
@@ -48,8 +44,6 @@ module.exports = {
     jwtTokenExpireTime: process.env.JWT_TOKEN_EXPIRE_TIME,
     refreshTokenExpiryTime: process.env.REFRESH_TOKEN_EXPIRY_TIME,
     demoUserToken: process.env.DEMO_USER_TOKEN,
-    appBaseUrl: process.env.UAT_APP_BASE_URL,
-    apiBaseUrl: process.env.UAT_API_BASE_URL
   },
   prod: {
     database: process.env.PROD_DB,
@@ -65,7 +59,5 @@ module.exports = {
     jwtTokenExpireTime: process.env.JWT_TOKEN_EXPIRE_TIME,
     refreshTokenExpiryTime: process.env.REFRESH_TOKEN_EXPIRY_TIME,
     demoUserToken: process.env.DEMO_USER_TOKEN,
-    appBaseUrl: process.env.PROD_APP_BASE_URL,
-    apiBaseUrl: process.env.PROD_API_BASE_URL
   },
 }
