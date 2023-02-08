@@ -27,7 +27,7 @@ module.exports = {
         allowNull: false,
       },
       roleId: {
-        type: Sequelize.UUID,
+        type: Sequelize.STRING(16),
         allowNull: true,
         references:{
           model:'roles',
@@ -35,7 +35,7 @@ module.exports = {
         }
       },
       plantId: {
-        type: Sequelize.UUID,
+        type: Sequelize.STRING(16),
         allowNull: true,
         references:{
           model:'plants',
