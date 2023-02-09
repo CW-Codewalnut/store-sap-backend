@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint 'src/**/*.js' --fix",
-    "format": "prettier-eslint 'server/**/*.{js,json}' --write"
+    "lint": "eslint './**/*.js' --fix",
+    "format": "prettier-eslint './**/*.{js,json}' --write"
   },
   "author": "Umesh",
   "license": "ISC",
