@@ -1,14 +1,13 @@
-'use strict';
 const { nanoid } = require('nanoid');
 const sequelizeTransforms = require('sequelize-transforms');
 
 module.exports = (sequelize, Sequelize) => {
-  const user = sequelize.define("user", {
+  const user = sequelize.define('user', {
     id: {
       type: Sequelize.STRING(16),
       primaryKey: true,
       allowNull: false,
-      defaultValue: () => nanoid(16)
+      defaultValue: () => nanoid(16),
     },
     name: {
       type: Sequelize.STRING(100),
@@ -16,11 +15,11 @@ module.exports = (sequelize, Sequelize) => {
       trim: true,
       validate: {
         notNull: {
-          msg: "Name is required!",
+          msg: 'Name is required!',
         },
         len: {
           args: [3, 50],
-          msg: "Name must be under 3-50 characters.",
+          msg: 'Name must be under 3-50 characters.',
         },
       },
     },
@@ -29,10 +28,10 @@ module.exports = (sequelize, Sequelize) => {
       defaultValue: null,
       trim: true,
       unique: true,
-      validate: { 
+      validate: {
         isEmail: {
           args: true,
-          msg: 'Invalid email address!'
+          msg: 'Invalid email address!',
         },
       },
     },
@@ -43,7 +42,7 @@ module.exports = (sequelize, Sequelize) => {
       validate: {
         len: {
           args: [32, 32],
-          msg: "Invalid password..try again.",
+          msg: 'Invalid password..try again.',
         },
       },
     },
@@ -54,11 +53,11 @@ module.exports = (sequelize, Sequelize) => {
       trim: true,
       validate: {
         notNull: {
-          msg: "Mobile number is required!",
+          msg: 'Mobile number is required!',
         },
         len: {
           args: [10, 10],
-          msg: "Invalid mobile number!",
+          msg: 'Invalid mobile number!',
         },
       },
     },
@@ -72,17 +71,17 @@ module.exports = (sequelize, Sequelize) => {
     },
     deletedAt: {
       allowNull: true,
-      type: Sequelize.DATE
+      type: Sequelize.DATE,
     },
     createdAt: {
       allowNull: false,
-      type: Sequelize.DATE
+      type: Sequelize.DATE,
     },
     updatedAt: {
       allowNull: false,
-      type: Sequelize.DATE
-    }
-  })
+      type: Sequelize.DATE,
+    },
+  });
   sequelizeTransforms(user);
   return user;
 };
