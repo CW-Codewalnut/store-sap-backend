@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "test": "jest --watchAll --coverage",
+    "test": "NODE_ENV=local jest --runInBand --detectOpenHandles --forceExit",
     "test:watch": "jest --watchAll",
     "lint": "eslint './**/*.js' --fix",
     "format": "prettier-eslint './**/*.{js,json}' --write"

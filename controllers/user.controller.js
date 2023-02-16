@@ -15,7 +15,12 @@ module.exports.create = async (req, res) => {
       || !req.body.email
       || !req.body.password
     ) {
-      const response = format('400', 'failure', 'Content can not be empty!');
+      const response = format(
+        '400',
+        'failure',
+        'Content can not be empty!',
+        null,
+      );
       return res.send(response);
     }
 
