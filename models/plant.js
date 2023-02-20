@@ -9,6 +9,11 @@ module.exports = (sequelize, Sequelize) => {
       allowNull: false,
       defaultValue: () => nanoid(16),
     },
+    sapMasterId: {
+      allowNull: false,
+      unique: true,
+      type: Sequelize.INTEGER(10),
+    },
     name: {
       type: Sequelize.STRING(100),
       allowNull: false,
@@ -22,6 +27,14 @@ module.exports = (sequelize, Sequelize) => {
           msg: 'Name must be under 3-50 characters.',
         },
       },
+    },
+    createdBy: {
+      allowNull: true,
+      type: Sequelize.STRING(16),
+    },
+    updatedBy: {
+      allowNull: true,
+      type: Sequelize.STRING(16),
     },
     createdAt: {
       allowNull: false,

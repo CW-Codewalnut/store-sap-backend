@@ -6,8 +6,22 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.STRING(16),
       },
+      sapMasterId: {
+        allowNull: false,
+        unique: true,
+        type: Sequelize.INTEGER(10),
+      },
       name: {
+        allowNull: false,
         type: Sequelize.STRING,
+      },
+      createdBy: {
+        allowNull: true,
+        type: Sequelize.STRING(16),
+      },
+      updatedBy: {
+        allowNull: true,
+        type: Sequelize.STRING(16),
       },
       createdAt: {
         allowNull: false,

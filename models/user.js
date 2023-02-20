@@ -2,7 +2,7 @@ const { nanoid } = require('nanoid');
 const sequelizeTransforms = require('sequelize-transforms');
 
 module.exports = (sequelize, Sequelize) => {
-  const role = sequelize.define('role', {
+  const user = sequelize.define('user', {
     id: {
       type: Sequelize.STRING(16),
       primaryKey: true,
@@ -23,22 +23,11 @@ module.exports = (sequelize, Sequelize) => {
         },
       },
     },
-    user_code: {
-      type: Sequelize.STRING(100),
-      defaultValue: null,
-      allowNull: true,
-      trim: true,
-      validate: {
-        len: {
-          args: [3, 50],
-          msg: 'User code must be under 3-50 characters.',
-        },
-      },
-    },
     email: {
       type: Sequelize.STRING(100),
       defaultValue: null,
       trim: true,
+      unique: true,
       validate: {
         isEmail: {
           args: true,
@@ -57,60 +46,21 @@ module.exports = (sequelize, Sequelize) => {
         },
       },
     },
-    mobile: {
-      type: Sequelize.STRING(100),
-      allowNull: false,
-      unique: true,
-      trim: true,
-      validate: {
-        notNull: {
-          msg: 'Mobile number is required!',
-        },
-        len: {
-          args: [13, 13],
-          msg: 'Invalid mobile number!',
-        },
-      },
+    roleId: {
+      type: Sequelize.STRING(16),
+      allowNull: true,
     },
-    is_active: {
-      type: Sequelize.BOOLEAN,
-      defaultValue: 1,
+    createdBy: {
+      allowNull: true,
+      type: Sequelize.STRING(16),
     },
-    deleted_at: {
+    updatedBy: {
+      allowNull: true,
+      type: Sequelize.STRING(16),
+    },
+    deletedAt: {
+      allowNull: true,
       type: Sequelize.DATE,
-      allowNull: true,
-    },
-    token: {
-      type: Sequelize.TEXT,
-      allowNull: true,
-      trim: true,
-    },
-    wareHouseId: {
-      type: Sequelize.BIGINT,
-      defaultValue: null,
-      allowNull: true,
-      trim: true,
-    },
-    roleMasterId: {
-      type: Sequelize.BIGINT,
-      allowNull: false,
-      trim: true,
-      validate: {
-        notNull: {
-          msg: 'Role is required!',
-        },
-      },
-    },
-    reportingHeadId: {
-      type: Sequelize.STRING,
-      defaultValue: null,
-      allowNull: true,
-      trim: true,
-    },
-    passwordApplied: {
-      type: Sequelize.DATE,
-      defaultValue: null,
-      allowNull: true,
     },
     createdAt: {
       allowNull: false,
@@ -121,6 +71,6 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.DATE,
     },
   });
-  sequelizeTransforms(role);
-  return role;
+  sequelizeTransforms(user);
+  return user;
 };

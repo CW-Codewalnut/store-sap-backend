@@ -1,29 +1,25 @@
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('users', {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('segments', {
       id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING(16),
       },
-      name: {
-        allowNull: false,
-        type: Sequelize.STRING(100),
-      },
-      email: {
+      sapMasterId: {
         allowNull: false,
         unique: true,
-        type: Sequelize.STRING(100),
+        type: Sequelize.INTEGER(10),
       },
-      password: {
+      name: {
         allowNull: false,
-        type: Sequelize.STRING(100),
+        type: Sequelize.STRING,
       },
-      roleId: {
-        allowNull: true,
+      profitCentreId: {
+        allowNull: false,
         type: Sequelize.STRING(16),
         references: {
-          model: 'roles',
+          model: 'profit_centres',
           key: 'id',
         },
       },
@@ -35,10 +31,6 @@ module.exports = {
         allowNull: true,
         type: Sequelize.STRING(16),
       },
-      deletedAt: {
-        allowNull: true,
-        type: Sequelize.DATE,
-      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
@@ -49,7 +41,7 @@ module.exports = {
       },
     });
   },
-  down: async (queryInterface) => {
-    await queryInterface.dropTable('users');
+  async down(queryInterface) {
+    await queryInterface.dropTable('segments');
   },
 };

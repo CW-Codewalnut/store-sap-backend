@@ -8,13 +8,7 @@ const { Op } = db;
 
 module.exports.create = async (req, res) => {
   try {
-    if (
-      !req.body
-      || !req.body.name
-      || !req.body.mobile
-      || !req.body.email
-      || !req.body.password
-    ) {
+    if (!req.body || !req.body.name || !req.body.email || !req.body.password) {
       const response = format(
         '400',
         'failure',
@@ -27,19 +21,6 @@ module.exports.create = async (req, res) => {
     if (req.body.password) {
       req.body.password = md5(req.body.password.trim());
     }
-
-    const regMob = /^[6-9]\d{9}$/;
-    const isValidMobile = regMob.test(req.body.mobile.trim());
-    if (!isValidMobile) {
-      const response = format(
-        '400',
-        'BAD_REQUEST',
-        'Invalid mobile number!',
-        null,
-      );
-      return res.send(response);
-    }
-    req.body.mobile = req.body.mobile.trim();
 
     await User.create(req.body);
     const response = format('201', 'success', 'Created', null);

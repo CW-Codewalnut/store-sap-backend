@@ -7,7 +7,16 @@ module.exports = {
         type: Sequelize.STRING(16),
       },
       name: {
+        allowNull: false,
         type: Sequelize.STRING,
+      },
+      createdBy: {
+        allowNull: true,
+        type: Sequelize.STRING(16),
+      },
+      updatedBy: {
+        allowNull: true,
+        type: Sequelize.STRING(16),
       },
       createdAt: {
         allowNull: false,
