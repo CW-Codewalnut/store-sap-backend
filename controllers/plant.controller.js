@@ -4,7 +4,7 @@ const { format } = require('../config/response');
 
 module.exports.getPlantsByUserId = async (req, res) => {
   try {
-    const userId = req.params.id;
+    const { userId } = req.params;
     const plants = await UserPlant.findAll({
       include: [
         {

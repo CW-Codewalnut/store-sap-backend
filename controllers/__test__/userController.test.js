@@ -9,8 +9,8 @@ describe('create user', () => {
     req = {
       body: {
         name: 'John Doe',
-        mobile: '9876543210',
         email: 'johndoe@example.com',
+        roleId: 'xw616PghReDWgGO1',
         password: 'password123',
       },
     };
@@ -39,7 +39,7 @@ describe('create user', () => {
     const user = await User.findOne({ where: { email: 'johndoe@example.com' } });
     expect(user).toBeDefined();
     expect(user.name).toBe('John Doe');
-    expect(user.mobile).toBe('9876543210');
+    expect(user.roleId).toBe('xw616PghReDWgGO1');
     expect(user.password).not.toBe('password123');
   });
 
@@ -51,18 +51,6 @@ describe('create user', () => {
       code: '400',
       status: 'failure',
       message: 'Content can not be empty!',
-      data: null,
-    });
-  });
-
-  it('should return a 400 response if mobile number is invalid', async () => {
-    req.body.mobile = '1234567890';
-    await create(req, res);
-
-    expect(res.send).toHaveBeenCalledWith({
-      code: '400',
-      status: 'BAD_REQUEST',
-      message: 'Invalid mobile number!',
       data: null,
     });
   });
