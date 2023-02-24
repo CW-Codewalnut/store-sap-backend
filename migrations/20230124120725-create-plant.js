@@ -9,7 +9,7 @@ module.exports = {
       sapMasterId: {
         allowNull: false,
         unique: true,
-        type: Sequelize.INTEGER(10),
+        type: Sequelize.INTEGER,
       },
       name: {
         allowNull: false,

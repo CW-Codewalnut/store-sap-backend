@@ -10,5 +10,10 @@
     },
     "[css]": {
         "editor.defaultFormatter": "vscode.css-language-features"
-    }
+    },
+    "cSpell.words": [
+        "codewalnut",
+        "resave",
+        "Umesh"
+    ]
 }

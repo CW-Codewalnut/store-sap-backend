@@ -23,6 +23,12 @@ const sequelize = new Sequelize(
       typeCast: true,
     },
     logging: config.logging,
+    /* define: {
+      // charset: 'utf8mb4',
+      // collate: 'utf8mb4_unicode_ai_ci',
+      charset: 'utf8mb4',
+      collate: 'utf8mb4_unicode_ai_ci',
+    }, */
   },
 );
 

@@ -1,25 +1,51 @@
 const express = require('express');
-
-const app = express();
+// const helmet = require('helmet');
 const http = require('http');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const debug = require('debug')('server:server');
 const path = require('path');
+const cookieParser = require('cookie-parser');
+const passport = require('passport');
+
+const app = express();
 require('dotenv').config();
 const config = require('./config/config')[process.env.NODE_ENV];
 
 // Globals
 global.baseDir = __dirname;
 
+/**
+ * Helmet helps to secure express to setting a various header.
+ */
 // app.use(helmet());
+
+/* const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'https://sap-dev-api.codewalnut.com',
+    'https://sap-uat-api.codewalnut.com',
+  ],
+  methods: ['GET', 'POST', 'DELETE', 'PATCH'],
+}; */
+
 app.use(cors());
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(cookieParser());
+
+require('./middleware/session')(app);
+
+/**
+ *  Passport works on top of the express-session.
+ *  So this two line will come after express-session
+ */
+app.use(passport.initialize());
+app.use(passport.session());
+
+require('./middleware/passport');
 
 const publicDir = path.join(__dirname, '/public');
 app.use(express.static(publicDir));
-app.use(express.static(path.resolve('./public/quotation'))); // working with http://localhost:3008/quotation-8n8id0.pdf
 
 require('./models');
 require('./routes')(app);
