@@ -1,35 +1,43 @@
-const passport = require('passport');
-
 const UserController = require('../controllers/user.controller');
 const PlantController = require('../controllers/plant.controller');
 const CostCenterController = require('../controllers/costCentre.controller');
 const profitCenterController = require('../controllers/profitCentre.controller');
 const segmentController = require('../controllers/segment.controller');
 
-// const isRouteProtected = passport.authenticate('local', { session: true });
-const isRouteProtected = passport.authenticate('local', { session: false });
+const { checkAuthenticated } = require('../middleware/auth');
 
 module.exports = (app) => {
   app.post('/auth', UserController.auth);
-  // app.use(passport.authenticate('local', { session: true }));
-  app.get('/users/paginate', isRouteProtected, UserController.findWithPaginate);
-  app.post('/logout', UserController.logout);
-  app.post('/user', UserController.create);
 
-  app.get('/plants/:userId', PlantController.getPlantsByUserId);
+  app.get(
+    '/users/paginate',
+    checkAuthenticated,
+    UserController.findWithPaginate,
+  );
+  app.get('/logout', checkAuthenticated, UserController.logout);
+  app.post('/user', checkAuthenticated, UserController.create);
+
+  app.get(
+    '/plants/:userId',
+    checkAuthenticated,
+    PlantController.getPlantsByUserId,
+  );
 
   app.get(
     '/cost-centres/:plantId',
+    checkAuthenticated,
     CostCenterController.getCostCentreByPlantId,
   );
 
   app.get(
     '/profit-centres/:costCentreId',
+    checkAuthenticated,
     profitCenterController.getProfitCentreByCostCentreId,
   );
 
   app.get(
     '/segments/:profitCentreId',
+    checkAuthenticated,
     segmentController.getSegmentsByProfitCentreId,
   );
 };

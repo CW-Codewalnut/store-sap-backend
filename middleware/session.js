@@ -30,9 +30,5 @@ module.exports = (app) => {
     },
   };
 
-  /*   if (process.env.NODE_ENV !== 'local') {
-    sessionConfig.cookie.secure = true;
-  } */
-
   app.use(session(sessionConfig));
 };

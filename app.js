@@ -1,5 +1,5 @@
 const express = require('express');
-// const helmet = require('helmet');
+const helmet = require('helmet');
 const http = require('http');
 const cors = require('cors');
 const debug = require('debug')('server:server');
@@ -17,21 +17,18 @@ global.baseDir = __dirname;
 /**
  * Helmet helps to secure express to setting a various header.
  */
-// app.use(helmet());
+app.use(helmet());
 
-/* const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'https://sap-dev-api.codewalnut.com',
-    'https://sap-uat-api.codewalnut.com',
-  ],
-  methods: ['GET', 'POST', 'DELETE', 'PATCH'],
-}; */
+const corsOptions = {
+  origin: ['http://localhost:3000', 'https://sap-dev-api.codewalnut.com'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  credentials: true,
+};
 
-app.use(cors());
+app.use(cors(corsOptions));
+app.use(cookieParser());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-app.use(cookieParser());
 
 require('./middleware/session')(app);
 
