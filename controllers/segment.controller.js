@@ -1,5 +1,8 @@
 const Segment = require('../models').segment;
-const { format } = require('../config/response');
+const {
+  format,
+  RESPONSE: { CODE, STATUS },
+} = require('../config/response');
 
 module.exports.getSegmentsByProfitCentreId = async (req, res) => {
   try {
@@ -7,10 +10,10 @@ module.exports.getSegmentsByProfitCentreId = async (req, res) => {
     const Segments = await Segment.findAll({
       where: { profitCentreId },
     });
-    const response = format('200', 'success', 'Fetched', Segments);
+    const response = format(CODE[200], STATUS.SUCCESS, 'Fetched', Segments);
     res.status(200).send(response);
   } catch (err) {
-    const response = format('400', 'failure', err, null);
+    const response = format(CODE[500], STATUS.FAILURE, err, null);
     res.send(response);
   }
 };

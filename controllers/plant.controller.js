@@ -1,6 +1,6 @@
 const UserPlant = require('../models').user_plant;
 const Plant = require('../models').plant;
-const { format } = require('../config/response');
+const { format, RESPONSE: { CODE, STATUS } } = require('../config/response');
 
 module.exports.getPlantsByUserId = async (req, res) => {
   try {
@@ -13,10 +13,10 @@ module.exports.getPlantsByUserId = async (req, res) => {
       ],
       where: { userId },
     });
-    const response = format('200', 'success', 'Fetched', plants);
+    const response = format(CODE[200], STATUS.SUCCESS, 'Fetched', plants);
     res.status(200).send(response);
   } catch (err) {
-    const response = format('400', 'failure', err, null);
+    const response = format(CODE[500], STATUS.FAILURE, err, null);
     res.send(response);
   }
 };

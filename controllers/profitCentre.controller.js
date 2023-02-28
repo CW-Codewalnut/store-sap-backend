@@ -1,5 +1,8 @@
 const ProfitCentre = require('../models').profit_centre;
-const { format } = require('../config/response');
+const {
+  format,
+  RESPONSE: { CODE, STATUS },
+} = require('../config/response');
 
 module.exports.getProfitCentreByCostCentreId = async (req, res) => {
   try {
@@ -7,10 +10,15 @@ module.exports.getProfitCentreByCostCentreId = async (req, res) => {
     const profitCentres = await ProfitCentre.findAll({
       where: { costCentreId },
     });
-    const response = format('200', 'success', 'Fetched', profitCentres);
+    const response = format(
+      CODE[200],
+      STATUS.SUCCESS,
+      'Fetched',
+      profitCentres,
+    );
     res.status(200).send(response);
   } catch (err) {
-    const response = format('400', 'failure', err, null);
+    const response = format(CODE[500], STATUS.FAILURE, err, null);
     res.send(response);
   }
 };

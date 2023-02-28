@@ -1,5 +1,8 @@
 const CostCentre = require('../models').cost_centre;
-const { format } = require('../config/response');
+const {
+  format,
+  RESPONSE: { CODE, STATUS },
+} = require('../config/response');
 
 module.exports.getCostCentreByPlantId = async (req, res) => {
   try {
@@ -7,10 +10,10 @@ module.exports.getCostCentreByPlantId = async (req, res) => {
     const costCentres = await CostCentre.findAll({
       where: { plantId },
     });
-    const response = format('200', 'success', 'Fetched', costCentres);
+    const response = format(CODE[200], STATUS.SUCCESS, 'Fetched', costCentres);
     res.status(200).send(response);
   } catch (err) {
-    const response = format('400', 'failure', err, null);
+    const response = format(CODE[500], STATUS.FAILURE, err, null);
     res.send(response);
   }
 };
