@@ -23,6 +23,7 @@ const corsOptions = {
   origin: ['http://localhost:3000', 'https://sap-dev-api.codewalnut.com'],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   credentials: true,
+  exposedHeaders: ['set-cookie'],
 };
 
 app.use(cors(corsOptions));
