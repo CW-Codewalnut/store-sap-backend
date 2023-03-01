@@ -71,6 +71,11 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.DATE,
     },
   });
+  user.associate = (models) => {
+    user.belongsTo(models.role, {
+      foreignKey: 'roleId',
+    });
+  };
   sequelizeTransforms(user);
   return user;
 };

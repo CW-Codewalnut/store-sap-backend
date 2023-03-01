@@ -16,6 +16,8 @@ module.exports = (app) => {
   );
   app.get('/logout', checkAuthenticated, UserController.logout);
   app.post('/user', checkAuthenticated, UserController.create);
+  app.get('/users/:id', checkAuthenticated, UserController.findById);
+  app.patch('/users/:id', checkAuthenticated, UserController.update);
 
   app.get(
     '/plants/:userId',
