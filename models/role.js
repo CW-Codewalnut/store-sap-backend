@@ -35,6 +35,7 @@ module.exports = (sequelize, Sequelize) => {
           args: [2, 50],
           msg: 'Name must be under 3-50 characters.',
         },
+      },
     },
     createdBy: {
       allowNull: true,
