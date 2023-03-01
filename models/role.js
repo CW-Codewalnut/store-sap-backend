@@ -18,14 +18,23 @@ module.exports = (sequelize, Sequelize) => {
           msg: 'Name is required!',
         },
         len: {
-          args: [3, 50],
-          msg: 'Name must be under 3-50 characters.',
+          args: [2, 50],
+          msg: 'Name must be under 2-50 characters.',
         },
       },
     },
     description: {
       type: Sequelize.STRING,
       allowNull: false,
+      trim: true,
+      validate: {
+        notNull: {
+          msg: 'Description is required!',
+        },
+        len: {
+          args: [2, 50],
+          msg: 'Name must be under 3-50 characters.',
+        },
     },
     createdBy: {
       allowNull: true,

@@ -20,9 +20,9 @@ module.exports = (app) => {
   app.patch('/users/:id', checkAuthenticated, UserController.update);
 
   app.get('/roles', checkAuthenticated, RoleController.findAll);
-  /*   app.post('/role', checkAuthenticated, UserController.create);
-  app.get('/role/:id', checkAuthenticated, UserController.findById);
-  app.patch('/role/:id', checkAuthenticated, UserController.update); */
+  app.post('/role', checkAuthenticated, RoleController.create);
+  app.get('/roles/:id', checkAuthenticated, RoleController.findById);
+  app.patch('/roles/:id', checkAuthenticated, RoleController.update);
 
   app.get(
     '/plants/:userId',

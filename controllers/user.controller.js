@@ -217,6 +217,7 @@ module.exports.update = async (req, res) => {
       req.body.password = md5(req.body.password.trim());
     }
     req.body.password = md5(req.body.password.trim());
+    req.body.updatedBy = req.user.id;
     await User.update(req.body, {
       where: {
         id: req.params.id,
