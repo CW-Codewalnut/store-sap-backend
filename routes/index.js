@@ -1,23 +1,28 @@
 const UserController = require('../controllers/user.controller');
 const PlantController = require('../controllers/plant.controller');
 const CostCenterController = require('../controllers/costCentre.controller');
-const profitCenterController = require('../controllers/profitCentre.controller');
-const segmentController = require('../controllers/segment.controller');
-
+const ProfitCenterController = require('../controllers/profitCentre.controller');
+const SegmentController = require('../controllers/segment.controller');
+const RoleController = require('../controllers/role.controller');
 const { checkAuthenticated } = require('../middleware/auth');
 
 module.exports = (app) => {
   app.post('/auth', UserController.auth);
+  app.get('/logout', checkAuthenticated, UserController.logout);
 
+  app.post('/user', checkAuthenticated, UserController.create);
   app.get(
     '/users/paginate',
     checkAuthenticated,
     UserController.findWithPaginate,
   );
-  app.get('/logout', checkAuthenticated, UserController.logout);
-  app.post('/user', checkAuthenticated, UserController.create);
   app.get('/users/:id', checkAuthenticated, UserController.findById);
   app.patch('/users/:id', checkAuthenticated, UserController.update);
+
+  app.get('/roles', checkAuthenticated, RoleController.findAll);
+  /*   app.post('/role', checkAuthenticated, UserController.create);
+  app.get('/role/:id', checkAuthenticated, UserController.findById);
+  app.patch('/role/:id', checkAuthenticated, UserController.update); */
 
   app.get(
     '/plants/:userId',
@@ -34,12 +39,12 @@ module.exports = (app) => {
   app.get(
     '/profit-centres/:costCentreId',
     checkAuthenticated,
-    profitCenterController.getProfitCentreByCostCentreId,
+    ProfitCenterController.getProfitCentreByCostCentreId,
   );
 
   app.get(
     '/segments/:profitCentreId',
     checkAuthenticated,
-    segmentController.getSegmentsByProfitCentreId,
+    SegmentController.getSegmentsByProfitCentreId,
   );
 };
