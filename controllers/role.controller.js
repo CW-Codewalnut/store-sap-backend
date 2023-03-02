@@ -1,8 +1,15 @@
+const _ = require('lodash');
 const Role = require('../models').role;
+const Permission = require('../models').permission;
+const RolePermission = require('../models').role_permission;
 const {
   format,
   RESPONSE: { CODE, STATUS },
 } = require('../config/response');
+
+const db = require('../models');
+
+const { Op } = db;
 
 module.exports.create = async (req, res) => {
   try {
@@ -101,5 +108,36 @@ module.exports.update = async (req, res) => {
       null,
     );
     return res.send(response);
+  }
+};
+
+module.exports.findRolePermissions = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const roleData = await Role.findOne({ where: { id } });
+
+    const permissions = await Permission.findAll();
+
+    const data = await RolePermission.findAll({
+      where: { roleId: id },
+      include: ['role', 'permission'],
+    });
+    const groupedPermission = _.groupBy(permissions, 'groupName');
+    const keys = Object.keys(groupedPermission);
+    const permissionIds = data.map((i) => i.permissionId);
+    const newData = {
+      data,
+      permissions: groupedPermission,
+      keys,
+      permissionIds,
+      roleId: id,
+      role: roleData,
+    };
+    const response = format(CODE[200], STATUS.SUCCESS, 'Fetched', newData);
+    res.send(response);
+  } catch (err) {
+    const response = format(CODE[500], STATUS.FAILURE, err, null);
+    res.status(400).send(response);
   }
 };
