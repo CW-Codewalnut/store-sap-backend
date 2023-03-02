@@ -9,7 +9,7 @@ const {
 } = require('../config/response');
 const { saveSessionActivity } = require('../middleware/auth');
 
-const { Op } = db;
+const { Op } = db.Sequelize;
 
 module.exports.auth = async (req, res, next) => {
   passport.authenticate('local', (err, user) => {

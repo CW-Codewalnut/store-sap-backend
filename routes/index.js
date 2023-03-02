@@ -29,6 +29,12 @@ module.exports = (app) => {
     RoleController.findRolePermissions,
   );
 
+  app.patch(
+    '/roles/:id/permissions',
+    checkAuthenticated,
+    RoleController.updateRolePermissions,
+  );
+
   app.get(
     '/plants/:userId',
     checkAuthenticated,

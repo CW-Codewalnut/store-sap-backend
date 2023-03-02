@@ -9,7 +9,7 @@ const {
 
 const db = require('../models');
 
-const { Op } = db;
+const { Op } = db.Sequelize;
 
 module.exports.create = async (req, res) => {
   try {
@@ -139,5 +139,64 @@ module.exports.findRolePermissions = async (req, res) => {
   } catch (err) {
     const response = format(CODE[500], STATUS.FAILURE, err, null);
     res.status(400).send(response);
+  }
+};
+
+module.exports.updateRolePermissions = (req, res) => {
+  try {
+    if (!req.body && !req.params) {
+      const response = format(
+        CODE[400],
+        STATUS.FAILURE,
+        'Content can not be empty!',
+      );
+      return res.send(response);
+    }
+    const { permissions } = req.body;
+    let query;
+    if (permissions && permissions.length > 0) {
+      query = {
+        [Op.and]: [
+          {
+            permissionId: {
+              [Op.notIn]: permissions,
+            },
+          },
+          { roleId: req.body.id },
+        ],
+      };
+    } else {
+      query = { roleId: req.params.id };
+    }
+    RolePermission.destroy({
+      where: query,
+    });
+    let response;
+    if (permissions && permissions.length > 0) {
+      permissions.forEach(async (id) => {
+        const obj = {
+          roleId: req.params.id,
+          permissionId: id,
+          createdBy: req.user.id,
+          updatedBy: req.user.id,
+        };
+
+        const data = await RolePermission.findOne({
+          where: { [Op.and]: [{ roleId: req.params.id }, { permissionId: id }] },
+        });
+
+        if (data == null || !data) {
+          RolePermission.create(obj);
+        }
+      });
+      response = format(CODE[200], STATUS.SUCCESS, 'success', null);
+    } else {
+      response = format(CODE[200], STATUS.SUCCESS, 'success', null);
+    }
+    return res.send(response);
+  } catch (err) {
+    console.log('err===========> ', err);
+    const response = format(CODE[500], STATUS.FAILURE, err, null);
+    return res.send(response);
   }
 };
