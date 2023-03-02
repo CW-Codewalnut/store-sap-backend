@@ -1,15 +1,23 @@
-const express = require('express');
-const helmet = require('helmet');
-const http = require('http');
-const cors = require('cors');
-const debug = require('debug')('server:server');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const passport = require('passport');
+import express, { Application } from 'express';
+import helmet from 'helmet';
+import http from 'http';
+import cors from 'cors';
+import debug from 'debug';
+import path from 'path';
+import cookieParser from 'cookie-parser';
+import passport from 'passport';
+import dotenv from 'dotenv';
 
-const app = express();
-require('dotenv').config();
-const config = require('./config/config')[process.env.NODE_ENV];
+import config from './config/config';
+import { Config } from './interfaces/config/Config.interface';
+
+const app: Application = express();
+
+dotenv.config();
+
+const env = process.env.NODE_ENV || 'local';
+
+const configEnv = config[env as keyof Config];
 
 // Globals
 global.baseDir = __dirname;
@@ -48,7 +56,7 @@ app.use(express.static(publicDir));
 require('./models');
 require('./routes')(app);
 
-const port = parseInt(config.serverPort, 10);
+const port = parseInt(configEnv.serverPort, 10);
 app.set('port', port);
 const server = http.createServer(app);
 
@@ -61,7 +69,7 @@ server.listen(port, () => {
  * Event listener for HTTP server "error" event.
  */
 
-function onError(error) {
+function onError(error: any) {
   if (error.syscall !== 'listen') {
     throw error;
   }
@@ -89,7 +97,7 @@ function onError(error) {
 
 function onListening() {
   const addr = server.address();
-  const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr.port}`;
+  const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr!.port}`;
   debug(`Listening on ${bind}`);
 }
 
