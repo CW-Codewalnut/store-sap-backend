@@ -162,7 +162,7 @@ module.exports.updateRolePermissions = (req, res) => {
               [Op.notIn]: permissions,
             },
           },
-          { roleId: req.body.id },
+          { roleId: req.params.id },
         ],
       };
     } else {
@@ -195,7 +195,6 @@ module.exports.updateRolePermissions = (req, res) => {
     }
     return res.send(response);
   } catch (err) {
-    console.log('err===========> ', err);
     const response = format(CODE[500], STATUS.FAILURE, err, null);
     return res.send(response);
   }
