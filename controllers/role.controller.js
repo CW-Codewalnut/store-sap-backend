@@ -46,8 +46,11 @@ module.exports.findAll = async (req, res) => {
     const roles = await Role.findAll({
       order: [['name', 'ASC']],
     });
-
-    const response = format(CODE[200], STATUS.SUCCESS, 'Fetched', roles);
+    const data = {
+      count: roles.length,
+      rows: roles,
+    };
+    const response = format(CODE[200], STATUS.SUCCESS, 'Fetched', data);
     res.status(200).send(response);
   } catch (err) {
     const response = format(CODE[500], STATUS.FAILURE, err, null);
