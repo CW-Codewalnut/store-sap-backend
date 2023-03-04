@@ -1,23 +1,30 @@
 import express, { Application } from 'express';
 import helmet from 'helmet';
 import http from 'http';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import debug from 'debug';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
 import dotenv from 'dotenv';
 
-import config from './config/config';
+import session, { SessionOptions, CookieOptions } from 'express-session';
+import ConnectSession from 'connect-session-sequelize';
+import configEnv from './config/config';
 import { Config } from './interfaces/config/Config.interface';
+import { sequelize } from './models';
+import sessionFn from './middleware/session';
+import passportFn from './middleware/passport';
+import routesFn from './routes';
 
-const app: Application = express();
+const SequelizeStore = ConnectSession(session.Store);
 
 dotenv.config();
 
-const env = process.env.NODE_ENV || 'local';
+const app: Application = express();
+const env = process.env.NODE_ENV;
 
-const configEnv = config[env as keyof Config];
+const config = configEnv[env as keyof Config];
 
 // Globals
 global.baseDir = __dirname;
@@ -27,7 +34,7 @@ global.baseDir = __dirname;
  */
 app.use(helmet());
 
-const corsOptions = {
+const corsOptions: CorsOptions = {
   origin: ['http://localhost:3000', 'https://sap-dev-api.codewalnut.com'],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   credentials: true,
@@ -39,7 +46,7 @@ app.use(cookieParser());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-require('./middleware/session')(app);
+sessionFn(app);
 
 /**
  *  Passport works on top of the express-session.
@@ -48,15 +55,14 @@ require('./middleware/session')(app);
 app.use(passport.initialize());
 app.use(passport.session());
 
-require('./middleware/passport');
+passportFn();
 
 const publicDir = path.join(__dirname, '/public');
 app.use(express.static(publicDir));
 
-require('./models');
-require('./routes')(app);
+routesFn(app);
 
-const port = parseInt(configEnv.serverPort, 10);
+const port = parseInt(config.serverPort, 10);
 app.set('port', port);
 const server = http.createServer(app);
 

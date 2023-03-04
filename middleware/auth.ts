@@ -1,10 +1,12 @@
-const {
-  format,
-  RESPONSE: { CODE, STATUS },
-} = require('../config/response');
-const SessionActivity = require('../models').session_activity;
+import { Request, Response, NextFunction } from 'express';
 
-module.exports.checkAuthenticated = (req, res, next) => {
+import { format, CODE, STATUS } from '../config/response';
+
+const checkAuthenticated = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   if (req.isAuthenticated()) {
     return next();
   }
@@ -12,7 +14,7 @@ module.exports.checkAuthenticated = (req, res, next) => {
   return res.send(response);
 };
 
-module.exports.checkLoggedIn = (req, res, next) => {
+const checkLoggedIn = (req: Request, res: Response, next: NextFunction) => {
   if (req.isAuthenticated()) {
     const response = format(CODE[200], STATUS.SUCCESS, 'Access allowed', null);
     return res.send(response);
@@ -20,7 +22,8 @@ module.exports.checkLoggedIn = (req, res, next) => {
   return next();
 };
 
-module.exports.saveSessionActivity = ({ req, userId }, cb) => {
+export { checkAuthenticated, checkLoggedIn };
+/* module.exports.saveSessionActivity = ({ req, userId }, cb) => {
   try {
     const ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim()
       || req.socket.remoteAddress;
@@ -39,4 +42,4 @@ module.exports.saveSessionActivity = ({ req, userId }, cb) => {
   } catch (err) {
     return cb('Failed to create session activity.');
   }
-};
+}; */

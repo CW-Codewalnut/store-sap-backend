@@ -1,23 +1,35 @@
-const md5 = require('md5');
-const passport = require('passport');
-const db = require('../models');
-const User = require('../models').user;
-const Role = require('../models').role;
-const {
+import { Request, Response, NextFunction } from 'express';
+import md5 from 'md5';
+import passport from 'passport';
+
+import sequelize from 'sequelize';
+import User from '../models/user';
+// const User = require('../models').user;
+// const Role = require('../models').role;
+/* const {
   format,
   RESPONSE: { CODE, STATUS },
-} = require('../config/response');
-const { saveSessionActivity } = require('../middleware/auth');
+} = require('../config/response'); */
+import { format, CODE, STATUS } from '../config/response';
+// const { saveSessionActivity } = require('../middleware/auth');
 
-const { Op } = db.Sequelize;
+const { Op } = sequelize;
 
-module.exports.auth = async (req, res, next) => {
-  passport.authenticate('local', (err, user) => {
+const auth = async (req: Request, res: Response, next: NextFunction) => {
+  /* const user = await User.findOne({ where: { email: req.body.email } });
+  const response = format(
+    CODE[200],
+    STATUS.SUCCESS,
+    'Login successfully',
+    null,
+  );
+  return res.send(user); */
+  passport.authenticate('local', (err: any, user: any) => {
     try {
       if (err) {
         return next(err);
       }
-
+      console.log('user============> ', user);
       if (!user) {
         const response = format(
           CODE[400],
@@ -31,39 +43,54 @@ module.exports.auth = async (req, res, next) => {
         if (loginErr) {
           return next(loginErr);
         }
-        req.session.userId = user.id;
-        const { _expires } = req.session.cookie;
-        req.body.isExpired = _expires;
-        return saveSessionActivity({ req, userId: user.id }, (errSession) => {
-          if (errSession) {
+        // req.session.userId = user.id;
+        // const { _expires } = req.session.cookie;
+        // req.body.isExpired = _expires;
+        /* return saveSessionActivity(
+          { req, userId: user.id },
+          (errSession: any) => {
+            if (errSession) {
+              const response = format(
+                CODE[500],
+                STATUS.FAILURE,
+                errSession,
+                null,
+              );
+              return res.send(response);
+            }
+
             const response = format(
-              CODE[500],
-              STATUS.FAILURE,
-              errSession,
+              CODE[200],
+              STATUS.SUCCESS,
+              'Login successfully',
               null,
             );
             return res.send(response);
-          }
-
-          const response = format(
-            CODE[200],
-            STATUS.SUCCESS,
-            'Login successfully',
-            null,
-          );
-          return res.send(response);
-        });
+          },
+        ); */
+        const response = format(
+          CODE[200],
+          STATUS.SUCCESS,
+          'Login successfully',
+          null,
+        );
+        return res.send(response);
       });
     } catch (error) {
-      const response = format(CODE[500], STATUS.FAILURE, error, null);
+      const response = format(
+        CODE[500],
+        STATUS.FAILURE,
+        JSON.stringify(error),
+        null,
+      );
       return res.send(response);
     }
   })(req, res, next);
 };
 
-module.exports.logout = async (req, res) => {
+const logout = async (req: Request, res: Response) => {
   try {
-    req.session.destroy();
+    req.session.destroy((err: any) => console.log);
     const response = format(CODE[200], STATUS.SUCCESS, 'Logout securely', null);
     return res.send(response);
   } catch (err) {
@@ -77,6 +104,7 @@ module.exports.logout = async (req, res) => {
   }
 };
 
+/*
 module.exports.create = async (req, res) => {
   try {
     if (
@@ -122,8 +150,8 @@ module.exports.create = async (req, res) => {
     return res.send(response);
   }
 };
-
-module.exports.findWithPaginate = async (req, res) => {
+*/
+const findWithPaginate = async (req: Request, res: Response) => {
   try {
     const page = Number(req.query.page);
     const pageSize = Number(req.query.pageSize);
@@ -143,11 +171,11 @@ module.exports.findWithPaginate = async (req, res) => {
     }
 
     const users = await User.findAndCountAll({
-      include: [
+      /* include: [
         {
           model: Role,
         },
-      ],
+      ], */
       where: condition,
       order: [['createdAt', 'DESC']],
       offset,
@@ -156,12 +184,13 @@ module.exports.findWithPaginate = async (req, res) => {
 
     const response = format(CODE[200], STATUS.SUCCESS, 'Fetched', users);
     res.status(200).send(response);
-  } catch (err) {
+  } catch (err: any) {
     const response = format(CODE[500], STATUS.FAILURE, err, null);
     res.send(response);
   }
 };
-
+export default { auth, findWithPaginate, logout };
+/*
 module.exports.findById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -243,3 +272,4 @@ module.exports.update = async (req, res) => {
     return res.send(response);
   }
 };
+ */
