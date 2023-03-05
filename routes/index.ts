@@ -1,14 +1,15 @@
 import { Application } from 'express';
 
 import UserController from '../controllers/user.controller';
-/* const PlantController = require('../controllers/plant.controller');
-const CostCenterController = require('../controllers/costCentre.controller');
-const ProfitCenterController = require('../controllers/profitCentre.controller');
-const SegmentController = require('../controllers/segment.controller');
-const RoleController = require('../controllers/role.controller'); */
+import PlantController from '../controllers/plant.controller';
+import CostCenterController from '../controllers/costCentre.controller';
+import ProfitCenterController from '../controllers/profitCentre.controller';
+import SegmentController from '../controllers/segment.controller';
+import RoleController from '../controllers/role.controller';
+
 import { checkAuthenticated } from '../middleware/auth';
 
-const routesFn = (app: Application) => {
+const routesMiddleware = (app: Application) => {
   app.post('/auth', UserController.auth);
   app.get(
     '/users/paginate',
@@ -22,7 +23,7 @@ const routesFn = (app: Application) => {
   app.get('/users/:id', checkAuthenticated, UserController.findById);
   app.patch('/users/:id', checkAuthenticated, UserController.update);
 
-  /* app.get('/roles', checkAuthenticated, RoleController.findAll);
+  app.get('/roles', checkAuthenticated, RoleController.findAll);
   app.post('/role', checkAuthenticated, RoleController.create);
   app.get('/roles/:id', checkAuthenticated, RoleController.findById);
   app.patch('/roles/:id', checkAuthenticated, RoleController.update);
@@ -60,7 +61,7 @@ const routesFn = (app: Application) => {
     '/segments/:profitCentreId',
     checkAuthenticated,
     SegmentController.getSegmentsByProfitCentreId,
-  ); */
+  );
 };
 
-export default routesFn;
+export default routesMiddleware;

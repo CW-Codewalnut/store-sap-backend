@@ -3,11 +3,20 @@ import md5 from 'md5';
 import passport from 'passport';
 
 import sequelize from 'sequelize';
+import { Session, Cookie } from 'express-session';
 import User from '../models/user';
 import Role from '../models/role';
 
 import { format, CODE, STATUS } from '../config/response';
-// import { saveSessionActivity } from '../middleware/auth';
+import { saveSessionActivity } from '../middleware/auth';
+import SessionActivity from '../models/session-activity';
+
+interface MySession extends Session {
+  userId?: string;
+}
+interface MyCookie extends Cookie {
+  _expires?: Date;
+}
 
 const { Op } = sequelize;
 
@@ -30,10 +39,15 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
         if (loginErr) {
           return next(loginErr);
         }
-        // req.session.userId = user.id;
-        // const { _expires } = req.session.cookie;
-        // req.body.isExpired = _expires;
-        /* return saveSessionActivity(
+        const mySession = req.session as MySession;
+        mySession.userId = user.id;
+
+        const myCookie = req.session.cookie as MyCookie;
+        const { _expires } = myCookie;
+
+        req.body.isExpired = _expires;
+
+        return saveSessionActivity(
           { req, userId: user.id },
           (errSession: any) => {
             if (errSession) {
@@ -54,14 +68,7 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
             );
             return res.send(response);
           },
-        ); */
-        const response = format(
-          CODE[200],
-          STATUS.SUCCESS,
-          'Login successfully',
-          null,
         );
-        return res.send(response);
       });
     } catch (error) {
       const response = format(
@@ -112,8 +119,8 @@ const create = async (req: Request, res: Response) => {
     if (req.body.password) {
       req.body.password = md5(req.body.password.trim());
     }
-    // req.body.createdBy = req.user.id;
-    // req.body.updatedBy = req.user.id;
+    req.body.createdBy = req.user.id;
+    req.body.updatedBy = req.user.id;
     const user = await User.create(req.body);
     const userData = await User.findOne({
       include: [
@@ -231,7 +238,7 @@ const update = async (req: Request, res: Response) => {
       req.body.password = md5(req.body.password.trim());
     }
     req.body.password = md5(req.body.password.trim());
-    // req.body.updatedBy = req.user!.id;
+    req.body.updatedBy = req.user.id;
     await User.update(req.body, {
       where: {
         id: req.params.id,

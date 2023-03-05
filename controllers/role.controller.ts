@@ -17,8 +17,8 @@ const create = async (req: Request, res: Response) => {
       );
       return res.send(response);
     }
-    // req.body.createdBy = req.user.id;
-    // req.body.updatedBy = req.user.id;
+    req.body.createdBy = req.user.id;
+    req.body.updatedBy = req.user.id;
     const role = await Role.create(req.body);
     const { id } = role;
     const roleData = await Role.findByPk(id);
@@ -88,7 +88,7 @@ const update = async (req: Request, res: Response) => {
       return res.send(response);
     }
     const { id } = req.params;
-    // req.body.updatedBy = req.user.id;
+    req.body.updatedBy = req.user.id;
     await Role.update(req.body, {
       where: { id },
     });
@@ -170,11 +170,11 @@ const updateRolePermissions = (req: Request, res: Response) => {
     let response;
     if (permissions && permissions.length > 0) {
       permissions.forEach(async (id: string) => {
-        const obj = {
+        const obj: any = {
           roleId: req.params.id,
           permissionId: id,
-          // createdBy: req.user.id,
-          // updatedBy: req.user.id,
+          createdBy: req.user.id,
+          updatedBy: req.user.id,
         };
 
         const data = await RolePermission.findOne({

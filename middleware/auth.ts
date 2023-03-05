@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-
 import { format, CODE, STATUS } from '../config/response';
+import SessionActivity from '../models/session-activity';
+import {
+  SessionActivityArgs,
+  CallbackFnType,
+} from '../interfaces/sessionActivity/SessionActivity.interface';
 
 const checkAuthenticated = (
   req: Request,
@@ -22,14 +26,16 @@ const checkLoggedIn = (req: Request, res: Response, next: NextFunction) => {
   return next();
 };
 
-export { checkAuthenticated, checkLoggedIn };
-/* module.exports.saveSessionActivity = ({ req, userId }, cb) => {
+const saveSessionActivity = (
+  { req, userId }: SessionActivityArgs,
+  cb: CallbackFnType,
+) => {
   try {
     const ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim()
       || req.socket.remoteAddress;
     const device = req.headers['user-agent'];
 
-    const body = {
+    const body: any = {
       userId,
       isExpired: req.body.isExpired,
       device,
@@ -42,4 +48,6 @@ export { checkAuthenticated, checkLoggedIn };
   } catch (err) {
     return cb('Failed to create session activity.');
   }
-}; */
+};
+
+export { checkAuthenticated, checkLoggedIn, saveSessionActivity };

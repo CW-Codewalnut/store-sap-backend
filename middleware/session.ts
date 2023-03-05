@@ -17,11 +17,9 @@ function extendDefaultFields(defaults: any, _session: any) {
   };
 }
 
-const sessionFn = (app: Application) => {
+const sessionMiddleware = (app: Application) => {
   const sequelizeStore = new SequelizeStore({
     db: sequelize,
-    // table: 'Session',
-    modelKey: 'Session',
     extendDefaultFields,
   });
 
@@ -42,4 +40,4 @@ const sessionFn = (app: Application) => {
   app.use(session(sessionConfig));
 };
 
-export default sessionFn;
+export default sessionMiddleware;

@@ -39,7 +39,7 @@ const strategy = new LocalStrategy(
   authenticateUser,
 );
 
-const passportFn = () => {
+const passportMiddleware = () => {
   passport.use(strategy);
 
   passport.serializeUser((user: any, done: Function) => {
@@ -56,4 +56,4 @@ const passportFn = () => {
   });
 };
 
-export default passportFn;
+export default passportMiddleware;

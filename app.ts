@@ -10,9 +10,9 @@ import dotenv from 'dotenv';
 
 import configEnv from './config/config';
 import { Config } from './interfaces/config/Config.interface';
-import sessionFn from './middleware/session';
-import passportFn from './middleware/passport';
-import routesFn from './routes';
+import sessionMiddleware from './middleware/session';
+import passportMiddleware from './middleware/passport';
+import routesMiddleware from './routes';
 
 dotenv.config();
 
@@ -41,7 +41,7 @@ app.use(cookieParser());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-sessionFn(app);
+sessionMiddleware(app);
 
 /**
  *  Passport works on top of the express-session.
@@ -50,12 +50,12 @@ sessionFn(app);
 app.use(passport.initialize());
 app.use(passport.session());
 
-passportFn();
+passportMiddleware();
 
 const publicDir = path.join(__dirname, '/public');
 app.use(express.static(publicDir));
 
-routesFn(app);
+routesMiddleware(app);
 
 const port = parseInt(config.serverPort, 10);
 app.set('port', port);
