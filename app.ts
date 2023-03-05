@@ -8,16 +8,11 @@ import cookieParser from 'cookie-parser';
 import passport from 'passport';
 import dotenv from 'dotenv';
 
-import session, { SessionOptions, CookieOptions } from 'express-session';
-import ConnectSession from 'connect-session-sequelize';
 import configEnv from './config/config';
 import { Config } from './interfaces/config/Config.interface';
-import { sequelize } from './models';
 import sessionFn from './middleware/session';
 import passportFn from './middleware/passport';
 import routesFn from './routes';
-
-const SequelizeStore = ConnectSession(session.Store);
 
 dotenv.config();
 

@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid';
-// import sequelizeTransforms from 'sequelize-transforms';
 import { Model, DataTypes, Optional } from 'sequelize';
 import { sequelize } from '.';
+import Role from './role';
 
 interface UserAttributes {
   id: string;
@@ -12,35 +12,9 @@ interface UserAttributes {
   createdBy: string | null;
   updatedBy: string | null;
   deletedAt: Date | null;
-  // createdAt: Date;
-  // updatedAt: Date;
 }
 
 interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
-
-/* class User
-  extends Model<UserAttributes, UserCreationAttributes>
-  implements UserAttributes {
-  public id!: string;
-
-  public name!: string;
-
-  public email!: string | null;
-
-  public password!: string | null;
-
-  public roleId!: string | null;
-
-  public createdBy!: string | null;
-
-  public updatedBy!: string | null;
-
-  public deletedAt!: Date | null;
-
-  public readonly createdAt!: Date;
-
-  public readonly updatedAt!: Date;
-} */
 
 interface UserInstance
   extends Model<UserAttributes, UserCreationAttributes>,
@@ -59,7 +33,6 @@ const User = sequelize.define<UserInstance>('user', {
   name: {
     type: DataTypes.STRING(100),
     allowNull: false,
-    // trim: true,
     validate: {
       notNull: {
         msg: 'Name is required!',
@@ -73,11 +46,9 @@ const User = sequelize.define<UserInstance>('user', {
   email: {
     type: DataTypes.STRING(100),
     defaultValue: null,
-    // trim: true,
     unique: true,
     validate: {
       isEmail: {
-        // args: true,
         msg: 'Invalid email address!',
       },
     },
@@ -85,7 +56,6 @@ const User = sequelize.define<UserInstance>('user', {
   password: {
     type: DataTypes.STRING,
     defaultValue: null,
-    // trim: true,
     validate: {
       len: {
         args: [32, 32],
@@ -111,11 +81,8 @@ const User = sequelize.define<UserInstance>('user', {
   },
 });
 
-/* User.associate = (models: any) => {
-    User.belongsTo(models.role, {
-      foreignKey: 'roleId',
-    });
-  }; */
+User.belongsTo(Role, {
+  foreignKey: 'roleId',
+});
 
-//   sequelizeTransforms(User);
 export default User;

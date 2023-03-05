@@ -4,32 +4,19 @@ import passport from 'passport';
 
 import sequelize from 'sequelize';
 import User from '../models/user';
-// const User = require('../models').user;
-// const Role = require('../models').role;
-/* const {
-  format,
-  RESPONSE: { CODE, STATUS },
-} = require('../config/response'); */
+import Role from '../models/role';
+
 import { format, CODE, STATUS } from '../config/response';
-// const { saveSessionActivity } = require('../middleware/auth');
+// import { saveSessionActivity } from '../middleware/auth';
 
 const { Op } = sequelize;
 
 const auth = async (req: Request, res: Response, next: NextFunction) => {
-  /* const user = await User.findOne({ where: { email: req.body.email } });
-  const response = format(
-    CODE[200],
-    STATUS.SUCCESS,
-    'Login successfully',
-    null,
-  );
-  return res.send(user); */
   passport.authenticate('local', (err: any, user: any) => {
     try {
       if (err) {
         return next(err);
       }
-      console.log('user============> ', user);
       if (!user) {
         const response = format(
           CODE[400],
@@ -104,8 +91,7 @@ const logout = async (req: Request, res: Response) => {
   }
 };
 
-/*
-module.exports.create = async (req, res) => {
+const create = async (req: Request, res: Response) => {
   try {
     if (
       !req.body
@@ -126,8 +112,8 @@ module.exports.create = async (req, res) => {
     if (req.body.password) {
       req.body.password = md5(req.body.password.trim());
     }
-    req.body.createdBy = req.user.id;
-    req.body.updatedBy = req.user.id;
+    // req.body.createdBy = req.user.id;
+    // req.body.updatedBy = req.user.id;
     const user = await User.create(req.body);
     const userData = await User.findOne({
       include: [
@@ -150,7 +136,7 @@ module.exports.create = async (req, res) => {
     return res.send(response);
   }
 };
-*/
+
 const findWithPaginate = async (req: Request, res: Response) => {
   try {
     const page = Number(req.query.page);
@@ -171,11 +157,11 @@ const findWithPaginate = async (req: Request, res: Response) => {
     }
 
     const users = await User.findAndCountAll({
-      /* include: [
+      include: [
         {
           model: Role,
         },
-      ], */
+      ],
       where: condition,
       order: [['createdAt', 'DESC']],
       offset,
@@ -189,9 +175,8 @@ const findWithPaginate = async (req: Request, res: Response) => {
     res.send(response);
   }
 };
-export default { auth, findWithPaginate, logout };
-/*
-module.exports.findById = async (req, res) => {
+
+const findById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const user = await User.findOne({
@@ -224,7 +209,7 @@ module.exports.findById = async (req, res) => {
   }
 };
 
-module.exports.update = async (req, res) => {
+const update = async (req: Request, res: Response) => {
   try {
     if (
       !req.body
@@ -246,7 +231,7 @@ module.exports.update = async (req, res) => {
       req.body.password = md5(req.body.password.trim());
     }
     req.body.password = md5(req.body.password.trim());
-    req.body.updatedBy = req.user.id;
+    // req.body.updatedBy = req.user!.id;
     await User.update(req.body, {
       where: {
         id: req.params.id,
@@ -272,4 +257,12 @@ module.exports.update = async (req, res) => {
     return res.send(response);
   }
 };
- */
+
+export default {
+  auth,
+  create,
+  findWithPaginate,
+  logout,
+  findById,
+  update,
+};

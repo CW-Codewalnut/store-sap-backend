@@ -1,16 +1,3 @@
-/* module.exports = (sequelize, Sequelize) => {
-  const segment = sequelize.define('Session', {
-    sid: {
-      type: Sequelize.STRING,
-      primaryKey: true,
-    },
-    userId: Sequelize.STRING,
-    expires: Sequelize.DATE,
-    data: Sequelize.TEXT,
-  });
-  return segment;
-}; */
-
 import {
   Model,
   DataTypes,
@@ -55,4 +42,4 @@ const Session = sequelize.define<SessionModel>(
   },
 );
 
-export { Session };
+export default Session;

@@ -18,7 +18,6 @@ function extendDefaultFields(defaults: any, _session: any) {
 }
 
 const sessionFn = (app: Application) => {
-  console.log('here=======================', config.sessionSecret);
   const sequelizeStore = new SequelizeStore({
     db: sequelize,
     // table: 'Session',

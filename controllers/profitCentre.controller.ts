@@ -1,10 +1,8 @@
-const ProfitCentre = require('../models').profit_centre;
-const {
-  format,
-  RESPONSE: { CODE, STATUS },
-} = require('../config/response');
+import { Request, Response } from 'express';
+import ProfitCentre from '../models/profit-centre';
+import { format, CODE, STATUS } from '../config/response';
 
-module.exports.getProfitCentreByCostCentreId = async (req, res) => {
+const getProfitCentreByCostCentreId = async (req: Request, res: Response) => {
   try {
     const { costCentreId } = req.params;
     const profitCentres = await ProfitCentre.findAll({
@@ -17,8 +15,10 @@ module.exports.getProfitCentreByCostCentreId = async (req, res) => {
       profitCentres,
     );
     res.status(200).send(response);
-  } catch (err) {
+  } catch (err: any) {
     const response = format(CODE[500], STATUS.FAILURE, err, null);
     res.send(response);
   }
 };
+
+export default { getProfitCentreByCostCentreId };

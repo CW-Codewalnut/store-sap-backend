@@ -16,11 +16,11 @@ const routesFn = (app: Application) => {
     UserController.findWithPaginate,
   );
   app.get('/logout', checkAuthenticated, UserController.logout);
-  /*
+
   app.post('/user', checkAuthenticated, UserController.create);
 
   app.get('/users/:id', checkAuthenticated, UserController.findById);
-  app.patch('/users/:id', checkAuthenticated, UserController.update); */
+  app.patch('/users/:id', checkAuthenticated, UserController.update);
 
   /* app.get('/roles', checkAuthenticated, RoleController.findAll);
   app.post('/role', checkAuthenticated, RoleController.create);

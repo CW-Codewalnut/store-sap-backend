@@ -1,17 +1,12 @@
-const _ = require('lodash');
-const Role = require('../models').role;
-const Permission = require('../models').permission;
-const RolePermission = require('../models').role_permission;
-const {
-  format,
-  RESPONSE: { CODE, STATUS },
-} = require('../config/response');
+import { Request, Response } from 'express';
+import lodash from 'lodash';
+import { Op } from 'sequelize';
+import Role from '../models/role';
+import Permission from '../models/permission';
+import RolePermission from '../models/role-permission';
+import { format, CODE, STATUS } from '../config/response';
 
-const db = require('../models');
-
-const { Op } = db.Sequelize;
-
-module.exports.create = async (req, res) => {
+const create = async (req: Request, res: Response) => {
   try {
     if (!req.body || !req.body.name || !req.body.description) {
       const response = format(
@@ -22,8 +17,8 @@ module.exports.create = async (req, res) => {
       );
       return res.send(response);
     }
-    req.body.createdBy = req.user.id;
-    req.body.updatedBy = req.user.id;
+    // req.body.createdBy = req.user.id;
+    // req.body.updatedBy = req.user.id;
     const role = await Role.create(req.body);
     const { id } = role;
     const roleData = await Role.findByPk(id);
@@ -41,7 +36,7 @@ module.exports.create = async (req, res) => {
   }
 };
 
-module.exports.findAll = async (req, res) => {
+const findAll = async (req: Request, res: Response) => {
   try {
     const roles = await Role.findAll({
       order: [['name', 'ASC']],
@@ -49,13 +44,13 @@ module.exports.findAll = async (req, res) => {
 
     const response = format(CODE[200], STATUS.SUCCESS, 'Fetched', roles);
     res.status(200).send(response);
-  } catch (err) {
+  } catch (err: any) {
     const response = format(CODE[500], STATUS.FAILURE, err, null);
     res.send(response);
   }
 };
 
-module.exports.findById = async (req, res) => {
+const findById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const role = await Role.findByPk(id);
@@ -81,7 +76,7 @@ module.exports.findById = async (req, res) => {
   }
 };
 
-module.exports.update = async (req, res) => {
+const update = async (req: Request, res: Response) => {
   try {
     if (!req.body || !req.body.name || !req.body.description) {
       const response = format(
@@ -93,7 +88,7 @@ module.exports.update = async (req, res) => {
       return res.send(response);
     }
     const { id } = req.params;
-    req.body.updatedBy = req.user.id;
+    // req.body.updatedBy = req.user.id;
     await Role.update(req.body, {
       where: { id },
     });
@@ -111,7 +106,7 @@ module.exports.update = async (req, res) => {
   }
 };
 
-module.exports.findRolePermissions = async (req, res) => {
+const findRolePermissions = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -123,9 +118,9 @@ module.exports.findRolePermissions = async (req, res) => {
       where: { roleId: id },
       include: ['role', 'permission'],
     });
-    const groupedPermission = _.groupBy(permissions, 'groupName');
+    const groupedPermission = lodash.groupBy(permissions, 'groupName');
     const keys = Object.keys(groupedPermission);
-    const permissionIds = data.map((i) => i.permissionId);
+    const permissionIds = data.map((i: any) => i.permissionId);
     const newData = {
       data,
       permissions: groupedPermission,
@@ -136,19 +131,20 @@ module.exports.findRolePermissions = async (req, res) => {
     };
     const response = format(CODE[200], STATUS.SUCCESS, 'Fetched', newData);
     res.send(response);
-  } catch (err) {
+  } catch (err: any) {
     const response = format(CODE[500], STATUS.FAILURE, err, null);
     res.status(400).send(response);
   }
 };
 
-module.exports.updateRolePermissions = (req, res) => {
+const updateRolePermissions = (req: Request, res: Response) => {
   try {
     if (!req.body && !req.params) {
       const response = format(
         CODE[400],
         STATUS.FAILURE,
         'Content can not be empty!',
+        null,
       );
       return res.send(response);
     }
@@ -173,12 +169,12 @@ module.exports.updateRolePermissions = (req, res) => {
     });
     let response;
     if (permissions && permissions.length > 0) {
-      permissions.forEach(async (id) => {
+      permissions.forEach(async (id: string) => {
         const obj = {
           roleId: req.params.id,
           permissionId: id,
-          createdBy: req.user.id,
-          updatedBy: req.user.id,
+          // createdBy: req.user.id,
+          // updatedBy: req.user.id,
         };
 
         const data = await RolePermission.findOne({
@@ -194,9 +190,17 @@ module.exports.updateRolePermissions = (req, res) => {
       response = format(CODE[200], STATUS.SUCCESS, 'success', null);
     }
     return res.send(response);
-  } catch (err) {
-    console.log('err===========> ', err);
+  } catch (err: any) {
     const response = format(CODE[500], STATUS.FAILURE, err, null);
     return res.send(response);
   }
+};
+
+export default {
+  create,
+  findAll,
+  findById,
+  update,
+  findRolePermissions,
+  updateRolePermissions,
 };
