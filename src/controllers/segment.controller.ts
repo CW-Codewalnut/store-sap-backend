@@ -1,10 +1,7 @@
 import { Request, Response } from 'express';
 
 import Segment from '../models/segment';
-import {
-  format,
-  CODE, STATUS
-} from '../config/response';
+import { format, CODE, STATUS } from '../config/response';
 
 const getSegmentsByProfitCentreId = async (req: Request, res: Response) => {
   try {
