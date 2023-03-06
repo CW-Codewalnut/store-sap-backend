@@ -14,9 +14,9 @@
 
 ## Testing checklist - Please check off
 
-- [ ] I have written unit tests for all components files I've worked on, these tests cover what the user sees and how the UI changes when they interact with it.
-- [ ] I have written unit tests for all helper functions I've worked on, that cover use-cases and edge-cases.
-- [ ] I have written integration tests for features I've worked on, to ensure my api work together as I expect.
+- [ ] I have written unit tests for all components and modules that I have worked on, which cover both positive and negative use-cases.
+- [ ] I have written unit tests for all helper functions that I have worked on, which cover both common and edge-cases.
+- [ ] I have written integration tests for the features that I have worked on, which cover the end-to-end functionality of the API.
 
 ### If you have not added tests for any of the above, please explain why below.
 
@@ -26,6 +26,6 @@
 
 - [ ] I have completed the above testing checklist so my code is well tested and I have confidence my code works as I expect in a variety of situations.
 - [ ] I have Eslint and Prettier enabled to run on file save and I have fixed all errors highlighted by Eslint.
-- [ ] I have added complete type defintions without using `any` for all my controllers, models and helper functions.
+- [ ] I have added complete type definitions without using `any` for all my controllers, models and helper functions.
 - [ ] I have deleted all non-descriptive comments and dead code from the files I've touched.
 - [ ] I have rebased my branch with the base branch I want to merge into and all the commits in this PR are my own.
