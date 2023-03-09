@@ -7,7 +7,7 @@ import { Session, Cookie } from 'express-session';
 import User from '../models/user';
 import Role from '../models/role';
 
-import { format, CODE, STATUS } from '../config/response';
+import { responseFormatter, CODE, STATUS } from '../config/response';
 import { saveSessionActivity } from '../middleware/auth';
 import SessionActivity from '../models/session-activity';
 
@@ -27,7 +27,7 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
         return next(err);
       }
       if (!user) {
-        const response = format(
+        const response = responseFormatter(
           CODE[400],
           STATUS.FAILURE,
           'Invalid credentials',
@@ -39,19 +39,17 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
         if (loginErr) {
           return next(loginErr);
         }
-        const mySession = req.session as MySession;
-        mySession.userId = user.id;
 
-        const myCookie = req.session.cookie as MyCookie;
-        const { _expires } = myCookie;
+        req.session.userId = user.id;
+        req.body.isExpired = req.session.cookie.expires;
+        const userId: string = user.id;
 
-        req.body.isExpired = _expires;
-
-        return saveSessionActivity(
-          { req, userId: user.id },
-          (errSession: any) => {
+        return saveSessionActivity({
+          req,
+          userId,
+          callBackFn: (errSession: any) => {
             if (errSession) {
-              const response = format(
+              const response = responseFormatter(
                 CODE[500],
                 STATUS.FAILURE,
                 errSession,
@@ -60,18 +58,18 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
               return res.send(response);
             }
 
-            const response = format(
+            const response = responseFormatter(
               CODE[200],
               STATUS.SUCCESS,
-              'Login successfully',
+              'Logged in successfully',
               null,
             );
             return res.send(response);
           },
-        );
+        });
       });
     } catch (error) {
-      const response = format(
+      const response = responseFormatter(
         CODE[500],
         STATUS.FAILURE,
         JSON.stringify(error),
@@ -84,11 +82,16 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
 
 const logout = async (req: Request, res: Response) => {
   try {
-    req.session.destroy((err: any) => console.log);
-    const response = format(CODE[200], STATUS.SUCCESS, 'Logout securely', null);
+    req.session.destroy((err: any) => console.warn(err.message));
+    const response = responseFormatter(
+      CODE[200],
+      STATUS.SUCCESS,
+      'Logout securely',
+      null,
+    );
     return res.send(response);
   } catch (err) {
-    const response = format(
+    const response = responseFormatter(
       CODE[400],
       STATUS.FAILURE,
       JSON.stringify(err),
@@ -107,7 +110,7 @@ const create = async (req: Request, res: Response) => {
       || !req.body.password
       || !req.body.roleId
     ) {
-      const response = format(
+      const response = responseFormatter(
         CODE[400],
         STATUS.FAILURE,
         'Content can not be empty!',
@@ -130,11 +133,15 @@ const create = async (req: Request, res: Response) => {
       ],
       where: { id: user.id },
     });
-    const response = format(CODE[201], STATUS.SUCCESS, 'Created', userData);
+    const response = responseFormatter(
+      CODE[201],
+      STATUS.SUCCESS,
+      'Created',
+      userData,
+    );
     return res.status(201).send(response);
   } catch (err) {
-    console.log(err);
-    const response = format(
+    const response = responseFormatter(
       CODE[500],
       STATUS.FAILURE,
       JSON.stringify(err),
@@ -175,10 +182,15 @@ const findWithPaginate = async (req: Request, res: Response) => {
       limit,
     });
 
-    const response = format(CODE[200], STATUS.SUCCESS, 'Fetched', users);
+    const response = responseFormatter(
+      CODE[200],
+      STATUS.SUCCESS,
+      'Fetched',
+      users,
+    );
     res.status(200).send(response);
   } catch (err: any) {
-    const response = format(CODE[500], STATUS.FAILURE, err, null);
+    const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
     res.send(response);
   }
 };
@@ -195,7 +207,7 @@ const findById = async (req: Request, res: Response) => {
       where: { id },
     });
     if (!user) {
-      const response = format(
+      const response = responseFormatter(
         CODE[404],
         STATUS.SUCCESS,
         'Data not found',
@@ -203,10 +215,15 @@ const findById = async (req: Request, res: Response) => {
       );
       return res.status(200).send(response);
     }
-    const response = format(CODE[200], STATUS.SUCCESS, 'Fetched', user);
+    const response = responseFormatter(
+      CODE[200],
+      STATUS.SUCCESS,
+      'Fetched',
+      user,
+    );
     return res.status(200).send(response);
   } catch (err) {
-    const response = format(
+    const response = responseFormatter(
       CODE[500],
       STATUS.FAILURE,
       JSON.stringify(err),
@@ -225,7 +242,7 @@ const update = async (req: Request, res: Response) => {
       || !req.body.password
       || !req.body.roleId
     ) {
-      const response = format(
+      const response = responseFormatter(
         CODE[400],
         STATUS.FAILURE,
         'Content can not be empty!',
@@ -252,10 +269,15 @@ const update = async (req: Request, res: Response) => {
       ],
       where: { id: req.params.id },
     });
-    const response = format(CODE[200], STATUS.SUCCESS, 'Updated', userData);
+    const response = responseFormatter(
+      CODE[200],
+      STATUS.SUCCESS,
+      'Updated',
+      userData,
+    );
     return res.send(response);
   } catch (err) {
-    const response = format(
+    const response = responseFormatter(
       CODE[500],
       STATUS.FAILURE,
       JSON.stringify(err),

@@ -14,32 +14,26 @@ interface SessionModel
   > {
   sid: string;
   userId: CreationOptional<string>;
-  expires: CreationOptional<string>;
+  expires: Date;
   data: CreationOptional<string>;
 }
-const Session = sequelize.define<SessionModel>(
-  'Session',
-  {
-    sid: {
-      type: DataTypes.STRING,
-      primaryKey: true,
-    },
-    userId: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    expires: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    data: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
+const Session = sequelize.define<SessionModel>('Session', {
+  sid: {
+    type: DataTypes.STRING,
+    primaryKey: true,
   },
-  {
-    tableName: 'Sessions',
+  userId: {
+    type: DataTypes.STRING,
+    allowNull: true,
   },
-);
+  expires: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  data: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+});
 
 export default Session;

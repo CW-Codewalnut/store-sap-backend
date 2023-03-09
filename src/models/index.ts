@@ -1,6 +1,6 @@
 import { Sequelize } from 'sequelize';
 import configEnv from '../config/config';
-import { Config } from '../interfaces/config/Config.interface';
+import Config from '../interfaces/config/Config.type';
 
 const config = configEnv[process.env.NODE_ENV as keyof Config];
 

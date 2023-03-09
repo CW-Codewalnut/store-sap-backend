@@ -2,24 +2,34 @@ import { Application } from 'express';
 import session, { SessionOptions, CookieOptions } from 'express-session';
 import ConnectSession from 'connect-session-sequelize';
 import configEnv from '../config/config';
-import { Config } from '../interfaces/config/Config.interface';
+import Config from '../interfaces/config/Config.type';
 
 import { sequelize } from '../models';
+import {
+  DefaultFields,
+  ExtendReturnData,
+} from '../interfaces/session/session.interface';
+
+require('../models/session');
 
 const SequelizeStore = ConnectSession(session.Store);
 const config = configEnv[process.env.NODE_ENV as keyof Config];
 
-function extendDefaultFields(defaults: any, _session: any) {
+function extendDefaultFields(
+  defaults: DefaultFields,
+  session: any,
+): ExtendReturnData {
   return {
     data: defaults.data,
     expires: defaults.expires,
-    userId: _session.userId,
+    userId: session.userId,
   };
 }
 
 const sessionMiddleware = (app: Application) => {
   const sequelizeStore = new SequelizeStore({
     db: sequelize,
+    table: 'Session',
     extendDefaultFields,
   });
 

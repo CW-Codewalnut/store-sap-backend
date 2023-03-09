@@ -1,4 +1,4 @@
-import { Config } from '../interfaces/config/Config.interface';
+import Config from '../interfaces/config/Config.type';
 
 require('dotenv').config();
 

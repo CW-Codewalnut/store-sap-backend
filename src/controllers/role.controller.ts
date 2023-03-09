@@ -1,15 +1,15 @@
 import { Request, Response } from 'express';
-import lodash from 'lodash';
+import groupBy from 'lodash.groupby';
 import { Op } from 'sequelize';
 import Role from '../models/role';
 import Permission from '../models/permission';
 import RolePermission from '../models/role-permission';
-import { format, CODE, STATUS } from '../config/response';
+import { responseFormatter, CODE, STATUS } from '../config/response';
 
 const create = async (req: Request, res: Response) => {
   try {
     if (!req.body || !req.body.name || !req.body.description) {
-      const response = format(
+      const response = responseFormatter(
         CODE[400],
         STATUS.FAILURE,
         'Content can not be empty!',
@@ -22,11 +22,15 @@ const create = async (req: Request, res: Response) => {
     const role = await Role.create(req.body);
     const { id } = role;
     const roleData = await Role.findByPk(id);
-    const response = format(CODE[201], STATUS.SUCCESS, 'Created', roleData);
+    const response = responseFormatter(
+      CODE[201],
+      STATUS.SUCCESS,
+      'Created',
+      roleData,
+    );
     return res.status(201).send(response);
   } catch (err) {
-    console.log(err);
-    const response = format(
+    const response = responseFormatter(
       CODE[500],
       STATUS.FAILURE,
       JSON.stringify(err),
@@ -42,10 +46,15 @@ const findAll = async (req: Request, res: Response) => {
       order: [['name', 'ASC']],
     });
 
-    const response = format(CODE[200], STATUS.SUCCESS, 'Fetched', roles);
+    const response = responseFormatter(
+      CODE[200],
+      STATUS.SUCCESS,
+      'Fetched',
+      roles,
+    );
     res.status(200).send(response);
   } catch (err: any) {
-    const response = format(CODE[500], STATUS.FAILURE, err, null);
+    const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
     res.send(response);
   }
 };
@@ -55,7 +64,7 @@ const findById = async (req: Request, res: Response) => {
     const { id } = req.params;
     const role = await Role.findByPk(id);
     if (!role) {
-      const response = format(
+      const response = responseFormatter(
         CODE[404],
         STATUS.SUCCESS,
         'Data not found',
@@ -63,10 +72,15 @@ const findById = async (req: Request, res: Response) => {
       );
       return res.status(200).send(response);
     }
-    const response = format(CODE[200], STATUS.SUCCESS, 'Fetched', role);
+    const response = responseFormatter(
+      CODE[200],
+      STATUS.SUCCESS,
+      'Fetched',
+      role,
+    );
     return res.status(200).send(response);
   } catch (err) {
-    const response = format(
+    const response = responseFormatter(
       CODE[500],
       STATUS.FAILURE,
       JSON.stringify(err),
@@ -79,7 +93,7 @@ const findById = async (req: Request, res: Response) => {
 const update = async (req: Request, res: Response) => {
   try {
     if (!req.body || !req.body.name || !req.body.description) {
-      const response = format(
+      const response = responseFormatter(
         CODE[400],
         STATUS.FAILURE,
         'Content can not be empty!',
@@ -93,10 +107,15 @@ const update = async (req: Request, res: Response) => {
       where: { id },
     });
     const roleData = await Role.findByPk(id);
-    const response = format(CODE[200], STATUS.SUCCESS, 'Updated', roleData);
+    const response = responseFormatter(
+      CODE[200],
+      STATUS.SUCCESS,
+      'Updated',
+      roleData,
+    );
     return res.send(response);
   } catch (err) {
-    const response = format(
+    const response = responseFormatter(
       CODE[500],
       STATUS.FAILURE,
       JSON.stringify(err),
@@ -114,25 +133,32 @@ const findRolePermissions = async (req: Request, res: Response) => {
 
     const permissions = await Permission.findAll();
 
-    const data = await RolePermission.findAll({
+    const rolePermissions = await RolePermission.findAll({
       where: { roleId: id },
       include: ['role', 'permission'],
     });
-    const groupedPermission = lodash.groupBy(permissions, 'groupName');
+    const groupedPermission = groupBy(permissions, 'groupName');
     const keys = Object.keys(groupedPermission);
-    const permissionIds = data.map((i: any) => i.permissionId);
+    const permissionIds = rolePermissions.map(
+      (rolePermission: any) => rolePermission.permissionId,
+    );
     const newData = {
-      data,
+      rolePermissions,
       permissions: groupedPermission,
       keys,
       permissionIds,
       roleId: id,
       role: roleData,
     };
-    const response = format(CODE[200], STATUS.SUCCESS, 'Fetched', newData);
+    const response = responseFormatter(
+      CODE[200],
+      STATUS.SUCCESS,
+      'Fetched',
+      newData,
+    );
     res.send(response);
   } catch (err: any) {
-    const response = format(CODE[500], STATUS.FAILURE, err, null);
+    const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
     res.status(400).send(response);
   }
 };
@@ -140,7 +166,7 @@ const findRolePermissions = async (req: Request, res: Response) => {
 const updateRolePermissions = (req: Request, res: Response) => {
   try {
     if (!req.body && !req.params) {
-      const response = format(
+      const response = responseFormatter(
         CODE[400],
         STATUS.FAILURE,
         'Content can not be empty!',
@@ -148,14 +174,14 @@ const updateRolePermissions = (req: Request, res: Response) => {
       );
       return res.send(response);
     }
-    const { permissions } = req.body;
+    const { permissionIds } = req.body;
     let query;
-    if (permissions && permissions.length > 0) {
+    if (permissionIds && permissionIds.length > 0) {
       query = {
         [Op.and]: [
           {
             permissionId: {
-              [Op.notIn]: permissions,
+              [Op.notIn]: permissionIds,
             },
           },
           { roleId: req.body.id },
@@ -168,30 +194,29 @@ const updateRolePermissions = (req: Request, res: Response) => {
       where: query,
     });
     let response;
-    if (permissions && permissions.length > 0) {
-      permissions.forEach(async (id: string) => {
-        const obj: any = {
-          roleId: req.params.id,
-          permissionId: id,
-          createdBy: req.user.id,
-          updatedBy: req.user.id,
-        };
-
+    if (permissionIds && permissionIds.length > 0) {
+      permissionIds.forEach(async (id: string) => {
         const data = await RolePermission.findOne({
           where: { [Op.and]: [{ roleId: req.params.id }, { permissionId: id }] },
         });
 
         if (data == null || !data) {
-          RolePermission.create(obj);
+          const rolePermissionData: any = {
+            roleId: req.params.id,
+            permissionId: id,
+            createdBy: req.user.id,
+            updatedBy: req.user.id,
+          };
+          RolePermission.create(rolePermissionData);
         }
       });
-      response = format(CODE[200], STATUS.SUCCESS, 'success', null);
+      response = responseFormatter(CODE[200], STATUS.SUCCESS, 'success', null);
     } else {
-      response = format(CODE[200], STATUS.SUCCESS, 'success', null);
+      response = responseFormatter(CODE[200], STATUS.SUCCESS, 'success', null);
     }
     return res.send(response);
   } catch (err: any) {
-    const response = format(CODE[500], STATUS.FAILURE, err, null);
+    const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
     return res.send(response);
   }
 };

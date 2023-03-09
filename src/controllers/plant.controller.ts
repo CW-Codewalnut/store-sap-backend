@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import UserPlant from '../models/user-plant';
 import Plant from '../models/plant';
-import { format, CODE, STATUS } from '../config/response';
+import { responseFormatter, CODE, STATUS } from '../config/response';
 
 const getPlantsByUserId = async (req: Request, res: Response) => {
   try {
@@ -14,10 +14,15 @@ const getPlantsByUserId = async (req: Request, res: Response) => {
       ],
       where: { userId },
     });
-    const response = format(CODE[200], STATUS.SUCCESS, 'Fetched', plants);
+    const response = responseFormatter(
+      CODE[200],
+      STATUS.SUCCESS,
+      'Fetched',
+      plants,
+    );
     res.status(200).send(response);
   } catch (err: any) {
-    const response = format(CODE[500], STATUS.FAILURE, err, null);
+    const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
     res.send(response);
   }
 };

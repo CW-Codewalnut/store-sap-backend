@@ -9,7 +9,7 @@ import passport from 'passport';
 import dotenv from 'dotenv';
 
 import configEnv from './config/config';
-import { Config } from './interfaces/config/Config.interface';
+import Config from './interfaces/config/Config.type';
 import sessionMiddleware from './middleware/session';
 import passportMiddleware from './middleware/passport';
 import routesMiddleware from './routes';
@@ -97,8 +97,8 @@ function onError(error: any) {
  */
 
 function onListening() {
-  const addr = server.address();
-  const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr!.port}`;
+  const addr: any = server.address();
+  const bind: string = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr.port}`;
   debug(`Listening on ${bind}`);
 }
 

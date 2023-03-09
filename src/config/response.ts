@@ -1,4 +1,9 @@
-const format = (code: number, statusFlag: string, msg: string, data: any) => {
+const responseFormatter = (
+  code: number,
+  statusFlag: string,
+  msg: string,
+  data: any,
+) => {
   const res = {
     code,
     status: statusFlag,
@@ -22,4 +27,4 @@ const STATUS = {
   FAILURE: 'failure',
 };
 
-export { format, CODE, STATUS };
+export { responseFormatter, CODE, STATUS };

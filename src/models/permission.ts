@@ -17,8 +17,8 @@ interface PermissionModel
   description: string;
   slug: string;
   groupName: string;
-  createdBy: string;
-  updatedBy: string;
+  created_by: string;
+  updated_by: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -56,11 +56,11 @@ const Permission = sequelize.define<PermissionModel>('permission', {
     defaultValue: null,
     allowNull: true,
   },
-  createdBy: {
+  created_by: {
     type: DataTypes.STRING(16),
     allowNull: false,
   },
-  updatedBy: {
+  updated_by: {
     type: DataTypes.STRING(16),
     allowNull: false,
   },

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import CostCentre from '../models/cost-centre';
-import { format, CODE, STATUS } from '../config/response';
+import { responseFormatter, CODE, STATUS } from '../config/response';
 
 const getCostCentreByPlantId = async (req: Request, res: Response) => {
   try {
@@ -8,10 +8,15 @@ const getCostCentreByPlantId = async (req: Request, res: Response) => {
     const costCentres = await CostCentre.findAll({
       where: { plantId },
     });
-    const response = format(CODE[200], STATUS.SUCCESS, 'Fetched', costCentres);
+    const response = responseFormatter(
+      CODE[200],
+      STATUS.SUCCESS,
+      'Fetched',
+      costCentres,
+    );
     res.status(200).send(response);
   } catch (err: any) {
-    const response = format(CODE[500], STATUS.FAILURE, err, null);
+    const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
     res.send(response);
   }
 };
