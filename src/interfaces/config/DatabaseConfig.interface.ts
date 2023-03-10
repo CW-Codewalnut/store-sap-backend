@@ -15,4 +15,4 @@ interface DatabaseConfig {
   demoUserToken: string;
 }
 
-export { DatabaseConfig }
+export { DatabaseConfig };
