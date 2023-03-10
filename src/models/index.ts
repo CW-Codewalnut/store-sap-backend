@@ -1,8 +1,9 @@
 import { Sequelize } from 'sequelize';
-import configEnv from '../config/config';
-import Config from '../interfaces/config/Config.type';
 
-const config = configEnv[process.env.NODE_ENV as keyof Config];
+const configs = require('../config/config');
+
+const env = process.env.NODE_ENV || 'local';
+const config = configs[env];
 
 const sequelize = new Sequelize(
   config.database,

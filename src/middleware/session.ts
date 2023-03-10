@@ -1,8 +1,6 @@
 import { Application } from 'express';
 import session, { SessionOptions, CookieOptions } from 'express-session';
 import ConnectSession from 'connect-session-sequelize';
-import configEnv from '../config/config';
-import Config from '../interfaces/config/Config.type';
 
 import { sequelize } from '../models';
 import {
@@ -10,10 +8,14 @@ import {
   ExtendReturnData,
 } from '../interfaces/session/session.interface';
 
+const configs = require('../config/config');
+
+const env = process.env.NODE_ENV || 'local';
+const config = configs[env];
+
 require('../models/session');
 
 const SequelizeStore = ConnectSession(session.Store);
-const config = configEnv[process.env.NODE_ENV as keyof Config];
 
 function extendDefaultFields(
   defaults: DefaultFields,
@@ -35,7 +37,7 @@ const sessionMiddleware = (app: Application) => {
 
   const cookieOptions: CookieOptions = {
     maxAge: 1000 * 60 * 60 * 24,
-    sameSite: 'none',
+    // sameSite: 'none',
     httpOnly: true,
   };
 

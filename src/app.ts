@@ -6,20 +6,17 @@ import debug from 'debug';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
-import dotenv from 'dotenv';
 
-import configEnv from './config/config';
-import Config from './interfaces/config/Config.type';
 import sessionMiddleware from './middleware/session';
 import passportMiddleware from './middleware/passport';
 import routesMiddleware from './routes';
 
-dotenv.config();
+const configs = require('./config/config');
+
+const env = process.env.NODE_ENV || 'local';
+const config = configs[env];
 
 const app: Application = express();
-const env = process.env.NODE_ENV;
-
-const config = configEnv[env as keyof Config];
 
 // Globals
 global.baseDir = __dirname;
@@ -97,8 +94,8 @@ function onError(error: any) {
  */
 
 function onListening() {
-  const addr: any = server.address();
-  const bind: string = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr.port}`;
+  const addr = server.address();
+  const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr?.port}`;
   debug(`Listening on ${bind}`);
 }
 
