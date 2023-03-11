@@ -12,10 +12,6 @@ module.exports = {
     logging: console.log,
     autoBackup: false,
     sessionSecret: process.env.SESSION_SECRET_KEY,
-    jwtSecretKey: process.env.JWT_SECRET_KEY,
-    jwtTokenExpireTime: process.env.JWT_TOKEN_EXPIRE_TIME,
-    refreshTokenExpiryTime: process.env.REFRESH_TOKEN_EXPIRY_TIME,
-    demoUserToken: process.env.DEMO_USER_TOKEN,
   },
   dev: {
     database: process.env.DEV_DB,
@@ -28,10 +24,6 @@ module.exports = {
     logging: console.log,
     autoBackup: false,
     sessionSecret: process.env.SESSION_SECRET_KEY,
-    jwtSecretKey: process.env.JWT_SECRET_KEY,
-    jwtTokenExpireTime: process.env.JWT_TOKEN_EXPIRE_TIME,
-    refreshTokenExpiryTime: process.env.REFRESH_TOKEN_EXPIRY_TIME,
-    demoUserToken: process.env.DEMO_USER_TOKEN,
   },
   uat: {
     database: process.env.UAT_DB,
@@ -44,10 +36,6 @@ module.exports = {
     logging: false,
     autoBackup: true,
     sessionSecret: process.env.SESSION_SECRET_KEY,
-    jwtSecretKey: process.env.JWT_SECRET_KEY,
-    jwtTokenExpireTime: process.env.JWT_TOKEN_EXPIRE_TIME,
-    refreshTokenExpiryTime: process.env.REFRESH_TOKEN_EXPIRY_TIME,
-    demoUserToken: process.env.DEMO_USER_TOKEN,
   },
   prod: {
     database: process.env.PROD_DB,
@@ -60,9 +48,5 @@ module.exports = {
     logging: false,
     autoBackup: true,
     sessionSecret: process.env.SESSION_SECRET_KEY,
-    jwtSecretKey: process.env.JWT_SECRET_KEY,
-    jwtTokenExpireTime: process.env.JWT_TOKEN_EXPIRE_TIME,
-    refreshTokenExpiryTime: process.env.REFRESH_TOKEN_EXPIRY_TIME,
-    demoUserToken: process.env.DEMO_USER_TOKEN,
   },
 };
