@@ -190,7 +190,6 @@ const findWithPaginate = async (req: Request, res: Response) => {
     );
     res.status(200).send(response);
   } catch (err: any) {
-    console.log('err========> ', err);
     const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
     res.send(response);
   }
