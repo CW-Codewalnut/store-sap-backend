@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { responseFormatter, CODE, STATUS } from '../config/response';
+import { MESSAGE } from '../utils/constant';
 import SessionActivity from '../models/session-activity';
 import sessionActivityArgs from '../interfaces/sessionActivity/sessionActivity.interface';
 
@@ -12,9 +13,9 @@ const checkAuthenticated = (
     return next();
   }
   const response = responseFormatter(
-    CODE[440],
+    CODE[401],
     STATUS.FAILURE,
-    'Bad request',
+    MESSAGE.UNAUTHORIZED,
     null,
   );
   return res.send(response);
@@ -31,6 +32,25 @@ const checkLoggedIn = (req: Request, res: Response, next: NextFunction) => {
     return res.send(response);
   }
   return next();
+};
+
+const verifyRouteAccess = (req: Request, res: Response, next: NextFunction) => {
+  if (req.isAuthenticated()) {
+    const response = responseFormatter(
+      CODE[200],
+      STATUS.SUCCESS,
+      MESSAGE.AUTHORIZED,
+      null,
+    );
+    return res.send(response);
+  }
+  const response = responseFormatter(
+    CODE[401],
+    STATUS.FAILURE,
+    MESSAGE.UNAUTHORIZED,
+    null,
+  );
+  return res.send(response);
 };
 
 const saveSessionActivity = ({
@@ -58,4 +78,9 @@ const saveSessionActivity = ({
   }
 };
 
-export { checkAuthenticated, checkLoggedIn, saveSessionActivity };
+export {
+  checkAuthenticated,
+  checkLoggedIn,
+  verifyRouteAccess,
+  saveSessionActivity,
+};

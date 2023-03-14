@@ -7,10 +7,11 @@ import ProfitCenterController from '../controllers/profitCentre.controller';
 import SegmentController from '../controllers/segment.controller';
 import RoleController from '../controllers/role.controller';
 
-import { checkAuthenticated } from '../middleware/auth';
+import { checkAuthenticated, verifyRouteAccess } from '../middleware/auth';
 
 const routesMiddleware = (app: Application) => {
   app.post('/auth', UserController.auth);
+  app.get('/route/verify', verifyRouteAccess);
   app.get(
     '/users/paginate',
     checkAuthenticated,

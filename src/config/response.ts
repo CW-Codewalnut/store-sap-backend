@@ -17,14 +17,14 @@ const CODE = {
   200: 200,
   201: 201,
   400: 400,
+  401: 401,
   404: 404,
-  440: 400,
   500: 500,
 };
 
 const STATUS = {
-  SUCCESS: 'success',
   FAILURE: 'failure',
+  SUCCESS: 'success',
 };
 
 export { responseFormatter, CODE, STATUS };
