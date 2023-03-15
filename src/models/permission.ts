@@ -4,8 +4,8 @@ import {
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
-import { nanoid } from 'nanoid';
-import { sequelize } from '.';
+import {nanoid} from 'nanoid';
+import {sequelize} from '.';
 
 interface PermissionModel
   extends Model<
@@ -17,10 +17,10 @@ interface PermissionModel
   description: string;
   slug: string;
   groupName: string;
-  created_by: string;
-  updated_by: string;
-  createdAt: string;
-  updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const Permission = sequelize.define<PermissionModel>('permission', {
@@ -56,11 +56,11 @@ const Permission = sequelize.define<PermissionModel>('permission', {
     defaultValue: null,
     allowNull: true,
   },
-  created_by: {
+  createdBy: {
     type: DataTypes.STRING(16),
     allowNull: false,
   },
-  updated_by: {
+  updatedBy: {
     type: DataTypes.STRING(16),
     allowNull: false,
   },

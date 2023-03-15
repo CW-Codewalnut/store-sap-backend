@@ -1,28 +1,15 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('profit_centres', {
+    await queryInterface.createTable('modules', {
       id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING(16),
       },
-      profitCentre: {
-        allowNull: false,
-        unique: true,
-        type: Sequelize.BIGINT(10),
-      },
-      sapDescription: {
+      name: {
         allowNull: false,
         unique: true,
         type: Sequelize.STRING,
-      },
-      costCentreId: {
-        allowNull: false,
-        type: Sequelize.STRING(16),
-        references: {
-          model: 'cost_centres',
-          key: 'id',
-        },
       },
       createdBy: {
         allowNull: true,
@@ -43,6 +30,6 @@ module.exports = {
     });
   },
   async down(queryInterface) {
-    await queryInterface.dropTable('profit-centres');
+    await queryInterface.dropTable('modules');
   },
 };

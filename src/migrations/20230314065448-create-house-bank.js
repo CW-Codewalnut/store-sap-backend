@@ -1,35 +1,40 @@
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('permissions', {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('house_banks', {
       id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING(16),
       },
-      name: {
+      ifsc: {
+        type: Sequelize.STRING(30),
+        allowNull: false,
+        unique: true,
+      },
+      bankName: {
+        type: Sequelize.STRING(100),
+        allowNull: false,
+        unique: true,
+      },
+      street: {
         type: Sequelize.STRING(100),
         allowNull: false,
       },
-      description: {
-        type: Sequelize.STRING,
+      city: {
+        type: Sequelize.STRING(50),
         allowNull: false,
       },
-      slug: {
-        type: Sequelize.STRING(100),
+      bankBranch: {
+        type: Sequelize.STRING(50),
         allowNull: false,
-      },
-      groupName: {
-        type: Sequelize.STRING,
-        defaultValue: null,
-        allowNull: true,
       },
       createdBy: {
+        allowNull: true,
         type: Sequelize.STRING(16),
-        allowNull: false,
       },
       updatedBy: {
+        allowNull: true,
         type: Sequelize.STRING(16),
-        allowNull: false,
       },
       createdAt: {
         allowNull: false,
@@ -41,7 +46,7 @@ module.exports = {
       },
     });
   },
-  down: async (queryInterface) => {
-    await queryInterface.dropTable('permissions');
+  async down(queryInterface) {
+    await queryInterface.dropTable('house_banks');
   },
 };

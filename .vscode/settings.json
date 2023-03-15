@@ -1,19 +1,22 @@
 {
-    "editor.formatOnPaste": false,
-    "editor.formatOnSave": true,
-    "editor.formatOnType": false,
-    "editor.formatOnSaveMode": "file",
-    "files.autoSave": "onFocusChange",
-    "prettier.eslintIntegration": true,
-    "[javascript]": {
-        "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
-    },
-    "[css]": {
-        "editor.defaultFormatter": "vscode.css-language-features"
-    },
-    "cSpell.words": [
-        "codewalnut",
-        "resave",
-        "Umesh"
-    ]
+  "editor.formatOnPaste": false,
+  "editor.formatOnSave": true,
+  "editor.formatOnType": false,
+  "editor.formatOnSaveMode": "file",
+  "files.autoSave": "onFocusChange",
+  "prettier.eslintIntegration": true,
+  "[javascript]": {
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "vscode.css-language-features"
+  },
+  "cSpell.words": [
+    "codewalnut",
+    "groupby",
+    "ifsc",
+    "pincode",
+    "resave",
+    "Umesh"
+  ]
 }

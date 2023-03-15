@@ -1,26 +1,35 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('profit_centres', {
+    await queryInterface.createTable('gl_accounts', {
       id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING(16),
       },
-      profitCentre: {
-        allowNull: false,
-        unique: true,
+      glAccounts: {
         type: Sequelize.BIGINT(10),
-      },
-      sapDescription: {
         allowNull: false,
         unique: true,
-        type: Sequelize.STRING,
       },
-      costCentreId: {
+      shortText: {
+        type: Sequelize.BIGINT(10),
+        allowNull: false,
+        unique: true,
+      },
+      longText: {
+        type: Sequelize.BIGINT(10),
+        allowNull: false,
+        unique: true,
+      },
+      glTypeId: {
+        allowNull: false,
+        type: Sequelize.STRING(16),
+      },
+      businessTransactionId: {
         allowNull: false,
         type: Sequelize.STRING(16),
         references: {
-          model: 'cost_centres',
+          model: 'business_transactions',
           key: 'id',
         },
       },
@@ -43,6 +52,6 @@ module.exports = {
     });
   },
   async down(queryInterface) {
-    await queryInterface.dropTable('profit-centres');
+    await queryInterface.dropTable('gl_accounts');
   },
 };
