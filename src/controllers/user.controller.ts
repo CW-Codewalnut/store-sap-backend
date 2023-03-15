@@ -1,24 +1,15 @@
-import { Request, Response, NextFunction } from 'express';
+import {Request, Response, NextFunction} from 'express';
 import md5 from 'md5';
 import passport from 'passport';
 
 import sequelize from 'sequelize';
-import { Session, Cookie } from 'express-session';
 import User from '../models/user';
 import Role from '../models/role';
 
-import { responseFormatter, CODE, STATUS } from '../config/response';
-import { saveSessionActivity } from '../middleware/auth';
-import SessionActivity from '../models/session-activity';
+import {responseFormatter, CODE, STATUS} from '../config/response';
+import {saveSessionActivity} from '../middleware/auth';
 
-interface MySession extends Session {
-  userId?: string;
-}
-interface MyCookie extends Cookie {
-  _expires?: Date;
-}
-
-const { Op } = sequelize;
+const {Op} = sequelize;
 
 const auth = async (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('local', (err: any, user: any) => {
@@ -35,7 +26,7 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
         );
         return res.send(response);
       }
-      return req.logIn(user, (loginErr) => {
+      return req.logIn(user, loginErr => {
         if (loginErr) {
           return next(loginErr);
         }
@@ -104,11 +95,11 @@ const logout = async (req: Request, res: Response) => {
 const create = async (req: Request, res: Response) => {
   try {
     if (
-      !req.body
-      || !req.body.name
-      || !req.body.email
-      || !req.body.password
-      || !req.body.roleId
+      !req.body ||
+      !req.body.name ||
+      !req.body.email ||
+      !req.body.password ||
+      !req.body.roleId
     ) {
       const response = responseFormatter(
         CODE[400],
@@ -131,7 +122,7 @@ const create = async (req: Request, res: Response) => {
           model: Role,
         },
       ],
-      where: { id: user.id },
+      where: {id: user.id},
     });
     const response = responseFormatter(
       CODE[201],
@@ -155,7 +146,7 @@ const findWithPaginate = async (req: Request, res: Response) => {
   try {
     const page = Number(req.query.page);
     const pageSize = Number(req.query.pageSize);
-    const { search } = req.query;
+    const {search} = req.query;
     const offset = page * pageSize - pageSize;
     const limit = pageSize;
     let condition = {};
@@ -163,9 +154,9 @@ const findWithPaginate = async (req: Request, res: Response) => {
     if (search) {
       condition = {
         [Op.or]: {
-          name: { [Op.like]: `%${search}%` },
-          mobile: { [Op.like]: `%${search}%` },
-          email: { [Op.like]: `%${search}%` },
+          name: {[Op.like]: `%${search}%`},
+          mobile: {[Op.like]: `%${search}%`},
+          email: {[Op.like]: `%${search}%`},
         },
       };
     }
@@ -197,14 +188,14 @@ const findWithPaginate = async (req: Request, res: Response) => {
 
 const findById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const {id} = req.params;
     const user = await User.findOne({
       include: [
         {
           model: Role,
         },
       ],
-      where: { id },
+      where: {id},
     });
     if (!user) {
       const response = responseFormatter(
@@ -236,11 +227,11 @@ const findById = async (req: Request, res: Response) => {
 const update = async (req: Request, res: Response) => {
   try {
     if (
-      !req.body
-      || !req.body.name
-      || !req.body.email
-      || !req.body.password
-      || !req.body.roleId
+      !req.body ||
+      !req.body.name ||
+      !req.body.email ||
+      !req.body.password ||
+      !req.body.roleId
     ) {
       const response = responseFormatter(
         CODE[400],
@@ -267,7 +258,7 @@ const update = async (req: Request, res: Response) => {
           model: Role,
         },
       ],
-      where: { id: req.params.id },
+      where: {id: req.params.id},
     });
     const response = responseFormatter(
       CODE[200],

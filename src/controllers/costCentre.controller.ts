@@ -14,10 +14,10 @@ const getCostCentreByPlantId = async (req: Request, res: Response) => {
       'Fetched',
       costCentres,
     );
-    res.status(200).send(response);
+    res.status(CODE[200]).send(response);
   } catch (err: any) {
     const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
-    res.send(response);
+    res.status(CODE[500]).send(response);
   }
 };
 

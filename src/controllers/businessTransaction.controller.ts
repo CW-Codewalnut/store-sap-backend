@@ -1,18 +1,21 @@
 import {Request, Response} from 'express';
-import ProfitCentre from '../models/profit-centre';
+import BusinessTransaction from '../models/business-transaction';
 import {responseFormatter, CODE, STATUS} from '../config/response';
 
-const getProfitCentreByCostCentreId = async (req: Request, res: Response) => {
+const getBusinessTransactionsByModuleId = async (
+  req: Request,
+  res: Response,
+) => {
   try {
-    const {costCentreId} = req.params;
-    const profitCentres = await ProfitCentre.findAll({
-      where: {costCentreId},
+    const {moduleId} = req.params;
+    const businessTransactions = await BusinessTransaction.findAll({
+      where: {moduleId},
     });
     const response = responseFormatter(
       CODE[200],
       STATUS.SUCCESS,
       'Fetched',
-      profitCentres,
+      businessTransactions,
     );
     res.status(CODE[200]).send(response);
   } catch (err: any) {
@@ -21,4 +24,4 @@ const getProfitCentreByCostCentreId = async (req: Request, res: Response) => {
   }
 };
 
-export default {getProfitCentreByCostCentreId};
+export default {getBusinessTransactionsByModuleId};

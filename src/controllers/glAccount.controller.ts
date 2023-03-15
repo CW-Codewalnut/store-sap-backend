@@ -1,18 +1,21 @@
 import {Request, Response} from 'express';
-import ProfitCentre from '../models/profit-centre';
+import GlAccount from '../models/gl-account';
 import {responseFormatter, CODE, STATUS} from '../config/response';
 
-const getProfitCentreByCostCentreId = async (req: Request, res: Response) => {
+const getGlAccountsByBusinessTransactionId = async (
+  req: Request,
+  res: Response,
+) => {
   try {
-    const {costCentreId} = req.params;
-    const profitCentres = await ProfitCentre.findAll({
-      where: {costCentreId},
+    const {businessTransactionId} = req.params;
+    const glAccounts = await GlAccount.findAll({
+      where: {businessTransactionId},
     });
     const response = responseFormatter(
       CODE[200],
       STATUS.SUCCESS,
       'Fetched',
-      profitCentres,
+      glAccounts,
     );
     res.status(CODE[200]).send(response);
   } catch (err: any) {
@@ -21,4 +24,4 @@ const getProfitCentreByCostCentreId = async (req: Request, res: Response) => {
   }
 };
 
-export default {getProfitCentreByCostCentreId};
+export default {getGlAccountsByBusinessTransactionId};

@@ -1,18 +1,15 @@
 import {Request, Response} from 'express';
-import ProfitCentre from '../models/profit-centre';
+import Vendor from '../models/vendor';
 import {responseFormatter, CODE, STATUS} from '../config/response';
 
-const getProfitCentreByCostCentreId = async (req: Request, res: Response) => {
+const findAll = async (req: Request, res: Response) => {
   try {
-    const {costCentreId} = req.params;
-    const profitCentres = await ProfitCentre.findAll({
-      where: {costCentreId},
-    });
+    const vendors = await Vendor.findAll();
     const response = responseFormatter(
       CODE[200],
       STATUS.SUCCESS,
       'Fetched',
-      profitCentres,
+      vendors,
     );
     res.status(CODE[200]).send(response);
   } catch (err: any) {
@@ -21,4 +18,4 @@ const getProfitCentreByCostCentreId = async (req: Request, res: Response) => {
   }
 };
 
-export default {getProfitCentreByCostCentreId};
+export default {findAll};
