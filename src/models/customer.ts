@@ -1,30 +1,9 @@
+import {DataTypes} from 'sequelize';
 import {nanoid} from 'nanoid';
-import {Model, DataTypes, Optional} from 'sequelize';
 import {sequelize} from '.';
-import Role from './role';
+import PaymentTerm from './payment-term';
 
-interface UserAttributes {
-  id: string;
-  title: string;
-  customerNo: number;
-  email: string | null;
-  password: string | null;
-  roleId: string | null;
-  createdBy: string | null;
-  updatedBy: string | null;
-  deletedAt: Date | null;
-}
-
-interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
-
-interface UserInstance
-  extends Model<UserAttributes, UserCreationAttributes>,
-    UserAttributes {
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-const User = sequelize.define<UserInstance>('user', {
+const Customer = sequelize.define('customer', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
@@ -45,7 +24,7 @@ const User = sequelize.define<UserInstance>('user', {
     },
   },
   customerNo: {
-    type: DataTypes.BIGINT(10),
+    type: DataTypes.BIGINT,
     allowNull: false,
     validate: {
       notNull: {
@@ -53,7 +32,55 @@ const User = sequelize.define<UserInstance>('user', {
       },
     },
   },
-  email: {
+  customerName1: {
+    type: DataTypes.STRING(36),
+    allowNull: false,
+  },
+  customerName2: {
+    type: DataTypes.STRING(36),
+    allowNull: true,
+  },
+  customerName3: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+  },
+  houseDescription: {
+    type: DataTypes.STRING(30),
+    allowNull: true,
+  },
+  street1: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  street2: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  district: {
+    type: DataTypes.STRING(36),
+    allowNull: false,
+  },
+  city: {
+    type: DataTypes.STRING(40),
+    allowNull: false,
+  },
+  pincode: {
+    type: DataTypes.STRING(6),
+    allowNull: false,
+  },
+  state: {
+    type: DataTypes.STRING(30),
+    allowNull: true,
+  },
+  telephone: {
+    type: DataTypes.STRING(12),
+    allowNull: false,
+  },
+  mobile: {
+    type: DataTypes.STRING(10),
+    allowNull: false,
+  },
+  email1: {
     type: DataTypes.STRING(100),
     defaultValue: null,
     unique: true,
@@ -63,36 +90,60 @@ const User = sequelize.define<UserInstance>('user', {
       },
     },
   },
-  password: {
-    type: DataTypes.STRING,
+  email2: {
+    type: DataTypes.STRING(100),
     defaultValue: null,
+    unique: true,
     validate: {
-      len: {
-        args: [32, 32],
-        msg: 'Invalid password..try again.',
+      isEmail: {
+        msg: 'Invalid email address!',
       },
     },
   },
-  roleId: {
-    type: DataTypes.STRING(16),
+  contactPerson: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+  },
+  gstNo: {
+    type: DataTypes.STRING(15),
     allowNull: true,
   },
-  createdBy: {
+  pan: {
+    type: DataTypes.STRING(10),
     allowNull: true,
+  },
+  paymentTermId: {
     type: DataTypes.STRING(16),
+    allowNull: false,
+  },
+  currentCreditLimit: {
+    type: DataTypes.STRING(21),
+    allowNull: true,
+  },
+  customerType: {
+    type: DataTypes.STRING(21),
+    allowNull: true,
   },
   updatedBy: {
     allowNull: true,
     type: DataTypes.STRING(16),
   },
-  deletedAt: {
+  createdBy: {
     allowNull: true,
+    type: DataTypes.STRING(16),
+  },
+  createdAt: {
+    allowNull: false,
+    type: DataTypes.DATE,
+  },
+  updatedAt: {
+    allowNull: false,
     type: DataTypes.DATE,
   },
 });
 
-User.belongsTo(Role, {
-  foreignKey: 'roleId',
+Customer.belongsTo(PaymentTerm, {
+  foreignKey: 'paymentTermId',
 });
 
-export default User;
+export default Customer;

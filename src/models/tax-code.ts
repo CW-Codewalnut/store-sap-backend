@@ -1,71 +1,30 @@
 import {nanoid} from 'nanoid';
-import {Model, DataTypes, Optional} from 'sequelize';
+import {DataTypes} from 'sequelize';
 import {sequelize} from '.';
-import Role from './role';
 
-interface UserAttributes {
-  id: string;
-  name: string;
-  email: string | null;
-  password: string | null;
-  roleId: string | null;
-  createdBy: string | null;
-  updatedBy: string | null;
-  deletedAt: Date | null;
-}
-
-interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
-
-interface UserInstance
-  extends Model<UserAttributes, UserCreationAttributes>,
-    UserAttributes {
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-const User = sequelize.define<UserInstance>('user', {
+const TaxCode = sequelize.define('tax-code', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  name: {
+  taxCode: {
+    type: DataTypes.STRING(3),
+    allowNull: false,
+    unique: true,
+  },
+  description: {
     type: DataTypes.STRING(100),
     allowNull: false,
-    validate: {
-      notNull: {
-        msg: 'Name is required!',
-      },
-      len: {
-        args: [3, 50],
-        msg: 'Name must be under 3-50 characters.',
-      },
-    },
   },
-  email: {
-    type: DataTypes.STRING(100),
-    defaultValue: null,
-    unique: true,
-    validate: {
-      isEmail: {
-        msg: 'Invalid email address!',
-      },
-    },
+  taxRate: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
   },
-  password: {
-    type: DataTypes.STRING,
-    defaultValue: null,
-    validate: {
-      len: {
-        args: [32, 32],
-        msg: 'Invalid password..try again.',
-      },
-    },
-  },
-  roleId: {
-    type: DataTypes.STRING(16),
-    allowNull: true,
+  groupName: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
   },
   createdBy: {
     allowNull: true,
@@ -75,14 +34,14 @@ const User = sequelize.define<UserInstance>('user', {
     allowNull: true,
     type: DataTypes.STRING(16),
   },
-  deletedAt: {
-    allowNull: true,
+  createdAt: {
+    allowNull: false,
+    type: DataTypes.DATE,
+  },
+  updatedAt: {
+    allowNull: false,
     type: DataTypes.DATE,
   },
 });
 
-User.belongsTo(Role, {
-  foreignKey: 'roleId',
-});
-
-export default User;
+export default TaxCode;

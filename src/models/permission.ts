@@ -1,29 +1,8 @@
-import {
-  Model,
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-} from 'sequelize';
+import {DataTypes} from 'sequelize';
 import {nanoid} from 'nanoid';
 import {sequelize} from '.';
 
-interface PermissionModel
-  extends Model<
-    InferAttributes<PermissionModel>,
-    InferCreationAttributes<PermissionModel>
-  > {
-  id: string;
-  name: string;
-  description: string;
-  slug: string;
-  groupName: string;
-  createdBy: string;
-  updatedBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const Permission = sequelize.define<PermissionModel>('permission', {
+const Permission = sequelize.define('permission', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,

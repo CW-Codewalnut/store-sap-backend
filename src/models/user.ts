@@ -1,29 +1,9 @@
-import { nanoid } from 'nanoid';
-import { Model, DataTypes, Optional } from 'sequelize';
-import { sequelize } from '.';
+import {DataTypes} from 'sequelize';
+import {nanoid} from 'nanoid';
+import {sequelize} from '.';
 import Role from './role';
 
-interface UserAttributes {
-  id: string;
-  name: string;
-  email: string | null;
-  password: string | null;
-  roleId: string | null;
-  createdBy: string | null;
-  updatedBy: string | null;
-  deletedAt: Date | null;
-}
-
-interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
-
-interface UserInstance
-  extends Model<UserAttributes, UserCreationAttributes>,
-    UserAttributes {
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-const User = sequelize.define<UserInstance>('user', {
+const User = sequelize.define('user', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
@@ -77,6 +57,14 @@ const User = sequelize.define<UserInstance>('user', {
   },
   deletedAt: {
     allowNull: true,
+    type: DataTypes.DATE,
+  },
+  createdAt: {
+    allowNull: false,
+    type: DataTypes.DATE,
+  },
+  updatedAt: {
+    allowNull: false,
     type: DataTypes.DATE,
   },
 });

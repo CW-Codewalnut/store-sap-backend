@@ -11,6 +11,14 @@ module.exports = {
         allowNull: false,
         unique: true,
       },
+      moduleId: {
+        type: Sequelize.STRING(16),
+        allowNull: false,
+        references: {
+          model: 'modules',
+          key: 'id',
+        },
+      },
       createdBy: {
         allowNull: true,
         type: Sequelize.STRING(16),

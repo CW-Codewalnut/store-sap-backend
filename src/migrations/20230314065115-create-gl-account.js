@@ -12,18 +12,14 @@ module.exports = {
         unique: true,
       },
       shortText: {
-        type: Sequelize.BIGINT(10),
+        type: Sequelize.STRING(100),
         allowNull: false,
         unique: true,
       },
       longText: {
-        type: Sequelize.BIGINT(10),
+        type: Sequelize.STRING,
         allowNull: false,
         unique: true,
-      },
-      glTypeId: {
-        allowNull: false,
-        type: Sequelize.STRING(16),
       },
       businessTransactionId: {
         allowNull: false,

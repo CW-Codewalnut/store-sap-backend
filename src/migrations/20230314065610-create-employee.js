@@ -15,10 +15,6 @@ module.exports = {
         type: Sequelize.STRING(100),
         allowNull: false,
       },
-      division: {
-        type: Sequelize.STRING(50),
-        allowNull: true,
-      },
       plantId: {
         type: Sequelize.STRING(16),
         allowNull: false,

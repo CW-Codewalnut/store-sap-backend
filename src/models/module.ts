@@ -1,35 +1,18 @@
-import {nanoid} from 'nanoid';
 import {DataTypes} from 'sequelize';
+import {nanoid} from 'nanoid';
 import {sequelize} from '.';
 
-const HouseBank = sequelize.define('house_bank', {
+const Module = sequelize.define('module', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  ifsc: {
-    type: DataTypes.STRING(30),
+  name: {
     allowNull: false,
     unique: true,
-  },
-  bankName: {
-    type: DataTypes.STRING(100),
-    allowNull: false,
-    unique: true,
-  },
-  street: {
-    type: DataTypes.STRING(100),
-    allowNull: false,
-  },
-  city: {
-    type: DataTypes.STRING(50),
-    allowNull: false,
-  },
-  bankBranch: {
-    type: DataTypes.STRING(50),
-    allowNull: false,
+    type: DataTypes.STRING,
   },
   createdBy: {
     allowNull: true,
@@ -49,4 +32,4 @@ const HouseBank = sequelize.define('house_bank', {
   },
 });
 
-export default HouseBank;
+export default Module;
