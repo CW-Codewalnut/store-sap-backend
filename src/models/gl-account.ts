@@ -4,8 +4,8 @@ import {
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
-import {nanoid} from 'nanoid';
-import {sequelize} from '.';
+import { nanoid } from 'nanoid';
+import { sequelize } from '.';
 import BusinessTransaction from './business-transaction';
 
 interface GlAccountModel
@@ -13,18 +13,18 @@ interface GlAccountModel
     InferAttributes<GlAccountModel>,
     InferCreationAttributes<GlAccountModel>
   > {
-    id: string;
-    glAccounts: number;
-    shortText: string;
-    longText: string;
-    businessTransactionId: string;
-    createdBy: string;
-    updatedBy: string;
-    createdAt: Date;
-    updatedAt: Date;
+  id: string;
+  glAccounts: number;
+  shortText: string;
+  longText: string;
+  businessTransactionId: string;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const GlAccount = sequelize.define<GlAccountModel>('gl-account', {
+const GlAccount = sequelize.define<GlAccountModel>('gl_account', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,

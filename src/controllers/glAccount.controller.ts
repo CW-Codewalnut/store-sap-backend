@@ -1,15 +1,15 @@
-import {Request, Response} from 'express';
+import { Request, Response } from 'express';
 import GlAccount from '../models/gl-account';
-import {responseFormatter, CODE, STATUS} from '../config/response';
+import { responseFormatter, CODE, STATUS } from '../config/response';
 
 const getGlAccountsByBusinessTransactionId = async (
   req: Request,
   res: Response,
 ) => {
   try {
-    const {businessTransactionId} = req.params;
+    const { businessTransactionId } = req.params;
     const glAccounts = await GlAccount.findAll({
-      where: {businessTransactionId},
+      where: { businessTransactionId },
     });
     const response = responseFormatter(
       CODE[200],
@@ -24,4 +24,4 @@ const getGlAccountsByBusinessTransactionId = async (
   }
 };
 
-export default {getGlAccountsByBusinessTransactionId};
+export default { getGlAccountsByBusinessTransactionId };

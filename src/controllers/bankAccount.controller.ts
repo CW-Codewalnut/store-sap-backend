@@ -1,12 +1,12 @@
-import {Request, Response} from 'express';
+import { Request, Response } from 'express';
 import BankAccount from '../models/bank-account';
-import {responseFormatter, CODE, STATUS} from '../config/response';
+import { responseFormatter, CODE, STATUS } from '../config/response';
 
 const getAccountsByHouseBankId = async (req: Request, res: Response) => {
   try {
-    const {houseBankId} = req.params;
+    const { houseBankId } = req.params;
     const bankAccounts = await BankAccount.findAll({
-      where: {houseBankId},
+      where: { houseBankId },
     });
     const response = responseFormatter(
       CODE[200],
@@ -21,4 +21,4 @@ const getAccountsByHouseBankId = async (req: Request, res: Response) => {
   }
 };
 
-export default {getAccountsByHouseBankId};
+export default { getAccountsByHouseBankId };

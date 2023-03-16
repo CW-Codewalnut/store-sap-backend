@@ -4,8 +4,8 @@ import {
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
-import {nanoid} from 'nanoid';
-import {sequelize} from '.';
+import { nanoid } from 'nanoid';
+import { sequelize } from '.';
 
 interface TaxCodeModel
   extends Model<
@@ -23,7 +23,7 @@ interface TaxCodeModel
   updatedAt: Date;
 }
 
-const TaxCode = sequelize.define<TaxCodeModel>('tax-code', {
+const TaxCode = sequelize.define<TaxCodeModel>('tax_code', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,

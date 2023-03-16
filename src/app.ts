@@ -59,8 +59,8 @@ app.set('port', port);
 const server = http.createServer(app);
 
 server.listen(port, () => {
-  console.log(`Environment running on:  ${process.env.NODE_ENV}`);
-  console.log(`Server is running on port: ${port}`);
+  console.info(`Environment running on:  ${process.env.NODE_ENV}`);
+  console.info(`Server is running on port: ${port}`);
 });
 
 /**

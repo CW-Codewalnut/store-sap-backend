@@ -4,8 +4,8 @@ import {
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
-import {nanoid} from 'nanoid';
-import {sequelize} from '.';
+import { nanoid } from 'nanoid';
+import { sequelize } from '.';
 
 interface PlantModel
   extends Model<
@@ -13,7 +13,7 @@ interface PlantModel
     InferCreationAttributes<PlantModel>
   > {
   id: string;
-  plantCode: number
+  plantCode: number;
   plant: string;
   createdBy: string;
   updatedBy: string;

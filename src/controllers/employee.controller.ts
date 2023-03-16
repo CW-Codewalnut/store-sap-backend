@@ -1,12 +1,12 @@
-import {Request, Response} from 'express';
+import { Request, Response } from 'express';
 import Employee from '../models/employee';
-import {responseFormatter, CODE, STATUS} from '../config/response';
+import { responseFormatter, CODE, STATUS } from '../config/response';
 
 const getEmployeesByPlantId = async (req: Request, res: Response) => {
   try {
-    const {plantId} = req.params;
+    const { plantId } = req.params;
     const employees = await Employee.findAll({
-      where: {plantId},
+      where: { plantId },
     });
     const response = responseFormatter(
       CODE[200],
@@ -21,4 +21,4 @@ const getEmployeesByPlantId = async (req: Request, res: Response) => {
   }
 };
 
-export default {getEmployeesByPlantId};
+export default { getEmployeesByPlantId };

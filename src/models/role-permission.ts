@@ -4,8 +4,8 @@ import {
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
-import {nanoid} from 'nanoid';
-import {sequelize} from '.';
+import { nanoid } from 'nanoid';
+import { sequelize } from '.';
 import Role from './role';
 import Permission from './permission';
 

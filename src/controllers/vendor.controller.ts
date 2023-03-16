@@ -1,6 +1,6 @@
-import {Request, Response} from 'express';
+import { Request, Response } from 'express';
 import Vendor from '../models/vendor';
-import {responseFormatter, CODE, STATUS} from '../config/response';
+import { responseFormatter, CODE, STATUS } from '../config/response';
 
 const findAll = async (req: Request, res: Response) => {
   try {
@@ -18,4 +18,4 @@ const findAll = async (req: Request, res: Response) => {
   }
 };
 
-export default {findAll};
+export default { findAll };

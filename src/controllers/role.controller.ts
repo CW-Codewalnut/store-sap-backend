@@ -15,7 +15,7 @@ const create = async (req: Request, res: Response) => {
         'Content can not be empty!',
         null,
       );
-      return res.send(response);
+      return res.status(CODE[400]).send(response);
     }
     req.body.createdBy = req.user.id;
     req.body.updatedBy = req.user.id;
@@ -36,7 +36,7 @@ const create = async (req: Request, res: Response) => {
       JSON.stringify(err),
       null,
     );
-    return res.send(response);
+    return res.status(CODE[500]).send(response);
   }
 };
 
@@ -58,7 +58,7 @@ const findAll = async (req: Request, res: Response) => {
     res.status(200).send(response);
   } catch (err: any) {
     const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
-    res.send(response);
+    res.status(CODE[500]).send(response);
   }
 };
 
@@ -89,7 +89,7 @@ const findById = async (req: Request, res: Response) => {
       JSON.stringify(err),
       null,
     );
-    return res.send(response);
+    return res.status(CODE[500]).send(response);
   }
 };
 
@@ -102,7 +102,7 @@ const update = async (req: Request, res: Response) => {
         'Content can not be empty!',
         null,
       );
-      return res.send(response);
+      return res.status(CODE[400]).send(response);
     }
     const { id } = req.params;
     req.body.updatedBy = req.user.id;
@@ -116,7 +116,7 @@ const update = async (req: Request, res: Response) => {
       'Updated',
       roleData,
     );
-    return res.send(response);
+    return res.status(CODE[200]).send(response);
   } catch (err) {
     const response = responseFormatter(
       CODE[500],
@@ -124,7 +124,7 @@ const update = async (req: Request, res: Response) => {
       JSON.stringify(err),
       null,
     );
-    return res.send(response);
+    return res.status(CODE[500]).send(response);
   }
 };
 
@@ -159,10 +159,10 @@ const findRolePermissions = async (req: Request, res: Response) => {
       'Fetched',
       newData,
     );
-    res.send(response);
+    res.status(CODE[200]).send(response);
   } catch (err: any) {
     const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
-    res.status(400).send(response);
+    res.status(500).send(response);
   }
 };
 
@@ -175,7 +175,7 @@ const updateRolePermissions = (req: Request, res: Response) => {
         'Content can not be empty!',
         null,
       );
-      return res.send(response);
+      return res.status(CODE[400]).send(response);
     }
     const { permissionIds } = req.body;
     let query;
@@ -217,10 +217,10 @@ const updateRolePermissions = (req: Request, res: Response) => {
     } else {
       response = responseFormatter(CODE[200], STATUS.SUCCESS, 'success', null);
     }
-    return res.send(response);
+    return res.status(CODE[200]).send(response);
   } catch (err: any) {
     const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
-    return res.send(response);
+    return res.status(CODE[500]).send(response);
   }
 };
 

@@ -1,15 +1,15 @@
-import {Request, Response} from 'express';
+import { Request, Response } from 'express';
 import BusinessTransaction from '../models/business-transaction';
-import {responseFormatter, CODE, STATUS} from '../config/response';
+import { responseFormatter, CODE, STATUS } from '../config/response';
 
 const getBusinessTransactionsByModuleId = async (
   req: Request,
   res: Response,
 ) => {
   try {
-    const {moduleId} = req.params;
+    const { moduleId } = req.params;
     const businessTransactions = await BusinessTransaction.findAll({
-      where: {moduleId},
+      where: { moduleId },
     });
     const response = responseFormatter(
       CODE[200],
@@ -24,4 +24,4 @@ const getBusinessTransactionsByModuleId = async (
   }
 };
 
-export default {getBusinessTransactionsByModuleId};
+export default { getBusinessTransactionsByModuleId };

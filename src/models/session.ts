@@ -4,7 +4,7 @@ import {
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
-import {sequelize} from '.';
+import { sequelize } from '.';
 
 interface SessionModel
   extends Model<

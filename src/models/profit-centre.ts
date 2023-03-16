@@ -4,8 +4,8 @@ import {
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
-import {nanoid} from 'nanoid';
-import {sequelize} from '.';
+import { nanoid } from 'nanoid';
+import { sequelize } from '.';
 import CostCentre from './cost-centre';
 
 interface ProfitCentreModel

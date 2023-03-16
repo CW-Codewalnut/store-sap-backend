@@ -4,8 +4,8 @@ import {
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
-import {nanoid} from 'nanoid';
-import {sequelize} from '.';
+import { nanoid } from 'nanoid';
+import { sequelize } from '.';
 
 interface PaymentTermModel
   extends Model<
@@ -20,7 +20,7 @@ interface PaymentTermModel
   updatedAt?: Date;
 }
 
-const PaymentTerm = sequelize.define<PaymentTermModel>('payment-term', {
+const PaymentTerm = sequelize.define<PaymentTermModel>('payment_term', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,

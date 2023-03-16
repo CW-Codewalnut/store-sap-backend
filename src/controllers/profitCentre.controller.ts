@@ -1,12 +1,12 @@
-import {Request, Response} from 'express';
+import { Request, Response } from 'express';
 import ProfitCentre from '../models/profit-centre';
-import {responseFormatter, CODE, STATUS} from '../config/response';
+import { responseFormatter, CODE, STATUS } from '../config/response';
 
 const getProfitCentreByCostCentreId = async (req: Request, res: Response) => {
   try {
-    const {costCentreId} = req.params;
+    const { costCentreId } = req.params;
     const profitCentres = await ProfitCentre.findAll({
-      where: {costCentreId},
+      where: { costCentreId },
     });
     const response = responseFormatter(
       CODE[200],
@@ -21,4 +21,4 @@ const getProfitCentreByCostCentreId = async (req: Request, res: Response) => {
   }
 };
 
-export default {getProfitCentreByCostCentreId};
+export default { getProfitCentreByCostCentreId };

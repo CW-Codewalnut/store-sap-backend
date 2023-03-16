@@ -1,4 +1,4 @@
-import {Application} from 'express';
+import { Application } from 'express';
 
 import UserController from '../controllers/user.controller';
 import PlantController from '../controllers/plant.controller';
@@ -15,7 +15,7 @@ import PaymentTermController from '../controllers/paymentTerm.controller';
 import TaxCodeController from '../controllers/taxCode.controller';
 import VendorController from '../controllers/vendor.controller';
 
-import {checkAuthenticated, verifyRouteAccess} from '../middleware/auth';
+import { checkAuthenticated, verifyRouteAccess } from '../middleware/auth';
 
 const routesMiddleware = (app: Application) => {
   app.post('/auth', UserController.auth);
@@ -75,27 +75,33 @@ const routesMiddleware = (app: Application) => {
   app.get('/payment-terms', checkAuthenticated, PaymentTermController.findAll);
 
   app.get('/house-banks', checkAuthenticated, HouseBankController.findAll);
+
   app.get(
-    '/bank-account/:houseBankId',
+    '/bank-accounts/:houseBankId',
     checkAuthenticated,
     BankAccountController.getAccountsByHouseBankId,
   );
+
   app.get(
     '/business-transactions/:moduleId',
     checkAuthenticated,
     BusinessTransactionController.getBusinessTransactionsByModuleId,
   );
+
   app.get(
     '/employees/:plantId',
     checkAuthenticated,
     EmployeeController.getEmployeesByPlantId,
   );
+
   app.get(
     '/gl-accounts/:businessTransactionId',
     checkAuthenticated,
     GlAccountController.getGlAccountsByBusinessTransactionId,
   );
+
   app.get('/tax-codes', checkAuthenticated, TaxCodeController.findAll);
+
   app.get('/vendors', checkAuthenticated, VendorController.findAll);
 };
 

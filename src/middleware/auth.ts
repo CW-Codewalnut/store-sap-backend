@@ -18,7 +18,7 @@ const checkAuthenticated = (
     MESSAGE.UNAUTHORIZED,
     null,
   );
-  return res.send(response);
+  return res.status(CODE[401]).send(response);
 };
 
 const checkLoggedIn = (req: Request, res: Response, next: NextFunction) => {
@@ -29,7 +29,7 @@ const checkLoggedIn = (req: Request, res: Response, next: NextFunction) => {
       'Access allowed',
       null,
     );
-    return res.send(response);
+    return res.status(CODE[200]).send(response);
   }
   return next();
 };
@@ -42,7 +42,7 @@ const verifyRouteAccess = (req: Request, res: Response, next: NextFunction) => {
       MESSAGE.AUTHORIZED,
       null,
     );
-    return res.send(response);
+    return res.status(CODE[200]).send(response);
   }
   const response = responseFormatter(
     CODE[401],
@@ -50,7 +50,7 @@ const verifyRouteAccess = (req: Request, res: Response, next: NextFunction) => {
     MESSAGE.UNAUTHORIZED,
     null,
   );
-  return res.send(response);
+  return res.status(CODE[401]).send(response);
 };
 
 const saveSessionActivity = ({
