@@ -1,22 +1,43 @@
-import {DataTypes} from 'sequelize';
+import {
+  Model,
+  DataTypes,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
 import {nanoid} from 'nanoid';
 import {sequelize} from '.';
 import CostCentre from './cost-centre';
 
-const ProfitCentre = sequelize.define('profit_centre', {
+interface ProfitCentreModel
+  extends Model<
+    InferAttributes<ProfitCentreModel>,
+    InferCreationAttributes<ProfitCentreModel>
+  > {
+  id: string;
+  profitCentre: number;
+  sapDescription: string;
+  costCentreId: string;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const ProfitCentre = sequelize.define<ProfitCentreModel>('profit_centre', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  sapMasterId: {
+  profitCentre: {
     allowNull: false,
     unique: true,
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
   },
-  name: {
+  sapDescription: {
     allowNull: false,
+    unique: true,
     type: DataTypes.STRING,
   },
   costCentreId: {

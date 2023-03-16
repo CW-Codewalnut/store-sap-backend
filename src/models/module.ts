@@ -1,8 +1,26 @@
-import {DataTypes} from 'sequelize';
+import {
+  Model,
+  DataTypes,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
 import {nanoid} from 'nanoid';
 import {sequelize} from '.';
 
-const Module = sequelize.define('module', {
+interface ModuleModel
+  extends Model<
+    InferAttributes<ModuleModel>,
+    InferCreationAttributes<ModuleModel>
+  > {
+  id: string;
+  name: string;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const Module = sequelize.define<ModuleModel>('module', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,

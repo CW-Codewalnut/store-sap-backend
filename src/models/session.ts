@@ -1,7 +1,23 @@
-import {DataTypes} from 'sequelize';
+import {
+  Model,
+  DataTypes,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
 import {sequelize} from '.';
 
-const Session = sequelize.define('Session', {
+interface SessionModel
+  extends Model<
+    InferAttributes<SessionModel>,
+    InferCreationAttributes<SessionModel>
+  > {
+  sid: string;
+  userId: string;
+  expires: string;
+  data: string;
+}
+
+const Session = sequelize.define<SessionModel>('Session', {
   sid: {
     type: DataTypes.STRING,
     primaryKey: true,

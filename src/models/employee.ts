@@ -1,9 +1,29 @@
+import {
+  Model,
+  DataTypes,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
 import {nanoid} from 'nanoid';
-import {DataTypes} from 'sequelize';
 import {sequelize} from '.';
 import Plant from './plant';
 
-const Employee = sequelize.define('employee', {
+interface EmployeeModel
+  extends Model<
+    InferAttributes<EmployeeModel>,
+    InferCreationAttributes<EmployeeModel>
+  > {
+  id: string;
+  employeeCode: string;
+  employeeName: string;
+  plantId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy: string;
+  updatedBy: string;
+}
+
+const Employee = sequelize.define<EmployeeModel>('employee', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,

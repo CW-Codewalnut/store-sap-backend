@@ -1,8 +1,26 @@
+import {
+  Model,
+  DataTypes,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
 import {nanoid} from 'nanoid';
-import {DataTypes} from 'sequelize';
 import {sequelize} from '.';
 
-const PaymentTerm = sequelize.define('payment-term', {
+interface PaymentTermModel
+  extends Model<
+    InferAttributes<PaymentTermModel>,
+    InferCreationAttributes<PaymentTermModel>
+  > {
+  id: string;
+  name: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+const PaymentTerm = sequelize.define<PaymentTermModel>('payment-term', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,

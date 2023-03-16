@@ -1,8 +1,38 @@
+import {
+  Model,
+  DataTypes,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
 import {nanoid} from 'nanoid';
-import {DataTypes} from 'sequelize';
 import {sequelize} from '.';
 
-const Vendor = sequelize.define('vendor', {
+interface VendorModel
+  extends Model<
+    InferAttributes<VendorModel>,
+    InferCreationAttributes<VendorModel>
+  > {
+  id: string;
+  title: string;
+  name1: string;
+  name2: string;
+  searchTerm1: string;
+  searchTerm2: string;
+  street1: string;
+  street2: string;
+  street3: string;
+  pincode: string;
+  phone: string;
+  mobileNo: string;
+  email: string;
+  gstNo: string;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const Vendor = sequelize.define<VendorModel>('vendor', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,

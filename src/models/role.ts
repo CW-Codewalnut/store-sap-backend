@@ -1,8 +1,27 @@
-import {DataTypes} from 'sequelize';
+import {
+  Model,
+  DataTypes,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
 import {nanoid} from 'nanoid';
 import {sequelize} from '.';
 
-const Role = sequelize.define('role', {
+interface RoleModel
+  extends Model<
+    InferAttributes<RoleModel>,
+    InferCreationAttributes<RoleModel>
+  > {
+  id: string;
+  name: string;
+  description: string;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const Role = sequelize.define<RoleModel>('role', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,

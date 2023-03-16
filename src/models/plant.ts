@@ -1,29 +1,49 @@
-import {DataTypes} from 'sequelize';
+import {
+  Model,
+  DataTypes,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
 import {nanoid} from 'nanoid';
 import {sequelize} from '.';
 
-const Plant = sequelize.define('plant', {
+interface PlantModel
+  extends Model<
+    InferAttributes<PlantModel>,
+    InferCreationAttributes<PlantModel>
+  > {
+  id: string;
+  plantCode: number
+  plant: string;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const Plant = sequelize.define<PlantModel>('plant', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  sapMasterId: {
+  plantCode: {
     allowNull: false,
     unique: true,
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
   },
-  name: {
-    type: DataTypes.STRING(100),
+  plant: {
     allowNull: false,
+    unique: true,
+    type: DataTypes.STRING(100),
     validate: {
       notNull: {
-        msg: 'Name is required!',
+        msg: 'Plant is required!',
       },
       len: {
         args: [3, 50],
-        msg: 'Name must be under 3-50 characters.',
+        msg: 'Plant must be under 3-50 characters.',
       },
     },
   },

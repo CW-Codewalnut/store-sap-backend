@@ -1,8 +1,29 @@
+import {
+  Model,
+  DataTypes,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
 import {nanoid} from 'nanoid';
-import {DataTypes} from 'sequelize';
 import {sequelize} from '.';
 
-const TaxCode = sequelize.define('tax-code', {
+interface TaxCodeModel
+  extends Model<
+    InferAttributes<TaxCodeModel>,
+    InferCreationAttributes<TaxCodeModel>
+  > {
+  id: string;
+  taxCode: string;
+  description: string;
+  taxRate: string;
+  groupName: string;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const TaxCode = sequelize.define<TaxCodeModel>('tax-code', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,

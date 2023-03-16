@@ -1,10 +1,29 @@
-import {DataTypes} from 'sequelize';
+import {
+  Model,
+  DataTypes,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
 import {nanoid} from 'nanoid';
 import {sequelize} from '.';
 import User from './user';
 import Plant from './plant';
 
-const UserPlant = sequelize.define('plant', {
+interface UserPlantModel
+  extends Model<
+    InferAttributes<UserPlantModel>,
+    InferCreationAttributes<UserPlantModel>
+  > {
+  id: string;
+  userId: string;
+  plantId: string;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const UserPlant = sequelize.define<UserPlantModel>('plant', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,

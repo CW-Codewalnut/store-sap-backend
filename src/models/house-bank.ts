@@ -1,8 +1,30 @@
+import {
+  Model,
+  DataTypes,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
 import {nanoid} from 'nanoid';
-import {DataTypes} from 'sequelize';
 import {sequelize} from '.';
 
-const HouseBank = sequelize.define('house_bank', {
+interface HouseBankModel
+  extends Model<
+    InferAttributes<HouseBankModel>,
+    InferCreationAttributes<HouseBankModel>
+  > {
+  id: string;
+  ifsc: string;
+  bankName: string;
+  street: string;
+  city: string;
+  bankBranch: string;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const HouseBank = sequelize.define<HouseBankModel>('house_bank', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
