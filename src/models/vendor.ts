@@ -6,6 +6,7 @@ import {
 } from 'sequelize';
 import {nanoid} from 'nanoid';
 import {sequelize} from '.';
+import PaymentTerm from './payment-term';
 
 interface VendorModel
   extends Model<
@@ -25,7 +26,6 @@ interface VendorModel
   phone: string;
   mobileNo: string;
   email: string;
-  gstNo: string;
   createdBy: string;
   updatedBy: string;
   createdAt: Date;
@@ -87,10 +87,6 @@ const Vendor = sequelize.define<VendorModel>('vendor', {
     type: DataTypes.STRING,
     allowNull: true,
   },
-  gstNo: {
-    type: DataTypes.STRING(15),
-    allowNull: true,
-  },
   createdBy: {
     allowNull: true,
     type: DataTypes.STRING(16),
@@ -107,6 +103,10 @@ const Vendor = sequelize.define<VendorModel>('vendor', {
     allowNull: false,
     type: DataTypes.DATE,
   },
+});
+
+Vendor.belongsTo(PaymentTerm, {
+  foreignKey: 'paymentTermId',
 });
 
 export default Vendor;

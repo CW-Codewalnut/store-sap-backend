@@ -54,9 +54,13 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      gstNo: {
-        type: Sequelize.STRING(15),
-        allowNull: true,
+      paymentTermId: {
+        type: Sequelize.STRING(16),
+        allowNull: false,
+        references: {
+          model: 'payment_terms',
+          key: 'id',
+        },
       },
       createdBy: {
         allowNull: true,
