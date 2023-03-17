@@ -14,7 +14,6 @@ module.exports = {
       shortText: {
         type: Sequelize.STRING(100),
         allowNull: false,
-        unique: true,
       },
       longText: {
         type: Sequelize.STRING,

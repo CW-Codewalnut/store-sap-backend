@@ -10,6 +10,7 @@ import passport from 'passport';
 import sessionMiddleware from './middleware/session';
 import passportMiddleware from './middleware/passport';
 import routesMiddleware from './routes';
+import ErrorHandler from './middleware/error-handler';
 
 const configs = require('./config/config');
 
@@ -53,6 +54,8 @@ const publicDir = path.join(__dirname, '/public');
 app.use(express.static(publicDir));
 
 routesMiddleware(app);
+
+app.use(ErrorHandler);
 
 const port = parseInt(config.serverPort, 10);
 app.set('port', port);

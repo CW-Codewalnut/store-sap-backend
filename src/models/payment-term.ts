@@ -4,8 +4,8 @@ import {
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
-import { nanoid } from 'nanoid';
-import { sequelize } from '.';
+import {nanoid} from 'nanoid';
+import {sequelize} from '.';
 
 interface PaymentTermModel
   extends Model<
@@ -13,7 +13,9 @@ interface PaymentTermModel
     InferCreationAttributes<PaymentTermModel>
   > {
   id: string;
-  name: string;
+  payTerm: string;
+  payTermDescription: string;
+  netDueDate: string;
   createdBy?: string;
   updatedBy?: string;
   createdAt?: Date;
@@ -27,10 +29,18 @@ const PaymentTerm = sequelize.define<PaymentTermModel>('payment_term', {
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  name: {
-    type: DataTypes.STRING(50),
+  payTerm: {
+    type: DataTypes.STRING(5),
     allowNull: false,
     unique: true,
+  },
+  payTermDescription: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+  },
+  netDueDate: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
   },
   createdBy: {
     allowNull: true,

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { responseFormatter, CODE, STATUS } from '../config/response';
+import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import { MESSAGE } from '../utils/constant';
 import SessionActivity from '../models/session-activity';
 import sessionActivityArgs from '../interfaces/sessionActivity/sessionActivity.interface';
@@ -14,7 +14,7 @@ const checkAuthenticated = (
   }
   const response = responseFormatter(
     CODE[401],
-    STATUS.FAILURE,
+    SUCCESS.FALSE,
     MESSAGE.UNAUTHORIZED,
     null,
   );
@@ -25,7 +25,7 @@ const checkLoggedIn = (req: Request, res: Response, next: NextFunction) => {
   if (req.isAuthenticated()) {
     const response = responseFormatter(
       CODE[200],
-      STATUS.SUCCESS,
+      SUCCESS.TRUE,
       'Access allowed',
       null,
     );
@@ -38,7 +38,7 @@ const verifyRouteAccess = (req: Request, res: Response, next: NextFunction) => {
   if (req.isAuthenticated()) {
     const response = responseFormatter(
       CODE[200],
-      STATUS.SUCCESS,
+      SUCCESS.TRUE,
       MESSAGE.AUTHORIZED,
       null,
     );
@@ -46,7 +46,7 @@ const verifyRouteAccess = (req: Request, res: Response, next: NextFunction) => {
   }
   const response = responseFormatter(
     CODE[401],
-    STATUS.FAILURE,
+    SUCCESS.FALSE,
     MESSAGE.UNAUTHORIZED,
     null,
   );

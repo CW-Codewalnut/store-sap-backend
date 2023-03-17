@@ -4,8 +4,8 @@ import {
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
-import { nanoid } from 'nanoid';
-import { sequelize } from '.';
+import {nanoid} from 'nanoid';
+import {sequelize} from '.';
 import Module from './module';
 
 interface BusinessTransactionModel
@@ -14,7 +14,9 @@ interface BusinessTransactionModel
     InferCreationAttributes<BusinessTransactionModel>
   > {
   id: string;
-  name: string;
+  businessTransactionNo: number;
+  shortText: string;
+  longText: string;
   moduleId: string;
   createdBy: string;
   updatedBy: string;
@@ -31,7 +33,17 @@ const BusinessTransaction = sequelize.define<BusinessTransactionModel>(
       allowNull: false,
       defaultValue: () => nanoid(16),
     },
-    name: {
+    businessTransactionNo: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      unique: true,
+    },
+    shortText: {
+      type: DataTypes.STRING(10),
+      allowNull: true,
+      unique: true,
+    },
+    longText: {
       type: DataTypes.STRING(100),
       allowNull: false,
       unique: true,

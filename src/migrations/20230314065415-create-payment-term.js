@@ -6,10 +6,18 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.STRING(16),
       },
-      name: {
-        type: Sequelize.STRING(50),
+      payTerm: {
+        type: Sequelize.STRING(5),
         allowNull: false,
         unique: true,
+      },
+      payTermDescription: {
+        type: Sequelize.STRING(100),
+        allowNull: false,
+      },
+      netDueDate: {
+        type: Sequelize.STRING(100),
+        allowNull: false,
       },
       createdBy: {
         allowNull: true,

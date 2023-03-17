@@ -4,8 +4,8 @@ import {
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
-import { nanoid } from 'nanoid';
-import { sequelize } from '.';
+import {nanoid} from 'nanoid';
+import {sequelize} from '.';
 
 interface ModuleModel
   extends Model<
@@ -14,6 +14,7 @@ interface ModuleModel
   > {
   id: string;
   name: string;
+  slug: string;
   createdBy: string;
   updatedBy: string;
   createdAt: Date;
@@ -28,6 +29,11 @@ const Module = sequelize.define<ModuleModel>('module', {
     defaultValue: () => nanoid(16),
   },
   name: {
+    allowNull: false,
+    unique: true,
+    type: DataTypes.STRING,
+  },
+  slug: {
     allowNull: false,
     unique: true,
     type: DataTypes.STRING,

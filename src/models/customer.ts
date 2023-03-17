@@ -4,8 +4,8 @@ import {
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
-import { nanoid } from 'nanoid';
-import { sequelize } from '.';
+import {nanoid} from 'nanoid';
+import {sequelize} from '.';
 import PaymentTerm from './payment-term';
 
 interface CustomerModel
@@ -50,7 +50,7 @@ const Customer = sequelize.define<CustomerModel>('customer', {
     defaultValue: () => nanoid(16),
   },
   title: {
-    type: DataTypes.STRING(10),
+    type: DataTypes.STRING(30),
     allowNull: false,
     validate: {
       notNull: {

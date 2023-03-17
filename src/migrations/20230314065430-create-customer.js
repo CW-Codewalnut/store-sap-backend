@@ -7,7 +7,7 @@ module.exports = {
         type: Sequelize.STRING(16),
       },
       title: {
-        type: Sequelize.STRING(10),
+        type: Sequelize.STRING(30),
         allowNull: false,
       },
       customerNo: {

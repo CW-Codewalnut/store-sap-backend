@@ -4,8 +4,8 @@ import {
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
-import { nanoid } from 'nanoid';
-import { sequelize } from '.';
+import {nanoid} from 'nanoid';
+import {sequelize} from '.';
 import BusinessTransaction from './business-transaction';
 
 interface GlAccountModel
@@ -39,7 +39,6 @@ const GlAccount = sequelize.define<GlAccountModel>('gl_account', {
   shortText: {
     type: DataTypes.STRING(100),
     allowNull: false,
-    unique: true,
   },
   longText: {
     type: DataTypes.STRING,

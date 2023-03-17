@@ -4,8 +4,8 @@ import {
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
-import { nanoid } from 'nanoid';
-import { sequelize } from '.';
+import {nanoid} from 'nanoid';
+import {sequelize} from '.';
 import ProfitCentre from './profit-centre';
 
 interface SegmentModel
@@ -31,7 +31,6 @@ const Segment = sequelize.define<SegmentModel>('segment', {
   },
   segment: {
     allowNull: false,
-    unique: true,
     type: DataTypes.STRING(100),
   },
   profitCentreId: {

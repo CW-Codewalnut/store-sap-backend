@@ -11,6 +11,11 @@ module.exports = {
         unique: true,
         type: Sequelize.STRING,
       },
+      slug: {
+        allowNull: false,
+        unique: true,
+        type: Sequelize.STRING,
+      },
       createdBy: {
         allowNull: true,
         type: Sequelize.STRING(16),

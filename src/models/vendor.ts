@@ -4,8 +4,8 @@ import {
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
-import { nanoid } from 'nanoid';
-import { sequelize } from '.';
+import {nanoid} from 'nanoid';
+import {sequelize} from '.';
 
 interface VendorModel
   extends Model<
@@ -40,7 +40,7 @@ const Vendor = sequelize.define<VendorModel>('vendor', {
     defaultValue: () => nanoid(16),
   },
   title: {
-    type: DataTypes.STRING(10),
+    type: DataTypes.STRING(30),
     allowNull: false,
   },
   name1: {

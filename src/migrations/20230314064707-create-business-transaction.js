@@ -6,7 +6,17 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.STRING(16),
       },
-      name: {
+      businessTransactionNo: {
+        type: Sequelize.BIGINT(10),
+        allowNull: false,
+        unique: true,
+      },
+      shortText: {
+        type: Sequelize.STRING(10),
+        allowNull: true,
+        unique: true,
+      },
+      longText: {
         type: Sequelize.STRING(100),
         allowNull: false,
         unique: true,

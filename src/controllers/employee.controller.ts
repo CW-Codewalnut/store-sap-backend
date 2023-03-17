@@ -1,8 +1,12 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import Employee from '../models/employee';
-import { responseFormatter, CODE, STATUS } from '../config/response';
+import { responseFormatter, CODE, SUCCESS } from '../config/response';
 
-const getEmployeesByPlantId = async (req: Request, res: Response) => {
+const getEmployeesByPlantId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { plantId } = req.params;
     const employees = await Employee.findAll({
@@ -10,14 +14,13 @@ const getEmployeesByPlantId = async (req: Request, res: Response) => {
     });
     const response = responseFormatter(
       CODE[200],
-      STATUS.SUCCESS,
+      SUCCESS.TRUE,
       'Fetched',
       employees,
     );
     res.status(CODE[200]).send(response);
   } catch (err: any) {
-    const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
-    res.status(CODE[500]).send(response);
+    next(err);
   }
 };
 

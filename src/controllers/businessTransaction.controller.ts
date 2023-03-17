@@ -1,10 +1,11 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import BusinessTransaction from '../models/business-transaction';
-import { responseFormatter, CODE, STATUS } from '../config/response';
+import { responseFormatter, CODE, SUCCESS } from '../config/response';
 
 const getBusinessTransactionsByModuleId = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const { moduleId } = req.params;
@@ -13,14 +14,13 @@ const getBusinessTransactionsByModuleId = async (
     });
     const response = responseFormatter(
       CODE[200],
-      STATUS.SUCCESS,
+      SUCCESS.TRUE,
       'Fetched',
       businessTransactions,
     );
     res.status(CODE[200]).send(response);
   } catch (err: any) {
-    const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
-    res.status(CODE[500]).send(response);
+    next(err);
   }
 };
 
