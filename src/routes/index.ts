@@ -14,6 +14,7 @@ import GlAccountController from '../controllers/glAccount.controller';
 import PaymentTermController from '../controllers/paymentTerm.controller';
 import TaxCodeController from '../controllers/taxCode.controller';
 import VendorController from '../controllers/vendor.controller';
+import CustomerController from '../controllers/customer.controller';
 
 import { checkAuthenticated, verifyRouteAccess } from '../middleware/auth';
 
@@ -109,6 +110,24 @@ const routesMiddleware = (app: Application) => {
   app.get('/tax-codes', checkAuthenticated, TaxCodeController.findAll);
 
   app.get('/vendors', checkAuthenticated, VendorController.findAll);
+
+  app.get(
+    '/customers/paginate',
+    checkAuthenticated,
+    CustomerController.findWithPaginate,
+  );
+
+  app.get(
+    '/employees/:plantId/paginate',
+    checkAuthenticated,
+    EmployeeController.findWithPaginate,
+  );
+
+  app.get(
+    '/vendors/paginate',
+    checkAuthenticated,
+    VendorController.findWithPaginate,
+  );
 };
 
 export default routesMiddleware;

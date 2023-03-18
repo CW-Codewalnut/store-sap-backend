@@ -2,14 +2,12 @@ import { Request, Response, NextFunction } from 'express';
 import md5 from 'md5';
 import passport from 'passport';
 
-import sequelize from 'sequelize';
+import { Op } from 'sequelize';
 import User from '../models/user';
 import Role from '../models/role';
 
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import { saveSessionActivity } from '../middleware/auth';
-
-const { Op } = sequelize;
 
 const auth = async (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('local', (err: any, user: any) => {

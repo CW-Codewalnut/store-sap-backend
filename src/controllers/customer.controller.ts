@@ -1,30 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import { Op } from 'sequelize';
-import Employee from '../models/employee';
+import Customer from '../models/customer';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
-import Plant from '../models/plant';
-
-const getEmployeesByPlantId = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const { plantId } = req.params;
-    const employees = await Employee.findAll({
-      where: { plantId },
-    });
-    const response = responseFormatter(
-      CODE[200],
-      SUCCESS.TRUE,
-      'Fetched',
-      employees,
-    );
-    res.status(CODE[200]).send(response);
-  } catch (err: any) {
-    next(err);
-  }
-};
+import PaymentTerm from '../models/payment-term';
 
 const findWithPaginate = async (
   req: Request,
@@ -42,17 +20,24 @@ const findWithPaginate = async (
     if (search) {
       condition = {
         [Op.or]: {
-          employeeCode: { [Op.like]: `%${search}%` },
-          employeeName: { [Op.like]: `%${search}%` },
+          customerNo: { [Op.like]: `%${search}%` },
+          customerName1: { [Op.like]: `%${search}%` },
+          customerName2: { [Op.like]: `%${search}%` },
+          customerName3: { [Op.like]: `%${search}%` },
+          mobile: { [Op.like]: `%${search}%` },
+          email1: { [Op.like]: `%${search}%` },
+          email2: { [Op.like]: `%${search}%` },
         },
       };
     }
 
-    const employees = await Employee.findAndCountAll({
+    const customers = await Customer.findAndCountAll({
       include: [
         {
-          model: Plant,
-          attributes: ['id', 'plantCode', 'plant'],
+          model: PaymentTerm,
+          attributes: {
+            exclude: ['createdBy', 'updatedBy', 'createdAt', 'updatedAt'],
+          },
         },
       ],
       where: condition,
@@ -65,7 +50,7 @@ const findWithPaginate = async (
       CODE[200],
       SUCCESS.TRUE,
       'Fetched',
-      employees,
+      customers,
     );
     res.status(200).send(response);
   } catch (err: any) {
@@ -73,4 +58,4 @@ const findWithPaginate = async (
   }
 };
 
-export default { getEmployeesByPlantId, findWithPaginate };
+export default { findWithPaginate };
