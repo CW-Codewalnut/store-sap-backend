@@ -83,6 +83,12 @@ const routesMiddleware = (app: Application) => {
   );
 
   app.get(
+    '/get-all-masters/:moduleId',
+    checkAuthenticated,
+    BusinessTransactionController.getMasters,
+  );
+
+  app.get(
     '/business-transactions/:moduleId',
     checkAuthenticated,
     BusinessTransactionController.getBusinessTransactionsByModuleId,

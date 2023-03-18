@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
-import TaxCode from '../models/tax-code';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
+import { getTaxCodes } from './common.controller';
 
 const findAll = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const taxCodes = await TaxCode.findAll();
+    const taxCodes = await getTaxCodes();
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
