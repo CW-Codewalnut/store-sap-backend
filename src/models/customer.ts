@@ -4,8 +4,8 @@ import {
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
-import { nanoid } from 'nanoid';
-import { sequelize } from '.';
+import {nanoid} from 'nanoid';
+import {sequelize} from '.';
 import PaymentTerm from './payment-term';
 
 interface CustomerModel
@@ -113,7 +113,7 @@ const Customer = sequelize.define<CustomerModel>('customer', {
   },
   telephone: {
     type: DataTypes.STRING(12),
-    allowNull: false,
+    allowNull: true,
   },
   mobile: {
     type: DataTypes.STRING(10),

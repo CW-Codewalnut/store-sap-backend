@@ -59,7 +59,7 @@ module.exports = {
       },
       telephone: {
         type: Sequelize.STRING(12),
-        allowNull: false,
+        allowNull: true,
       },
       mobile: {
         type: Sequelize.STRING(10),
