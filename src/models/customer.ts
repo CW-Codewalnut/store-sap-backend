@@ -141,7 +141,7 @@ const Customer = sequelize.define<CustomerModel>('customer', {
   },
   contactPerson: {
     type: DataTypes.STRING(100),
-    allowNull: false,
+    allowNull: true,
   },
   gstNo: {
     type: DataTypes.STRING(15),

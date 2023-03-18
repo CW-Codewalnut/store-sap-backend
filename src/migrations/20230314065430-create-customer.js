@@ -75,7 +75,7 @@ module.exports = {
       },
       contactPerson: {
         type: Sequelize.STRING(100),
-        allowNull: false,
+        allowNull: true,
       },
       gstNo: {
         type: Sequelize.STRING(15),
