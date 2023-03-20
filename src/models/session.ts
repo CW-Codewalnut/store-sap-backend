@@ -1,7 +1,6 @@
 import {
   Model,
   DataTypes,
-  CreationOptional,
   InferAttributes,
   InferCreationAttributes,
 } from 'sequelize';
@@ -13,10 +12,11 @@ interface SessionModel
     InferCreationAttributes<SessionModel>
   > {
   sid: string;
-  userId: CreationOptional<string>;
-  expires: Date;
-  data: CreationOptional<string>;
+  userId: string;
+  expires: string;
+  data: string;
 }
+
 const Session = sequelize.define<SessionModel>('Session', {
   sid: {
     type: DataTypes.STRING,

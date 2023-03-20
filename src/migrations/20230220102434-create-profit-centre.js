@@ -6,13 +6,14 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.STRING(16),
       },
-      sapMasterId: {
+      profitCentre: {
         allowNull: false,
         unique: true,
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT(10),
       },
-      name: {
+      sapDescription: {
         allowNull: false,
+        unique: true,
         type: Sequelize.STRING,
       },
       costCentreId: {

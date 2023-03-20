@@ -1,9 +1,13 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 import Segment from '../models/segment';
-import { responseFormatter, CODE, STATUS } from '../config/response';
+import { responseFormatter, CODE, SUCCESS } from '../config/response';
 
-const getSegmentsByProfitCentreId = async (req: Request, res: Response) => {
+const getSegmentsByProfitCentreId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { profitCentreId } = req.params;
     const Segments = await Segment.findAll({
@@ -11,14 +15,13 @@ const getSegmentsByProfitCentreId = async (req: Request, res: Response) => {
     });
     const response = responseFormatter(
       CODE[200],
-      STATUS.SUCCESS,
+      SUCCESS.TRUE,
       'Fetched',
       Segments,
     );
-    res.status(200).send(response);
+    res.status(CODE[200]).send(response);
   } catch (err: any) {
-    const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
-    res.send(response);
+    next(err);
   }
 };
 

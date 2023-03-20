@@ -6,46 +6,42 @@ import {
 } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
+import HouseBank from './house-bank';
 
-interface PlantModel
+interface BankAccountModel
   extends Model<
-    InferAttributes<PlantModel>,
-    InferCreationAttributes<PlantModel>
+    InferAttributes<BankAccountModel>,
+    InferCreationAttributes<BankAccountModel>
   > {
   id: string;
-  plantCode: number;
-  plant: string;
+  bankAccountNumber: string;
+  AccountType: string;
+  houseBankId: string;
   createdBy: string;
   updatedBy: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const Plant = sequelize.define<PlantModel>('plant', {
+const BankAccount = sequelize.define<BankAccountModel>('bank_account', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  plantCode: {
+  bankAccountNumber: {
+    type: DataTypes.STRING(50),
     allowNull: false,
     unique: true,
-    type: DataTypes.BIGINT,
   },
-  plant: {
+  AccountType: {
+    type: DataTypes.STRING(50),
     allowNull: false,
-    unique: true,
-    type: DataTypes.STRING(100),
-    validate: {
-      notNull: {
-        msg: 'Plant is required!',
-      },
-      len: {
-        args: [3, 50],
-        msg: 'Plant must be under 3-50 characters.',
-      },
-    },
+  },
+  houseBankId: {
+    type: DataTypes.STRING(16),
+    allowNull: false,
   },
   createdBy: {
     allowNull: true,
@@ -65,4 +61,8 @@ const Plant = sequelize.define<PlantModel>('plant', {
   },
 });
 
-export default Plant;
+BankAccount.belongsTo(HouseBank, {
+  foreignKey: 'houseBankId',
+});
+
+export default BankAccount;

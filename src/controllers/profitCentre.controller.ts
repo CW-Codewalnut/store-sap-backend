@@ -1,8 +1,12 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import ProfitCentre from '../models/profit-centre';
-import { responseFormatter, CODE, STATUS } from '../config/response';
+import { responseFormatter, CODE, SUCCESS } from '../config/response';
 
-const getProfitCentreByCostCentreId = async (req: Request, res: Response) => {
+const getProfitCentreByCostCentreId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { costCentreId } = req.params;
     const profitCentres = await ProfitCentre.findAll({
@@ -10,14 +14,13 @@ const getProfitCentreByCostCentreId = async (req: Request, res: Response) => {
     });
     const response = responseFormatter(
       CODE[200],
-      STATUS.SUCCESS,
+      SUCCESS.TRUE,
       'Fetched',
       profitCentres,
     );
-    res.status(200).send(response);
+    res.status(CODE[200]).send(response);
   } catch (err: any) {
-    const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
-    res.send(response);
+    next(err);
   }
 };
 

@@ -14,13 +14,13 @@ interface CostCentreModel
     InferCreationAttributes<CostCentreModel>
   > {
   id: string;
-  sapMasterId: string;
-  name: string;
+  costCentre: number;
+  sapDescription: string;
   plantId: string;
   createdBy: string;
   updatedBy: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const CostCentre = sequelize.define<CostCentreModel>('cost_centre', {
@@ -30,14 +30,15 @@ const CostCentre = sequelize.define<CostCentreModel>('cost_centre', {
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  sapMasterId: {
+  costCentre: {
     allowNull: false,
     unique: true,
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
   },
-  name: {
+  sapDescription: {
     allowNull: false,
-    type: DataTypes.STRING,
+    unique: true,
+    type: DataTypes.STRING(100),
   },
   plantId: {
     allowNull: true,

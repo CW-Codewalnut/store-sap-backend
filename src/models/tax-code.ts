@@ -7,45 +7,45 @@ import {
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 
-interface PlantModel
+interface TaxCodeModel
   extends Model<
-    InferAttributes<PlantModel>,
-    InferCreationAttributes<PlantModel>
+    InferAttributes<TaxCodeModel>,
+    InferCreationAttributes<TaxCodeModel>
   > {
   id: string;
-  plantCode: number;
-  plant: string;
+  taxCode: string;
+  description: string;
+  taxRate: string;
+  groupName: string;
   createdBy: string;
   updatedBy: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const Plant = sequelize.define<PlantModel>('plant', {
+const TaxCode = sequelize.define<TaxCodeModel>('tax_code', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  plantCode: {
+  taxCode: {
+    type: DataTypes.STRING(3),
     allowNull: false,
     unique: true,
-    type: DataTypes.BIGINT,
   },
-  plant: {
-    allowNull: false,
-    unique: true,
+  description: {
     type: DataTypes.STRING(100),
-    validate: {
-      notNull: {
-        msg: 'Plant is required!',
-      },
-      len: {
-        args: [3, 50],
-        msg: 'Plant must be under 3-50 characters.',
-      },
-    },
+    allowNull: false,
+  },
+  taxRate: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  groupName: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
   },
   createdBy: {
     allowNull: true,
@@ -65,4 +65,4 @@ const Plant = sequelize.define<PlantModel>('plant', {
   },
 });
 
-export default Plant;
+export default TaxCode;

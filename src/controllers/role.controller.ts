@@ -1,21 +1,21 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import groupBy from 'lodash.groupby';
 import { Op } from 'sequelize';
 import Role from '../models/role';
 import Permission from '../models/permission';
 import RolePermission from '../models/role-permission';
-import { responseFormatter, CODE, STATUS } from '../config/response';
+import { responseFormatter, CODE, SUCCESS } from '../config/response';
 
-const create = async (req: Request, res: Response) => {
+const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (!req.body || !req.body.name || !req.body.description) {
       const response = responseFormatter(
         CODE[400],
-        STATUS.FAILURE,
+        SUCCESS.FALSE,
         'Content can not be empty!',
         null,
       );
-      return res.send(response);
+      return res.status(CODE[400]).send(response);
     }
     req.body.createdBy = req.user.id;
     req.body.updatedBy = req.user.id;
@@ -24,23 +24,17 @@ const create = async (req: Request, res: Response) => {
     const roleData = await Role.findByPk(id);
     const response = responseFormatter(
       CODE[201],
-      STATUS.SUCCESS,
+      SUCCESS.TRUE,
       'Created',
       roleData,
     );
     return res.status(201).send(response);
   } catch (err) {
-    const response = responseFormatter(
-      CODE[500],
-      STATUS.FAILURE,
-      JSON.stringify(err),
-      null,
-    );
-    return res.send(response);
+    next(err);
   }
 };
 
-const findAll = async (req: Request, res: Response) => {
+const findAll = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const roles = await Role.findAll({
       order: [['name', 'ASC']],
@@ -51,25 +45,24 @@ const findAll = async (req: Request, res: Response) => {
     };
     const response = responseFormatter(
       CODE[200],
-      STATUS.SUCCESS,
+      SUCCESS.TRUE,
       'Fetched',
       data,
     );
     res.status(200).send(response);
   } catch (err: any) {
-    const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
-    res.send(response);
+    next(err);
   }
 };
 
-const findById = async (req: Request, res: Response) => {
+const findById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const role = await Role.findByPk(id);
     if (!role) {
       const response = responseFormatter(
         CODE[404],
-        STATUS.SUCCESS,
+        SUCCESS.TRUE,
         'Data not found',
         role,
       );
@@ -77,32 +70,26 @@ const findById = async (req: Request, res: Response) => {
     }
     const response = responseFormatter(
       CODE[200],
-      STATUS.SUCCESS,
+      SUCCESS.TRUE,
       'Fetched',
       role,
     );
     return res.status(200).send(response);
   } catch (err) {
-    const response = responseFormatter(
-      CODE[500],
-      STATUS.FAILURE,
-      JSON.stringify(err),
-      null,
-    );
-    return res.send(response);
+    next(err);
   }
 };
 
-const update = async (req: Request, res: Response) => {
+const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (!req.body || !req.body.name || !req.body.description) {
       const response = responseFormatter(
         CODE[400],
-        STATUS.FAILURE,
+        SUCCESS.FALSE,
         'Content can not be empty!',
         null,
       );
-      return res.send(response);
+      return res.status(CODE[400]).send(response);
     }
     const { id } = req.params;
     req.body.updatedBy = req.user.id;
@@ -112,23 +99,21 @@ const update = async (req: Request, res: Response) => {
     const roleData = await Role.findByPk(id);
     const response = responseFormatter(
       CODE[200],
-      STATUS.SUCCESS,
+      SUCCESS.TRUE,
       'Updated',
       roleData,
     );
-    return res.send(response);
+    return res.status(CODE[200]).send(response);
   } catch (err) {
-    const response = responseFormatter(
-      CODE[500],
-      STATUS.FAILURE,
-      JSON.stringify(err),
-      null,
-    );
-    return res.send(response);
+    next(err);
   }
 };
 
-const findRolePermissions = async (req: Request, res: Response) => {
+const findRolePermissions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { id } = req.params;
 
@@ -155,27 +140,30 @@ const findRolePermissions = async (req: Request, res: Response) => {
     };
     const response = responseFormatter(
       CODE[200],
-      STATUS.SUCCESS,
+      SUCCESS.TRUE,
       'Fetched',
       newData,
     );
-    res.send(response);
+    res.status(CODE[200]).send(response);
   } catch (err: any) {
-    const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
-    res.status(400).send(response);
+    next(err);
   }
 };
 
-const updateRolePermissions = (req: Request, res: Response) => {
+const updateRolePermissions = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     if (!req.body && !req.params) {
       const response = responseFormatter(
         CODE[400],
-        STATUS.FAILURE,
+        SUCCESS.FALSE,
         'Content can not be empty!',
         null,
       );
-      return res.send(response);
+      return res.status(CODE[400]).send(response);
     }
     const { permissionIds } = req.body;
     let query;
@@ -213,14 +201,13 @@ const updateRolePermissions = (req: Request, res: Response) => {
           RolePermission.create(rolePermissionData);
         }
       });
-      response = responseFormatter(CODE[200], STATUS.SUCCESS, 'success', null);
+      response = responseFormatter(CODE[200], SUCCESS.TRUE, 'success', null);
     } else {
-      response = responseFormatter(CODE[200], STATUS.SUCCESS, 'success', null);
+      response = responseFormatter(CODE[200], SUCCESS.TRUE, 'success', null);
     }
-    return res.send(response);
+    return res.status(CODE[200]).send(response);
   } catch (err: any) {
-    const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
-    return res.send(response);
+    next(err);
   }
 };
 

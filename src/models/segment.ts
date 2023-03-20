@@ -14,13 +14,12 @@ interface SegmentModel
     InferCreationAttributes<SegmentModel>
   > {
   id: string;
-  sapMasterId: string;
-  name: string;
+  segment: string;
   profitCentreId: string;
   createdBy: string;
   updatedBy: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const Segment = sequelize.define<SegmentModel>('segment', {
@@ -30,17 +29,12 @@ const Segment = sequelize.define<SegmentModel>('segment', {
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  sapMasterId: {
+  segment: {
     allowNull: false,
-    unique: true,
-    type: DataTypes.INTEGER,
-  },
-  name: {
-    allowNull: false,
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(100),
   },
   profitCentreId: {
-    allowNull: true,
+    allowNull: false,
     type: DataTypes.STRING(16),
   },
   createdBy: {

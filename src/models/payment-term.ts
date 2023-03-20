@@ -7,45 +7,40 @@ import {
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 
-interface PlantModel
+interface PaymentTermModel
   extends Model<
-    InferAttributes<PlantModel>,
-    InferCreationAttributes<PlantModel>
+    InferAttributes<PaymentTermModel>,
+    InferCreationAttributes<PaymentTermModel>
   > {
   id: string;
-  plantCode: number;
-  plant: string;
-  createdBy: string;
-  updatedBy: string;
-  createdAt: Date;
-  updatedAt: Date;
+  payTerm: string;
+  payTermDescription: string;
+  netDueDate: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-const Plant = sequelize.define<PlantModel>('plant', {
+const PaymentTerm = sequelize.define<PaymentTermModel>('payment_term', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  plantCode: {
+  payTerm: {
+    type: DataTypes.STRING(5),
     allowNull: false,
     unique: true,
-    type: DataTypes.BIGINT,
   },
-  plant: {
-    allowNull: false,
-    unique: true,
+  payTermDescription: {
     type: DataTypes.STRING(100),
-    validate: {
-      notNull: {
-        msg: 'Plant is required!',
-      },
-      len: {
-        args: [3, 50],
-        msg: 'Plant must be under 3-50 characters.',
-      },
-    },
+    allowNull: false,
+  },
+  netDueDate: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
   },
   createdBy: {
     allowNull: true,
@@ -65,4 +60,4 @@ const Plant = sequelize.define<PlantModel>('plant', {
   },
 });
 
-export default Plant;
+export default PaymentTerm;

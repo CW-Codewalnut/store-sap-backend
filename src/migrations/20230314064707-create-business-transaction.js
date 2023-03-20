@@ -1,20 +1,31 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('segments', {
+    await queryInterface.createTable('business_transactions', {
       id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING(16),
       },
-      segment: {
+      businessTransactionNo: {
+        type: Sequelize.BIGINT(10),
         allowNull: false,
-        type: Sequelize.STRING(100),
+        unique: true,
       },
-      profitCentreId: {
+      shortText: {
+        type: Sequelize.STRING(10),
+        allowNull: true,
+        unique: true,
+      },
+      longText: {
+        type: Sequelize.STRING(100),
         allowNull: false,
+        unique: true,
+      },
+      moduleId: {
         type: Sequelize.STRING(16),
+        allowNull: false,
         references: {
-          model: 'profit_centres',
+          model: 'modules',
           key: 'id',
         },
       },
@@ -37,6 +48,6 @@ module.exports = {
     });
   },
   async down(queryInterface) {
-    await queryInterface.dropTable('segments');
+    await queryInterface.dropTable('business_transactions');
   },
 };

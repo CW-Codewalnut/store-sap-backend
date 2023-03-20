@@ -14,13 +14,13 @@ interface ProfitCentreModel
     InferCreationAttributes<ProfitCentreModel>
   > {
   id: string;
-  sapMasterId: string;
-  name: string;
+  profitCentre: number;
+  sapDescription: string;
   costCentreId: string;
   createdBy: string;
   updatedBy: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const ProfitCentre = sequelize.define<ProfitCentreModel>('profit_centre', {
@@ -30,13 +30,14 @@ const ProfitCentre = sequelize.define<ProfitCentreModel>('profit_centre', {
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  sapMasterId: {
+  profitCentre: {
     allowNull: false,
     unique: true,
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
   },
-  name: {
+  sapDescription: {
     allowNull: false,
+    unique: true,
     type: DataTypes.STRING,
   },
   costCentreId: {

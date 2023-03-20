@@ -6,11 +6,21 @@ import CostCenterController from '../controllers/costCentre.controller';
 import ProfitCenterController from '../controllers/profitCentre.controller';
 import SegmentController from '../controllers/segment.controller';
 import RoleController from '../controllers/role.controller';
+import HouseBankController from '../controllers/houseBank.controller';
+import BankAccountController from '../controllers/bankAccount.controller';
+import BusinessTransactionController from '../controllers/businessTransaction.controller';
+import EmployeeController from '../controllers/employee.controller';
+import GlAccountController from '../controllers/glAccount.controller';
+import PaymentTermController from '../controllers/paymentTerm.controller';
+import TaxCodeController from '../controllers/taxCode.controller';
+import VendorController from '../controllers/vendor.controller';
+import CustomerController from '../controllers/customer.controller';
 
-import { checkAuthenticated } from '../middleware/auth';
+import { checkAuthenticated, verifyRouteAccess } from '../middleware/auth';
 
 const routesMiddleware = (app: Application) => {
   app.post('/auth', UserController.auth);
+  app.get('/route/verify', verifyRouteAccess);
   app.get(
     '/users/paginate',
     checkAuthenticated,
@@ -61,6 +71,62 @@ const routesMiddleware = (app: Application) => {
     '/segments/:profitCentreId',
     checkAuthenticated,
     SegmentController.getSegmentsByProfitCentreId,
+  );
+
+  app.get('/payment-terms', checkAuthenticated, PaymentTermController.findAll);
+
+  app.get('/house-banks', checkAuthenticated, HouseBankController.findAll);
+
+  app.get(
+    '/bank-accounts/:houseBankId',
+    checkAuthenticated,
+    BankAccountController.getAccountsByHouseBankId,
+  );
+
+  app.get(
+    '/get-all-masters/:moduleId',
+    checkAuthenticated,
+    BusinessTransactionController.getMasters,
+  );
+
+  app.get(
+    '/business-transactions/:moduleId',
+    checkAuthenticated,
+    BusinessTransactionController.getBusinessTransactionsByModuleId,
+  );
+
+  app.get(
+    '/employees/:plantId',
+    checkAuthenticated,
+    EmployeeController.getEmployeesByPlantId,
+  );
+
+  app.get(
+    '/gl-accounts/:businessTransactionId',
+    checkAuthenticated,
+    GlAccountController.getGlAccountsByBusinessTransactionId,
+  );
+
+  app.get('/tax-codes', checkAuthenticated, TaxCodeController.findAll);
+
+  app.get('/vendors', checkAuthenticated, VendorController.findAll);
+
+  app.get(
+    '/customers/paginate',
+    checkAuthenticated,
+    CustomerController.findWithPaginate,
+  );
+
+  app.get(
+    '/employees/:plantId/paginate',
+    checkAuthenticated,
+    EmployeeController.findWithPaginate,
+  );
+
+  app.get(
+    '/vendors/paginate',
+    checkAuthenticated,
+    VendorController.findWithPaginate,
   );
 };
 

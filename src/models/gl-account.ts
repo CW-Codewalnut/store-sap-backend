@@ -6,45 +6,51 @@ import {
 } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
+import BusinessTransaction from './business-transaction';
 
-interface PlantModel
+interface GlAccountModel
   extends Model<
-    InferAttributes<PlantModel>,
-    InferCreationAttributes<PlantModel>
+    InferAttributes<GlAccountModel>,
+    InferCreationAttributes<GlAccountModel>
   > {
   id: string;
-  plantCode: number;
-  plant: string;
+  glAccounts: number;
+  shortText: string;
+  longText: string;
+  businessTransactionId: string;
   createdBy: string;
   updatedBy: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const Plant = sequelize.define<PlantModel>('plant', {
+const GlAccount = sequelize.define<GlAccountModel>('gl_account', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  plantCode: {
-    allowNull: false,
-    unique: true,
+  glAccounts: {
     type: DataTypes.BIGINT,
-  },
-  plant: {
     allowNull: false,
     unique: true,
+  },
+  shortText: {
     type: DataTypes.STRING(100),
-    validate: {
-      notNull: {
-        msg: 'Plant is required!',
-      },
-      len: {
-        args: [3, 50],
-        msg: 'Plant must be under 3-50 characters.',
-      },
+    allowNull: false,
+  },
+  longText: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
+  businessTransactionId: {
+    allowNull: false,
+    type: DataTypes.STRING(16),
+    references: {
+      model: 'business_transactions',
+      key: 'id',
     },
   },
   createdBy: {
@@ -65,4 +71,8 @@ const Plant = sequelize.define<PlantModel>('plant', {
   },
 });
 
-export default Plant;
+GlAccount.belongsTo(BusinessTransaction, {
+  foreignKey: 'businessTransactionId',
+});
+
+export default GlAccount;

@@ -7,45 +7,51 @@ import {
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 
-interface PlantModel
+interface HouseBankModel
   extends Model<
-    InferAttributes<PlantModel>,
-    InferCreationAttributes<PlantModel>
+    InferAttributes<HouseBankModel>,
+    InferCreationAttributes<HouseBankModel>
   > {
   id: string;
-  plantCode: number;
-  plant: string;
+  ifsc: string;
+  bankName: string;
+  street: string;
+  city: string;
+  bankBranch: string;
   createdBy: string;
   updatedBy: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const Plant = sequelize.define<PlantModel>('plant', {
+const HouseBank = sequelize.define<HouseBankModel>('house_bank', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  plantCode: {
+  ifsc: {
+    type: DataTypes.STRING(30),
     allowNull: false,
     unique: true,
-    type: DataTypes.BIGINT,
   },
-  plant: {
+  bankName: {
+    type: DataTypes.STRING(100),
     allowNull: false,
     unique: true,
+  },
+  street: {
     type: DataTypes.STRING(100),
-    validate: {
-      notNull: {
-        msg: 'Plant is required!',
-      },
-      len: {
-        args: [3, 50],
-        msg: 'Plant must be under 3-50 characters.',
-      },
-    },
+    allowNull: false,
+  },
+  city: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  },
+  bankBranch: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
   },
   createdBy: {
     allowNull: true,
@@ -65,4 +71,4 @@ const Plant = sequelize.define<PlantModel>('plant', {
   },
 });
 
-export default Plant;
+export default HouseBank;

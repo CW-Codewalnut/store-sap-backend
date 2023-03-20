@@ -6,25 +6,26 @@ import {
 } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
-import Role from './role';
-import Permission from './permission';
+import Module from './module';
 
-interface RolePermissionModel
+interface BusinessTransactionModel
   extends Model<
-    InferAttributes<RolePermissionModel>,
-    InferCreationAttributes<RolePermissionModel>
+    InferAttributes<BusinessTransactionModel>,
+    InferCreationAttributes<BusinessTransactionModel>
   > {
   id: string;
-  roleId: string;
-  permissionId: string;
+  businessTransactionNo: number;
+  shortText: string;
+  longText: string;
+  moduleId: string;
   createdBy: string;
   updatedBy: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const RolePermission = sequelize.define<RolePermissionModel>(
-  'role_permission',
+const BusinessTransaction = sequelize.define<BusinessTransactionModel>(
+  'business_transaction',
   {
     id: {
       type: DataTypes.STRING(16),
@@ -32,13 +33,24 @@ const RolePermission = sequelize.define<RolePermissionModel>(
       allowNull: false,
       defaultValue: () => nanoid(16),
     },
-    roleId: {
+    businessTransactionNo: {
+      type: DataTypes.BIGINT,
       allowNull: false,
-      type: DataTypes.STRING(16),
+      unique: true,
     },
-    permissionId: {
+    shortText: {
+      type: DataTypes.STRING(10),
+      allowNull: true,
+      unique: true,
+    },
+    longText: {
+      type: DataTypes.STRING(100),
       allowNull: false,
+      unique: true,
+    },
+    moduleId: {
       type: DataTypes.STRING(16),
+      allowNull: false,
     },
     createdBy: {
       allowNull: true,
@@ -59,11 +71,8 @@ const RolePermission = sequelize.define<RolePermissionModel>(
   },
 );
 
-RolePermission.belongsTo(Role, {
-  foreignKey: 'roleId',
-});
-RolePermission.belongsTo(Permission, {
-  foreignKey: 'permissionId',
+BusinessTransaction.belongsTo(Module, {
+  foreignKey: 'moduleId',
 });
 
-export default RolePermission;
+export default BusinessTransaction;

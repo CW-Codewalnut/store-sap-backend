@@ -2,23 +2,12 @@ import { Request, Response, NextFunction } from 'express';
 import md5 from 'md5';
 import passport from 'passport';
 
-import sequelize from 'sequelize';
-import { Session, Cookie } from 'express-session';
+import { Op } from 'sequelize';
 import User from '../models/user';
 import Role from '../models/role';
 
-import { responseFormatter, CODE, STATUS } from '../config/response';
+import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import { saveSessionActivity } from '../middleware/auth';
-import SessionActivity from '../models/session-activity';
-
-interface MySession extends Session {
-  userId?: string;
-}
-interface MyCookie extends Cookie {
-  _expires?: Date;
-}
-
-const { Op } = sequelize;
 
 const auth = async (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('local', (err: any, user: any) => {
@@ -29,11 +18,11 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
       if (!user) {
         const response = responseFormatter(
           CODE[400],
-          STATUS.FAILURE,
+          SUCCESS.FALSE,
           'Invalid credentials',
           null,
         );
-        return res.send(response);
+        return res.status(CODE[400]).send(response);
       }
       return req.logIn(user, (loginErr) => {
         if (loginErr) {
@@ -51,57 +40,45 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
             if (errSession) {
               const response = responseFormatter(
                 CODE[500],
-                STATUS.FAILURE,
+                SUCCESS.FALSE,
                 errSession,
                 null,
               );
-              return res.send(response);
+              return res.status(CODE[500]).send(response);
             }
 
             const response = responseFormatter(
               CODE[200],
-              STATUS.SUCCESS,
+              SUCCESS.TRUE,
               'Logged in successfully',
               null,
             );
-            return res.send(response);
+            return res.status(CODE[200]).send(response);
           },
         });
       });
-    } catch (error) {
-      const response = responseFormatter(
-        CODE[500],
-        STATUS.FAILURE,
-        JSON.stringify(error),
-        null,
-      );
-      return res.send(response);
+    } catch (err) {
+      next(err);
     }
   })(req, res, next);
 };
 
-const logout = async (req: Request, res: Response) => {
+const logout = async (req: Request, res: Response, next: NextFunction) => {
   try {
     req.session.destroy((err: any) => console.warn(err.message));
     const response = responseFormatter(
       CODE[200],
-      STATUS.SUCCESS,
+      SUCCESS.TRUE,
       'Logout securely',
       null,
     );
-    return res.send(response);
+    return res.status(CODE[200]).send(response);
   } catch (err) {
-    const response = responseFormatter(
-      CODE[400],
-      STATUS.FAILURE,
-      JSON.stringify(err),
-      null,
-    );
-    return res.send(response);
+    next(err);
   }
 };
 
-const create = async (req: Request, res: Response) => {
+const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (
       !req.body
@@ -112,11 +89,11 @@ const create = async (req: Request, res: Response) => {
     ) {
       const response = responseFormatter(
         CODE[400],
-        STATUS.FAILURE,
+        SUCCESS.FALSE,
         'Content can not be empty!',
         null,
       );
-      return res.send(response);
+      return res.status(CODE[400]).send(response);
     }
 
     if (req.body.password) {
@@ -135,23 +112,21 @@ const create = async (req: Request, res: Response) => {
     });
     const response = responseFormatter(
       CODE[201],
-      STATUS.SUCCESS,
+      SUCCESS.TRUE,
       'Created',
       userData,
     );
     return res.status(201).send(response);
   } catch (err) {
-    const response = responseFormatter(
-      CODE[500],
-      STATUS.FAILURE,
-      JSON.stringify(err),
-      null,
-    );
-    return res.send(response);
+    next(err);
   }
 };
 
-const findWithPaginate = async (req: Request, res: Response) => {
+const findWithPaginate = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const page = Number(req.query.page);
     const pageSize = Number(req.query.pageSize);
@@ -184,18 +159,17 @@ const findWithPaginate = async (req: Request, res: Response) => {
 
     const response = responseFormatter(
       CODE[200],
-      STATUS.SUCCESS,
+      SUCCESS.TRUE,
       'Fetched',
       users,
     );
     res.status(200).send(response);
   } catch (err: any) {
-    const response = responseFormatter(CODE[500], STATUS.FAILURE, err, null);
-    res.send(response);
+    next(err);
   }
 };
 
-const findById = async (req: Request, res: Response) => {
+const findById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const user = await User.findOne({
@@ -209,7 +183,7 @@ const findById = async (req: Request, res: Response) => {
     if (!user) {
       const response = responseFormatter(
         CODE[404],
-        STATUS.SUCCESS,
+        SUCCESS.TRUE,
         'Data not found',
         user,
       );
@@ -217,23 +191,17 @@ const findById = async (req: Request, res: Response) => {
     }
     const response = responseFormatter(
       CODE[200],
-      STATUS.SUCCESS,
+      SUCCESS.TRUE,
       'Fetched',
       user,
     );
     return res.status(200).send(response);
   } catch (err) {
-    const response = responseFormatter(
-      CODE[500],
-      STATUS.FAILURE,
-      JSON.stringify(err),
-      null,
-    );
-    return res.send(response);
+    next(err);
   }
 };
 
-const update = async (req: Request, res: Response) => {
+const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (
       !req.body
@@ -244,11 +212,11 @@ const update = async (req: Request, res: Response) => {
     ) {
       const response = responseFormatter(
         CODE[400],
-        STATUS.FAILURE,
+        SUCCESS.FALSE,
         'Content can not be empty!',
         null,
       );
-      return res.send(response);
+      return res.status(CODE[400]).send(response);
     }
 
     if (req.body.password) {
@@ -271,19 +239,13 @@ const update = async (req: Request, res: Response) => {
     });
     const response = responseFormatter(
       CODE[200],
-      STATUS.SUCCESS,
+      SUCCESS.TRUE,
       'Updated',
       userData,
     );
-    return res.send(response);
+    return res.status(CODE[200]).send(response);
   } catch (err) {
-    const response = responseFormatter(
-      CODE[500],
-      STATUS.FAILURE,
-      JSON.stringify(err),
-      null,
-    );
-    return res.send(response);
+    next(err);
   }
 };
 

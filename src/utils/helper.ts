@@ -3,4 +3,6 @@ const validateEmail = (email: string) => {
   return regex.test(String(email).toLowerCase());
 };
 
-export { validateEmail };
+const getIdArrays = (data: any) => data.map((x: any) => x.id);
+
+export { validateEmail, getIdArrays };

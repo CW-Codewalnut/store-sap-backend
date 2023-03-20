@@ -6,46 +6,42 @@ import {
 } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
+import Plant from './plant';
 
-interface PlantModel
+interface EmployeeModel
   extends Model<
-    InferAttributes<PlantModel>,
-    InferCreationAttributes<PlantModel>
+    InferAttributes<EmployeeModel>,
+    InferCreationAttributes<EmployeeModel>
   > {
   id: string;
-  plantCode: number;
-  plant: string;
-  createdBy: string;
-  updatedBy: string;
+  employeeCode: string;
+  employeeName: string;
+  plantId: string;
   createdAt: Date;
   updatedAt: Date;
+  createdBy: string;
+  updatedBy: string;
 }
 
-const Plant = sequelize.define<PlantModel>('plant', {
+const Employee = sequelize.define<EmployeeModel>('employee', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  plantCode: {
+  employeeCode: {
+    type: DataTypes.STRING(50),
     allowNull: false,
     unique: true,
-    type: DataTypes.BIGINT,
   },
-  plant: {
-    allowNull: false,
-    unique: true,
+  employeeName: {
     type: DataTypes.STRING(100),
-    validate: {
-      notNull: {
-        msg: 'Plant is required!',
-      },
-      len: {
-        args: [3, 50],
-        msg: 'Plant must be under 3-50 characters.',
-      },
-    },
+    allowNull: false,
+  },
+  plantId: {
+    type: DataTypes.STRING(16),
+    allowNull: false,
   },
   createdBy: {
     allowNull: true,
@@ -65,4 +61,8 @@ const Plant = sequelize.define<PlantModel>('plant', {
   },
 });
 
-export default Plant;
+Employee.belongsTo(Plant, {
+  foreignKey: 'plantId',
+});
+
+export default Employee;

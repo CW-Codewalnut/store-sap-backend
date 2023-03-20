@@ -10,6 +10,7 @@ import passport from 'passport';
 import sessionMiddleware from './middleware/session';
 import passportMiddleware from './middleware/passport';
 import routesMiddleware from './routes';
+import ErrorHandler from './middleware/error-handler';
 
 const configs = require('./config/config');
 
@@ -54,13 +55,15 @@ app.use(express.static(publicDir));
 
 routesMiddleware(app);
 
+app.use(ErrorHandler);
+
 const port = parseInt(config.serverPort, 10);
 app.set('port', port);
 const server = http.createServer(app);
 
 server.listen(port, () => {
-  console.log(`Environment running on:  ${process.env.NODE_ENV}`);
-  console.log(`Server is running on port: ${port}`);
+  console.info(`Environment running on:  ${process.env.NODE_ENV}`);
+  console.info(`Server is running on port: ${port}`);
 });
 
 /**

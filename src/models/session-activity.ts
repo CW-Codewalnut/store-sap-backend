@@ -14,15 +14,15 @@ interface SessionActivityModel
     InferCreationAttributes<SessionActivityModel>
   > {
   id: string;
-  userId: string;
-  loginTime: string;
-  logoutTime: string;
-  isExpired: string;
+  userId: number;
+  loginTime: Date;
+  logoutTime: Date;
+  isExpired: boolean;
   device: string;
   ip: string;
   lat: string;
   long: string;
-  updatedAt: string;
+  updatedAt: Date;
 }
 
 const SessionActivity = sequelize.define<SessionActivityModel>(

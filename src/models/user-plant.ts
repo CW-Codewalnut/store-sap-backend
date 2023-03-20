@@ -9,21 +9,21 @@ import { sequelize } from '.';
 import User from './user';
 import Plant from './plant';
 
-interface CostCentreModel
+interface UserPlantModel
   extends Model<
-    InferAttributes<CostCentreModel>,
-    InferCreationAttributes<CostCentreModel>
+    InferAttributes<UserPlantModel>,
+    InferCreationAttributes<UserPlantModel>
   > {
   id: string;
   userId: string;
   plantId: string;
   createdBy: string;
   updatedBy: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const UserPlant = sequelize.define<CostCentreModel>('plant', {
+const UserPlant = sequelize.define<UserPlantModel>('plant', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,

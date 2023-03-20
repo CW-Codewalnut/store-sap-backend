@@ -17,8 +17,8 @@ interface RoleModel
   description: string;
   createdBy: string;
   updatedBy: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const Role = sequelize.define<RoleModel>('role', {

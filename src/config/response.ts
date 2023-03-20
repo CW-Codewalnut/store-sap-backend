@@ -1,13 +1,13 @@
 const responseFormatter = (
-  code: number,
-  statusFlag: string,
-  msg: string,
+  status: number,
+  success: boolean,
+  message: string,
   data: any,
 ) => {
   const res = {
-    code,
-    status: statusFlag,
-    message: msg,
+    status,
+    success,
+    message,
     data,
   };
   return res;
@@ -17,14 +17,14 @@ const CODE = {
   200: 200,
   201: 201,
   400: 400,
+  401: 401,
   404: 404,
-  440: 400,
   500: 500,
 };
 
-const STATUS = {
-  SUCCESS: 'success',
-  FAILURE: 'failure',
+const SUCCESS = {
+  FALSE: false,
+  TRUE: true,
 };
 
-export { responseFormatter, CODE, STATUS };
+export { responseFormatter, CODE, SUCCESS };

@@ -7,45 +7,36 @@ import {
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 
-interface PlantModel
+interface ModuleModel
   extends Model<
-    InferAttributes<PlantModel>,
-    InferCreationAttributes<PlantModel>
+    InferAttributes<ModuleModel>,
+    InferCreationAttributes<ModuleModel>
   > {
   id: string;
-  plantCode: number;
-  plant: string;
+  name: string;
+  slug: string;
   createdBy: string;
   updatedBy: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const Plant = sequelize.define<PlantModel>('plant', {
+const Module = sequelize.define<ModuleModel>('module', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  plantCode: {
+  name: {
     allowNull: false,
     unique: true,
-    type: DataTypes.BIGINT,
+    type: DataTypes.STRING,
   },
-  plant: {
+  slug: {
     allowNull: false,
     unique: true,
-    type: DataTypes.STRING(100),
-    validate: {
-      notNull: {
-        msg: 'Plant is required!',
-      },
-      len: {
-        args: [3, 50],
-        msg: 'Plant must be under 3-50 characters.',
-      },
-    },
+    type: DataTypes.STRING,
   },
   createdBy: {
     allowNull: true,
@@ -65,4 +56,5 @@ const Plant = sequelize.define<PlantModel>('plant', {
   },
 });
 
-export default Plant;
+export default Module;
+export { ModuleModel };
