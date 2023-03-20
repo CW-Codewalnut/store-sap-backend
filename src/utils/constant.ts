@@ -1,9 +1,10 @@
 const MESSAGE = {
+  AUTHORIZED: 'Authorized',
   BAD_REQUEST: 'Bad request',
   FAILURE: 'Failure',
-  UNAUTHORIZED: 'Unauthorized',
-  AUTHORIZED: 'Authorized',
+  NO_MATCH_FOUND: 'No match found',
   SUCCESS: 'Success',
+  UNAUTHORIZED: 'Unauthorized',
 };
 
 export { MESSAGE };

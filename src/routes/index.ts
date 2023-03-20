@@ -160,6 +160,12 @@ const routesMiddleware = (app: Application) => {
     checkAuthenticated,
     PettyCashController.updateDocumentStatus,
   );
+
+  app.delete(
+    '/petty-cash/delete',
+    checkAuthenticated,
+    PettyCashController.deleteTransactions,
+  );
 };
 
 export default routesMiddleware;

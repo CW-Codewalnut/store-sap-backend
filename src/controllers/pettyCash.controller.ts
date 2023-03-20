@@ -171,10 +171,7 @@ const updateDocumentStatus = async (
     }
 
     transactionIds.forEach(async (transactionId: string) => {
-      await PettyCash.update(
-        { documentStatus },
-        { where: { id: transactionId } },
-      );
+      await PettyCash.update({ documentStatus }, { where: { id: transactionId } });
     });
 
     const response = responseFormatter(
@@ -189,6 +186,71 @@ const updateDocumentStatus = async (
   }
 };
 
+const deleteTransactions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { transactionIds } = req.body;
+    if (!Array.isArray(transactionIds) || !transactionIds.length) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    const countMatched = await PettyCash.count({
+      where: {
+        [Op.and]: [
+          { id: { [Op.in]: transactionIds } },
+          { documentStatus: { [Op.eq]: 'Save' } },
+        ],
+      },
+    });
+    if (countMatched === 0) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.NO_MATCH_FOUND,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+    if (transactionIds.length !== countMatched && countMatched !== 0) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        'Document status with Save only permitted to delete',
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+    await PettyCash.destroy({
+      where: {
+        [Op.and]: [
+          { id: { [Op.in]: transactionIds } },
+          { documentStatus: { [Op.eq]: 'Save' } },
+        ],
+      },
+    });
+
+    const transactionSlug = transactionIds.length > 1 ? 'Transactions' : 'Transaction';
+
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      `${transactionSlug} successfully deleted`,
+      null,
+    );
+    res.status(CODE[200]).send(response);
+  } catch (err: any) {
+    next(err);
+  }
+};
 const exportPettyCash = async (
   req: Request,
   res: Response,
@@ -213,5 +275,6 @@ export default {
   findReceiptsWithPaginate,
   update,
   updateDocumentStatus,
+  deleteTransactions,
   exportPettyCash,
 };
