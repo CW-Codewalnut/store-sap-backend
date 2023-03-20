@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { Op } from 'sequelize';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
+import { MESSAGE } from '../utils/constant';
 import PettyCash from '../models/petty-cash';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
@@ -152,6 +153,41 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
     next(err);
   }
 };
+const updateDocumentStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { transactionIds, documentStatus } = req.body;
+    if (!Array.isArray(transactionIds) || !transactionIds.length) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    transactionIds.forEach(async (transactionId: string) => {
+      await PettyCash.update(
+        { documentStatus },
+        { where: { id: transactionId } },
+      );
+    });
+
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      'The transactions are locked in the app.',
+      null,
+    );
+    res.status(CODE[200]).send(response);
+  } catch (err: any) {
+    next(err);
+  }
+};
 
 const exportPettyCash = async (
   req: Request,
@@ -176,5 +212,6 @@ export default {
   findPaymentsWithPaginate,
   findReceiptsWithPaginate,
   update,
+  updateDocumentStatus,
   exportPettyCash,
 };

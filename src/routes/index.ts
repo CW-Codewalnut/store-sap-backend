@@ -155,6 +155,11 @@ const routesMiddleware = (app: Application) => {
     checkAuthenticated,
     PettyCashController.exportPettyCash,
   );
+  app.post(
+    '/petty-cash/update/status',
+    checkAuthenticated,
+    PettyCashController.updateDocumentStatus,
+  );
 };
 
 export default routesMiddleware;
