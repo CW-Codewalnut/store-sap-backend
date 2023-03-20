@@ -113,6 +113,13 @@ const findReceiptsWithPaginate = async (
   }
 };
 
+/**
+ * This method will update the transaction form data.
+ * @param req
+ * @param res
+ * @param next
+ * @returns
+ */
 const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { transactionId } = req.params;
@@ -153,6 +160,14 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
     next(err);
   }
 };
+
+/**
+ * This method will updated the document status based on use cases.
+ * @param req
+ * @param res
+ * @param next
+ * @returns
+ */
 const updateDocumentStatus = async (
   req: Request,
   res: Response,
@@ -177,7 +192,7 @@ const updateDocumentStatus = async (
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'The transactions are locked in the app.',
+      'Transactions are locked in application level.',
       null,
     );
     res.status(CODE[200]).send(response);
