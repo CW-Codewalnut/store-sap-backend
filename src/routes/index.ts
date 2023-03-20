@@ -134,15 +134,16 @@ const routesMiddleware = (app: Application) => {
   );
 
   // Petty cash api
+  app.post('/petty-cash', checkAuthenticated, PettyCashController.create);
   app.post(
-    '/petty-cash',
+    '/petty-cash/payments/paginate',
     checkAuthenticated,
-    PettyCashController.create,
+    PettyCashController.findPaymentsWithPaginate,
   );
-  app.get(
-    '/petty-cash/paginate',
+  app.post(
+    '/petty-cash/receipts/paginate',
     checkAuthenticated,
-    PettyCashController.findWithPaginate,
+    PettyCashController.findReceiptsWithPaginate,
   );
   app.patch(
     '/petty-cash/:transactionId',
