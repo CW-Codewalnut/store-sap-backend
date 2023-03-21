@@ -272,10 +272,10 @@ PettyCash.belongsTo(TaxCode, {
   foreignKey: 'taxCodeId',
 });
 PettyCash.belongsTo(GlAccount, {
-  foreignKey: 'glAccountId'
+  foreignKey: 'glAccountId',
 });
 PettyCash.belongsTo(BankAccount, {
-  foreignKey: 'bankAccountId'
+  foreignKey: 'bankAccountId',
 });
 PettyCash.belongsTo(Vendor, {
   foreignKey: 'vendorId',

@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { Op } from 'sequelize';
+import * as xlsx from 'xlsx';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import { MESSAGE } from '../utils/constant';
 import PettyCash from '../models/petty-cash';
@@ -15,7 +16,6 @@ import ProfitCentre from '../models/profit-centre';
 import Segment from '../models/segment';
 import Employee from '../models/employee';
 import HouseBank from '../models/house-bank';
-import * as xlsx from 'xlsx';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -78,42 +78,42 @@ const getPettyCashData = (
     return PettyCash.findAndCountAll({
       include: [
         {
-          model: BusinessTransaction
+          model: BusinessTransaction,
         },
         {
-          model: TaxCode
+          model: TaxCode,
         },
         {
-          model: GlAccount
+          model: GlAccount,
         },
         {
           model: BankAccount,
           include: [
             {
-              model: HouseBank
-            }
-          ]
+              model: HouseBank,
+            },
+          ],
         },
         {
-          model: Vendor
+          model: Vendor,
         },
         {
-          model: Customer
+          model: Customer,
         },
         {
-          model: Plant
+          model: Plant,
         },
         {
-          model: CostCentre
+          model: CostCentre,
         },
         {
-          model: ProfitCentre
+          model: ProfitCentre,
         },
         {
-          model: Segment
+          model: Segment,
         },
         {
-          model: Employee
+          model: Employee,
         },
       ],
       where: { [Op.and]: query },
@@ -242,10 +242,12 @@ const updateDocumentStatus = async (
       await PettyCash.update({ documentStatus }, { where: { id: transactionId } });
     });
 
+    const documentSlug = transactionIds.length > 1 ? 'Documents are' : 'Document is';
+
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Transactions are locked in application level.',
+      `${documentSlug} locked in app successfully`,
       null,
     );
     res.status(CODE[200]).send(response);
@@ -306,7 +308,7 @@ const deleteTransactions = async (
       },
     });
 
-    const transactionSlug = transactionIds.length > 1 ? 'Transactions' : 'Transaction';
+    const transactionSlug = transactionIds.length > 1 ? 'Documents' : 'Document';
 
     const response = responseFormatter(
       CODE[200],
@@ -331,67 +333,127 @@ const exportPettyCash = async (
     const pettyCashes = await PettyCash.findAll({
       include: [
         {
-          model: BusinessTransaction
+          model: BusinessTransaction,
         },
         {
-          model: TaxCode
+          model: TaxCode,
         },
         {
-          model: GlAccount
+          model: GlAccount,
         },
         {
           model: BankAccount,
           include: [
             {
-              model: HouseBank
-            }
-          ]
+              model: HouseBank,
+            },
+          ],
         },
         {
-          model: Vendor
+          model: Vendor,
         },
         {
-          model: Customer
+          model: Customer,
         },
         {
-          model: Plant
+          model: Plant,
         },
         {
-          model: CostCentre
+          model: CostCentre,
         },
         {
-          model: ProfitCentre
+          model: ProfitCentre,
         },
         {
-          model: Segment
+          model: Segment,
         },
         {
-          model: Employee
+          model: Employee,
         },
       ],
       where: {
         [Op.and]: [
           { createdAt: { [Op.between]: [fromDate, toDate] } },
-          {documentStatus: {[Op.eq]: 'Update'}}
-        ]
-      }
+          { documentStatus: { [Op.eq]: 'Update' } },
+        ],
+      },
     });
-    
-    const data = pettyCashes.map(transaction => {
-      return {
-        businessTranactionNo: transaction.businessTransactionId 
-      }
-    });
-    console.log('aaayyyyyyyyyyyyyyyyyyyyyyyyyyyyaaaaaaaaaaaaaaa', data);
-    // create workbook
+
+    const pettyCashData = pettyCashes.map((transaction: any) => ({
+      businessTransactionNo:
+          transaction.business_transaction.businessTransactionNo,
+      amount: transaction.amount,
+      glAccounts: transaction.gl_account.glAccounts,
+      houseBank: transaction.house_bank ? transaction.house_bank.ifsc : '',
+      bankAccount: transaction.bank_account
+        ? transaction.bank_account.bankAccountNumber
+        : '',
+      TaxCode: transaction.taxCodeId ? transaction.tax_code.taxCode : '',
+      bpName: transaction.receiptRecipient,
+      text: transaction.text ? transaction.text : '',
+      venderNo: transaction.vendor ? transaction.vendor.venderNo : '',
+      customerNo: transaction.customer ? transaction.customer.customerNo : '',
+      postingDate: transaction.postingDate,
+      documentDate: transaction.documentDate,
+      costCentre: transaction.cost_centre
+        ? transaction.cost_centre.costCentre
+        : '',
+      profitCentre: transaction.profit_centre.profitCentre,
+      fiscalYear: new Date(transaction.postingDate).getFullYear(),
+      cjDocNo: transaction.cjDocNo,
+      refDocNo: transaction.refDocNo,
+      orderNo: transaction.orderNo,
+      profitabilitySegmentNo: transaction.profitabilitySegmentNo,
+      assignmentNo: transaction.assignment,
+      segment: transaction.segment.segment,
+    }));
+
+    const Heading = [
+      [
+        'Cash Journal Business Transaction',
+        'Amount',
+        'G/L',
+        'Short Key for a House Bank',
+        'ID for Account Details',
+        'Tax_code',
+        'BP_Name',
+        'Text',
+        'Vendor Number',
+        'Customer Number',
+        'Posting Date',
+        'Document Date',
+        'Cost Center',
+        'Profit Center',
+        'Fiscal Year',
+        'Cj_doc_no',
+        'Ref_doc_no',
+        'Ordernumber',
+        'Profitability Segment Number (CO-PA)',
+        'Assignment Number',
+        'Segment',
+      ],
+    ];
+
+    // Had to create a new workbook and then add the header
     const workbook = xlsx.utils.book_new();
-    const sheet = xlsx.utils.json_to_sheet(data);
-    xlsx.utils.book_append_sheet(workbook, sheet, 'Sheet1');
-  
+    const worksheet: xlsx.WorkSheet = xlsx.utils.json_to_sheet([]);
+    xlsx.utils.sheet_add_aoa(worksheet, Heading);
+
+    // Starting in the second row to avoid overriding and skipping headers
+    xlsx.utils.sheet_add_json(worksheet, pettyCashData, {
+      origin: 'A2',
+      skipHeader: true,
+    });
+
+    xlsx.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+
     // send workbook as a download
     const buffer = xlsx.write(workbook, { type: 'buffer' });
     res.setHeader('Content-Disposition', 'attachment; filename=export.xlsx');
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
     res.send(buffer);
   } catch (err: any) {
     next(err);
