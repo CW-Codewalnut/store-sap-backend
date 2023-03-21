@@ -150,7 +150,7 @@ const routesMiddleware = (app: Application) => {
     checkAuthenticated,
     PettyCashController.update,
   );
-  app.get(
+  app.post(
     '/petty-cash/export',
     checkAuthenticated,
     PettyCashController.exportPettyCash,

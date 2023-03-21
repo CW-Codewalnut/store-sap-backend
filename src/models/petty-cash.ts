@@ -6,6 +6,17 @@ import {
 } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
+import BusinessTransaction from './business-transaction';
+import TaxCode from './tax-code';
+import GlAccount from './gl-account';
+import Vendor from './vendor';
+import Customer from './customer';
+import BankAccount from './bank-account';
+import Plant from './plant';
+import CostCentre from './cost-centre';
+import ProfitCentre from './profit-centre';
+import Segment from './segment';
+import Employee from './employee';
 
 interface PettyCashModel
   extends Model<
@@ -252,6 +263,40 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
     allowNull: false,
     type: DataTypes.DATE,
   },
+});
+
+PettyCash.belongsTo(BusinessTransaction, {
+  foreignKey: 'businessTransactionId',
+});
+PettyCash.belongsTo(TaxCode, {
+  foreignKey: 'taxCodeId',
+});
+PettyCash.belongsTo(GlAccount, {
+  foreignKey: 'glAccountId'
+});
+PettyCash.belongsTo(BankAccount, {
+  foreignKey: 'bankAccountId'
+});
+PettyCash.belongsTo(Vendor, {
+  foreignKey: 'vendorId',
+});
+PettyCash.belongsTo(Customer, {
+  foreignKey: 'customerId',
+});
+PettyCash.belongsTo(Plant, {
+  foreignKey: 'plantId',
+});
+PettyCash.belongsTo(CostCentre, {
+  foreignKey: 'costCentreId',
+});
+PettyCash.belongsTo(ProfitCentre, {
+  foreignKey: 'profitCentreId',
+});
+PettyCash.belongsTo(Segment, {
+  foreignKey: 'segmentId',
+});
+PettyCash.belongsTo(Employee, {
+  foreignKey: 'employeeId',
 });
 
 export default PettyCash;

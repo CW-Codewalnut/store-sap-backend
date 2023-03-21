@@ -3,6 +3,19 @@ import { Op } from 'sequelize';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import { MESSAGE } from '../utils/constant';
 import PettyCash from '../models/petty-cash';
+import BusinessTransaction from '../models/business-transaction';
+import TaxCode from '../models/tax-code';
+import GlAccount from '../models/gl-account';
+import BankAccount from '../models/bank-account';
+import Vendor from '../models/vendor';
+import Customer from '../models/customer';
+import Plant from '../models/plant';
+import CostCentre from '../models/cost-centre';
+import ProfitCentre from '../models/profit-centre';
+import Segment from '../models/segment';
+import Employee from '../models/employee';
+import HouseBank from '../models/house-bank';
+import * as xlsx from 'xlsx';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -63,6 +76,46 @@ const getPettyCashData = (
     query.push({ pettyCashType });
 
     return PettyCash.findAndCountAll({
+      include: [
+        {
+          model: BusinessTransaction
+        },
+        {
+          model: TaxCode
+        },
+        {
+          model: GlAccount
+        },
+        {
+          model: BankAccount,
+          include: [
+            {
+              model: HouseBank
+            }
+          ]
+        },
+        {
+          model: Vendor
+        },
+        {
+          model: Customer
+        },
+        {
+          model: Plant
+        },
+        {
+          model: CostCentre
+        },
+        {
+          model: ProfitCentre
+        },
+        {
+          model: Segment
+        },
+        {
+          model: Employee
+        },
+      ],
       where: { [Op.and]: query },
       order: [['createdAt', 'ASC']],
       offset,
@@ -272,13 +325,74 @@ const exportPettyCash = async (
   next: NextFunction,
 ) => {
   try {
-    const response = responseFormatter(
-      CODE[200],
-      SUCCESS.TRUE,
-      'Fetched',
-      null,
-    );
-    res.status(CODE[200]).send(response);
+    const { fromDate } = req.body;
+    const { toDate } = req.body;
+
+    const pettyCashes = await PettyCash.findAll({
+      include: [
+        {
+          model: BusinessTransaction
+        },
+        {
+          model: TaxCode
+        },
+        {
+          model: GlAccount
+        },
+        {
+          model: BankAccount,
+          include: [
+            {
+              model: HouseBank
+            }
+          ]
+        },
+        {
+          model: Vendor
+        },
+        {
+          model: Customer
+        },
+        {
+          model: Plant
+        },
+        {
+          model: CostCentre
+        },
+        {
+          model: ProfitCentre
+        },
+        {
+          model: Segment
+        },
+        {
+          model: Employee
+        },
+      ],
+      where: {
+        [Op.and]: [
+          { createdAt: { [Op.between]: [fromDate, toDate] } },
+          {documentStatus: {[Op.eq]: 'Update'}}
+        ]
+      }
+    });
+    
+    const data = pettyCashes.map(transaction => {
+      return {
+        businessTranactionNo: transaction.businessTransactionId 
+      }
+    });
+    console.log('aaayyyyyyyyyyyyyyyyyyyyyyyyyyyyaaaaaaaaaaaaaaa', data);
+    // create workbook
+    const workbook = xlsx.utils.book_new();
+    const sheet = xlsx.utils.json_to_sheet(data);
+    xlsx.utils.book_append_sheet(workbook, sheet, 'Sheet1');
+  
+    // send workbook as a download
+    const buffer = xlsx.write(workbook, { type: 'buffer' });
+    res.setHeader('Content-Disposition', 'attachment; filename=export.xlsx');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(buffer);
   } catch (err: any) {
     next(err);
   }
