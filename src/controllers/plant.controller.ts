@@ -9,11 +9,14 @@ const getPlantsByUserId = async (
   next: NextFunction,
 ) => {
   try {
-    const { userId } = req.params;
-    const plants = await UserPlant.findAll({
+    const userId = req.user.id;
+    const userPlants = await UserPlant.findAll({
       include: [
         {
           model: Plant,
+          attributes: {
+            exclude: ['createdBy', 'updatedBy', 'createdAt', 'updatedAt'],
+          },
         },
       ],
       where: { userId },
@@ -22,7 +25,7 @@ const getPlantsByUserId = async (
       CODE[200],
       SUCCESS.TRUE,
       'Fetched',
-      plants,
+      userPlants,
     );
     res.status(CODE[200]).send(response);
   } catch (err: any) {

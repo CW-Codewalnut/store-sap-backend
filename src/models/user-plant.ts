@@ -23,7 +23,7 @@ interface UserPlantModel
   updatedAt: Date;
 }
 
-const UserPlant = sequelize.define<UserPlantModel>('plant', {
+const UserPlant = sequelize.define<UserPlantModel>('user_plant', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,

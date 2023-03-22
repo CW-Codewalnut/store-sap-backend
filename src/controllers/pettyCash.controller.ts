@@ -20,6 +20,16 @@ import HouseBank from '../models/house-bank';
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const pettyCashBody = req.body;
+    const isValidTaxCode = await checkTaxCode(pettyCashBody, res);
+    if (!isValidTaxCode) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        'Invalid tax code',
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
     pettyCashBody.postingDate = new Date(
       pettyCashBody.postingDate,
     ).toISOString();
@@ -42,6 +52,28 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
   } catch (err: any) {
     next(err);
   }
+};
+
+/**
+ * To check tax code must be V0
+ */
+const checkTaxCode = async (
+  pettyCashBody: any,
+  res: Response,
+): Promise<boolean> => {
+  if (pettyCashBody.taxCodeId) {
+    const isTaxCodeExist = await TaxCode.findOne({
+      where: { id: pettyCashBody.taxCodeId, taxCode: 'V0' },
+    });
+    if (!isTaxCodeExist) {
+      return false;
+    }
+    if (pettyCashBody.taxRate !== 0) {
+      return false;
+    }
+    return true;
+  }
+  return false;
 };
 
 const getPettyCashData = (
@@ -294,7 +326,7 @@ const deleteTransactions = async (
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        'Document status with Save only permitted to delete',
+        'Only deletion is allowed for documents with Save status',
         null,
       );
       return res.status(CODE[400]).send(response);
@@ -381,7 +413,7 @@ const exportPettyCash = async (
 
     const pettyCashData = pettyCashes.map((transaction: any) => ({
       businessTransactionNo:
-          transaction.business_transaction.businessTransactionNo,
+        transaction.business_transaction.businessTransactionNo,
       amount: transaction.amount,
       glAccounts: transaction.gl_account.glAccounts,
       houseBank: transaction.house_bank ? transaction.house_bank.ifsc : '',

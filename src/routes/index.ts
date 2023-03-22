@@ -54,7 +54,7 @@ const routesMiddleware = (app: Application) => {
   );
 
   app.get(
-    '/plants/:userId',
+    '/user/plants',
     checkAuthenticated,
     PlantController.getPlantsByUserId,
   );
