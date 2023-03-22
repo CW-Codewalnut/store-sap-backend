@@ -15,18 +15,22 @@ import PaymentTermController from '../controllers/paymentTerm.controller';
 import TaxCodeController from '../controllers/taxCode.controller';
 import VendorController from '../controllers/vendor.controller';
 import CustomerController from '../controllers/customer.controller';
+import PettyCashController from '../controllers/pettyCash.controller';
 
 import { checkAuthenticated, verifyRouteAccess } from '../middleware/auth';
 
 const routesMiddleware = (app: Application) => {
+  // Auth api
   app.post('/auth', UserController.auth);
   app.get('/route/verify', verifyRouteAccess);
+  app.get('/logout', checkAuthenticated, UserController.logout);
+
+  // Masters api
   app.get(
     '/users/paginate',
     checkAuthenticated,
     UserController.findWithPaginate,
   );
-  app.get('/logout', checkAuthenticated, UserController.logout);
 
   app.post('/user', checkAuthenticated, UserController.create);
 
@@ -127,6 +131,40 @@ const routesMiddleware = (app: Application) => {
     '/vendors/paginate',
     checkAuthenticated,
     VendorController.findWithPaginate,
+  );
+
+  // Petty cash api
+  app.post('/petty-cash', checkAuthenticated, PettyCashController.create);
+  app.post(
+    '/petty-cash/payments/paginate',
+    checkAuthenticated,
+    PettyCashController.findPaymentsWithPaginate,
+  );
+  app.post(
+    '/petty-cash/receipts/paginate',
+    checkAuthenticated,
+    PettyCashController.findReceiptsWithPaginate,
+  );
+  app.patch(
+    '/petty-cash/:transactionId',
+    checkAuthenticated,
+    PettyCashController.update,
+  );
+  app.post(
+    '/petty-cash/export',
+    checkAuthenticated,
+    PettyCashController.exportPettyCash,
+  );
+  app.post(
+    '/petty-cash/update/status',
+    checkAuthenticated,
+    PettyCashController.updateDocumentStatus,
+  );
+
+  app.delete(
+    '/petty-cash/delete',
+    checkAuthenticated,
+    PettyCashController.deleteTransactions,
   );
 };
 
