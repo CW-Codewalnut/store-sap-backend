@@ -186,7 +186,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(CODE[400]).send(response);
     }
 
-    const { email, plantIds, passport } = req.body;
+    const { email, plantIds, password } = req.body;
 
     const existingUser = await User.findOne({ where: { email } });
 
@@ -200,8 +200,8 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(CODE[422]).send(response);
     }
 
-    if (passport) {
-      req.body.passport = md5(passport.trim());
+    if (password) {
+      req.body.password = md5(password.trim());
     }
     req.body.createdBy = req.user.id;
     req.body.updatedBy = req.user.id;
