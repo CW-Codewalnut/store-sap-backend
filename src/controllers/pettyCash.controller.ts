@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
-import sequelize, { Op, Sequelize } from 'sequelize';
+import { Op } from 'sequelize';
 import * as xlsx from 'xlsx';
+import { BigNumber } from 'bignumber.js';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import { MESSAGE } from '../utils/constant';
 import PettyCash from '../models/petty-cash';
@@ -517,7 +518,9 @@ const getBalanceCalculation = async (
     const openingBalance = (await getOpeningBalance()) || 0;
     const totalCashReceipts = (await getTotalCashReceipts()) || 0;
     const totalCashPayments = (await getTotalCashPayments()) || 0;
-    const closingBalance = openingBalance + totalCashReceipts - totalCashPayments;
+    const closingBalance = +new BigNumber(
+      openingBalance + totalCashReceipts - totalCashPayments,
+    ).abs();
 
     console.log('openingBalance====> ', openingBalance);
     console.log('totalCashReceipts====> ', totalCashReceipts);

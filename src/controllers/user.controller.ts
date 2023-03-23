@@ -3,6 +3,7 @@ import md5 from 'md5';
 import passport from 'passport';
 
 import { Op } from 'sequelize';
+import groupBy from 'lodash.groupby';
 import User from '../models/user';
 import Role from '../models/role';
 
@@ -11,6 +12,7 @@ import { saveSessionActivity } from '../middleware/auth';
 import UserPlant from '../models/user-plant';
 import UserPlantModel from '../interfaces/masters/userPlant.interface';
 import RolePermission from '../models/role-permission';
+import Permission from '../models/permission';
 
 const auth = async (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('local', (err: any, user: any) => {
@@ -66,13 +68,13 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
               return res.status(CODE[500]).send(response);
             }
 
-            const permissions = await getUserPermissions();
+            const userData = await getUserPermissions(req, next);
 
             const response = responseFormatter(
               CODE[200],
               SUCCESS.TRUE,
               'Logged in successfully',
-              permissions,
+              userData,
             );
             return res.status(CODE[200]).send(response);
           },
@@ -84,7 +86,33 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
   })(req, res, next);
 };
 
-const getUserPermissions = () => {};
+const getUserPermissions = async (req: Request, next: NextFunction) => {
+  try {
+    const ids = await RolePermission.findAll({
+      where: { roleId: req.user.roleId },
+      attributes: ['permissionId'],
+      raw: true,
+    });
+
+    const permissionIds = ids.map((id) => id.permissionId);
+    const permissions = await Permission.findAll({
+      where: { id: { [Op.in]: permissionIds } },
+    });
+    const groupedPermission = groupBy(permissions, 'groupName');
+
+    const userData = await User.findOne({
+      attributes: ['name', 'email'],
+      where: { id: req.user.id },
+    });
+
+    return {
+      userData,
+      permissions: groupedPermission,
+    };
+  } catch (err) {
+    next(err);
+  }
+};
 
 const getPlantsByUserId = async (
   next: NextFunction,
