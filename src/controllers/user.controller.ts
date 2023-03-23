@@ -35,17 +35,17 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
         req.body.isExpired = req.session.cookie.expires;
         const userId: string = user.id;
 
-       // Set plantId in session if user have one plant access.
-       const userPlants = await getPlantsByUserId(next, user.id);
-        if(userPlants?.length === 1) { 
+        // Set plantId in session if user have one plant access.
+        const userPlants = await getPlantsByUserId(next, user.id);
+        if (userPlants?.length === 1) {
           req.session.activePlantId = userPlants[0]?.plantId;
         }
 
-        if(userPlants && userPlants.length === 0) {
+        if (userPlants && userPlants.length === 0) {
           const response = responseFormatter(
             CODE[400],
             SUCCESS.FALSE,
-            'User doesn\'t have plant access',
+            "User doesn't have plant access",
             null,
           );
           return res.status(CODE[400]).send(response);
@@ -81,18 +81,21 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
   })(req, res, next);
 };
 
-const getPlantsByUserId = async (next: NextFunction, userId: string): Promise<UserPlantModel[] | undefined>  => {
+const getPlantsByUserId = async (
+  next: NextFunction,
+  userId: string,
+): Promise<UserPlantModel[] | undefined> => {
   try {
     const userPlants = await UserPlant.findAll({
-      attributes: ["plantId"], 
+      attributes: ['plantId'],
       where: { userId },
-      raw: true
+      raw: true,
     });
     return userPlants;
-  } catch(err) {
+  } catch (err) {
     next(err);
   }
-}
+};
 
 const logout = async (req: Request, res: Response, next: NextFunction) => {
   try {

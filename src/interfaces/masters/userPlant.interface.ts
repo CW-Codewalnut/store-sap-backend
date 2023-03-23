@@ -1,4 +1,4 @@
-import { InferAttributes, InferCreationAttributes, Model } from "sequelize";
+import { InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 
 interface UserPlantModel
   extends Model<
@@ -14,4 +14,4 @@ interface UserPlantModel
   updatedAt: Date;
 }
 
-export default UserPlantModel
+export default UserPlantModel;

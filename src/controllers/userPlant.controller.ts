@@ -11,7 +11,7 @@ const updateUserActivePlant = async (
 ) => {
   try {
     const { plantId } = req.params;
-    if(!plantId) {
+    if (!plantId) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -21,15 +21,15 @@ const updateUserActivePlant = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const userId = req.user.id
+    const userId = req.user.id;
     const userPlant = await UserPlant.findOne({
-      where: { 
-        userId: userId,
-        plantId: plantId
-       },
+      where: {
+        userId,
+        plantId,
+      },
     });
 
-    if(userPlant) {
+    if (userPlant) {
       req.session.activePlantId = plantId;
       const response = responseFormatter(
         CODE[200],
@@ -38,17 +38,15 @@ const updateUserActivePlant = async (
         null,
       );
       return res.status(CODE[200]).send(response);
-    } else {
-      const response = responseFormatter(
-        CODE[400],
-        SUCCESS.FALSE,
-        MESSAGE.BAD_REQUEST,
-        null,
-      );
-      return res.status(CODE[400]).send(response);
     }
-    
-  } catch (err: any) {
+    const response = responseFormatter(
+      CODE[400],
+      SUCCESS.FALSE,
+      MESSAGE.BAD_REQUEST,
+      null,
+    );
+    return res.status(CODE[400]).send(response);
+  } catch (err:any) {
     next(err);
   }
 };

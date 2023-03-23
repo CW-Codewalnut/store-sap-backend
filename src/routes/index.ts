@@ -167,7 +167,7 @@ const routesMiddleware = (app: Application) => {
     checkAuthenticated,
     PettyCashController.deleteTransactions,
   );
-  
+
   app.get(
     '/plant/selected/:plantId',
     checkAuthenticated,

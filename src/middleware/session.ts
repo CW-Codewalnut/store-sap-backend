@@ -25,7 +25,7 @@ function extendDefaultFields(
     data: defaults.data,
     expires: defaults.expires,
     userId: session.userId,
-    activePlantId: session.activePlantId
+    activePlantId: session.activePlantId,
   };
 }
 

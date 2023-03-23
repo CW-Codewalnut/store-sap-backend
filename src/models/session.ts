@@ -13,7 +13,7 @@ interface SessionModel
   > {
   sid: string;
   userId: string;
-  activePlantId:string,
+  activePlantId: string;
   expires: string;
   data: string;
 }

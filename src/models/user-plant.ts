@@ -10,7 +10,6 @@ import User from './user';
 import Plant from './plant';
 import UserPlantModel from '../interfaces/masters/userPlant.interface';
 
-
 const UserPlant = sequelize.define<UserPlantModel>('user_plant', {
   id: {
     type: DataTypes.STRING(16),

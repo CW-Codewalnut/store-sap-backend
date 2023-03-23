@@ -3,7 +3,7 @@ import 'express-session';
 declare module 'express-session' {
   interface SessionData {
     userId: string;
-    activePlantId: string,
+    activePlantId: string;
     cookie: any;
   }
 }
