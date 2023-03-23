@@ -56,6 +56,7 @@ const verifyRouteAccess = (req: Request, res: Response, next: NextFunction) => {
 const saveSessionActivity = ({
   req,
   userId,
+  sessionId,
   callBackFn,
 }: sessionActivityArgs) => {
   try {
@@ -65,6 +66,7 @@ const saveSessionActivity = ({
 
     const body: any = {
       userId,
+      sessionId,
       isExpired: req.body.isExpired,
       device,
       ip,

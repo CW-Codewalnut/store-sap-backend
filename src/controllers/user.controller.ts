@@ -14,6 +14,7 @@ import UserPlant from '../models/user-plant';
 import UserPlantModel from '../interfaces/masters/userPlant.interface';
 import RolePermission from '../models/role-permission';
 import Permission from '../models/permission';
+import SessionActivity from '../models/session-activity';
 
 const auth = async (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('local', (err: any, user: any) => {
@@ -38,6 +39,7 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
         req.session.userId = user.id;
         req.body.isExpired = req.session.cookie.expires;
         const userId: string = user.id;
+        const sessionId = req.session.id;
 
         // Set plantId in session if user have one plant access.
         const userPlants = await getPlantsByUserId(next, user.id);
@@ -54,10 +56,10 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
           );
           return res.status(CODE[400]).send(response);
         }
-
         return saveSessionActivity({
           req,
           userId,
+          sessionId,
           callBackFn: async (errSession: any) => {
             if (errSession) {
               const response = responseFormatter(
@@ -139,14 +141,22 @@ const getPlantsByUserId = async (
 
 const logout = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    req.session.destroy((err: any) => console.warn(err.message));
+    const sessionId = req.session.id;
+    await SessionActivity.update({logoutTime: new Date()}, {where: {sessionId: sessionId}});
+    
+    req.session.destroy((err: any) => {
+        if(err) {
+        console.error('Throwing error while destroying session=> ', err);
+      }
+    });
+
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       'Logout securely',
       null,
-    );
-    return res.status(CODE[200]).send(response);
+      );
+    res.status(CODE[200]).clearCookie('connect.sid').send(response);
   } catch (err) {
     next(err);
   }
@@ -172,9 +182,9 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
 
     const { email } = req.body;
 
-    const dd = await User.findOne({ where: { email } });
+    const existingUser = await User.findOne({ where: { email } });
 
-    if (dd) {
+    if (existingUser) {
       const response = responseFormatter(
         CODE[422],
         SUCCESS.FALSE,

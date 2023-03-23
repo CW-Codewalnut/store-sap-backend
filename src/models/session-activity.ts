@@ -14,6 +14,7 @@ interface SessionActivityModel
     InferCreationAttributes<SessionActivityModel>
   > {
   id: string;
+  sessionId: string;
   userId: number;
   loginTime: Date;
   logoutTime: Date;
@@ -33,6 +34,10 @@ const SessionActivity = sequelize.define<SessionActivityModel>(
       primaryKey: true,
       allowNull: false,
       defaultValue: () => nanoid(16),
+    },
+    sessionId: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     userId: {
       type: DataTypes.BIGINT,
