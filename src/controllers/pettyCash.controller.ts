@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { Op } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 import * as xlsx from 'xlsx';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import { MESSAGE } from '../utils/constant';
@@ -16,6 +16,8 @@ import ProfitCentre from '../models/profit-centre';
 import Segment from '../models/segment';
 import Employee from '../models/employee';
 import HouseBank from '../models/house-bank';
+import { dateFormat } from '../utils/helper';
+import sequelize from 'sequelize';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -168,6 +170,16 @@ const findPaymentsWithPaginate = async (
   try {
     const cashPayment = await getPettyCashData(req, next, 'Payment');
 
+    const openingBalance = await getOpeningBalance();
+    const totalCashPayments = await getTotalCashPayments();
+    const totalCashReceipts = await getTotalCashReceipts();
+    const closingBalance = openingBalance + totalCashReceipts - totalCashPayments;
+
+    console.log('openingBalance====> ', openingBalance)
+    console.log('totalCashPayments====> ', totalCashPayments)
+    console.log('totalCashReceipts====> ', totalCashReceipts)
+    console.log('closingBalance====> ', closingBalance)
+
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
@@ -179,6 +191,61 @@ const findPaymentsWithPaginate = async (
     next(err);
   }
 };
+
+const getOpeningBalance = () => {
+  const today = new Date(); 
+  const formattedDate = today.toISOString().substring(0, 10); 
+  return PettyCash.sum('amount', {
+    where: {
+      createdAt: {
+        [Op.lt]: formattedDate 
+        }
+      }
+  });
+}
+
+const getTotalCashPayments = () => {
+  const fromDate = new Date('2023-03-23 00:00:00').toISOString();
+  const toDate = new Date('2023-03-23 23:59:59').toISOString();
+  return PettyCash.sum('amount', {
+    where: {
+      [Op.and]: [
+        {
+          createdAt:{
+            [Op.between] :[fromDate,toDate]
+          }
+        },
+        {
+          pettyCashType: {
+            [Op.eq]: 'Payment'
+          }
+        }
+      ]
+     
+      }
+  });
+}
+const getTotalCashReceipts = () => {
+  const fromDate = new Date('2023-03-23 00:00:00').toISOString();
+  const toDate = new Date('2023-03-23 23:59:59').toISOString();
+  return PettyCash.sum('amount', {
+    where: {
+      [Op.and]: [
+        {
+          createdAt:{
+            [Op.between] :[fromDate,toDate]
+          }
+        },
+        {
+          pettyCashType: {
+            [Op.eq]: 'Receipt'
+          }
+        }
+      ]
+     
+      }
+  });
+}
 
 const findReceiptsWithPaginate = async (
   req: Request,
@@ -221,7 +288,7 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
       ? new Date(pettyCashBody.referenceDate).toISOString()
       : null;
     const transactionData = await PettyCash.findOne({
-      where: { id: transactionId, documentStatus: 'Save' },
+      where: { id: transactionId, documentStatus: 'Saved' },
     });
     if (!transactionData) {
       const response = responseFormatter(
@@ -311,7 +378,7 @@ const deleteTransactions = async (
       where: {
         [Op.and]: [
           { id: { [Op.in]: transactionIds } },
-          { documentStatus: { [Op.eq]: 'Save' } },
+          { documentStatus: { [Op.eq]: 'Saved' } },
         ],
       },
     });
@@ -337,7 +404,7 @@ const deleteTransactions = async (
       where: {
         [Op.and]: [
           { id: { [Op.in]: transactionIds } },
-          { documentStatus: { [Op.eq]: 'Save' } },
+          { documentStatus: { [Op.eq]: 'Saved' } },
         ],
       },
     });
@@ -409,7 +476,7 @@ const exportPettyCash = async (
       where: {
         [Op.and]: [
           { createdAt: { [Op.between]: [fromDate, toDate] } },
-          { documentStatus: { [Op.eq]: 'Update' } },
+          { documentStatus: { [Op.eq]: 'Updated' } },
           { plantId: { [Op.eq]: req.session.activePlantId } },
         ],
       },
@@ -429,8 +496,8 @@ const exportPettyCash = async (
       text: transaction.text ? transaction.text : '',
       venderNo: transaction.vendor ? transaction.vendor.venderNo : '',
       customerNo: transaction.customer ? transaction.customer.customerNo : '',
-      postingDate: transaction.postingDate,
-      documentDate: transaction.documentDate,
+      postingDate:  dateFormat(transaction.postingDate),
+      documentDate: dateFormat(transaction.documentDate),
       costCentre: transaction.cost_centre
         ? transaction.cost_centre.costCentre
         : '',

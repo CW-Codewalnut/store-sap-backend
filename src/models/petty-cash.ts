@@ -25,7 +25,7 @@ interface PettyCashModel
   > {
   id: string;
   pettyCashType: 'Payment' | 'Receipt';
-  documentStatus: 'Save' | 'Update' | 'Post';
+  documentStatus: 'Saved' | 'Updated' | 'Posted';
   businessTransactionId: string;
   taxCodeId: string;
   glAccountId: string;
@@ -76,8 +76,8 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
   },
   documentStatus: {
     allowNull: false,
-    type: DataTypes.ENUM('Save', 'Update', 'Post'),
-    defaultValue: 'Save',
+    type: DataTypes.ENUM('Saved', 'Updated', 'Postd'),
+    defaultValue: 'Saved',
   },
   businessTransactionId: {
     type: DataTypes.STRING(16),

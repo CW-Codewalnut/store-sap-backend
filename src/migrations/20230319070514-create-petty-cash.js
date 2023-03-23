@@ -12,8 +12,8 @@ module.exports = {
       },
       documentStatus: {
         allowNull: false,
-        type: Sequelize.ENUM('Save', 'Update', 'Post'),
-        defaultValue: 'Save',
+        type: Sequelize.ENUM('Saved', 'Updated', 'Posted'),
+        defaultValue: 'Saved',
       },
       businessTransactionId: {
         type: Sequelize.STRING(16),
