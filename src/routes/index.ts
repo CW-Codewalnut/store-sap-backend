@@ -16,6 +16,7 @@ import TaxCodeController from '../controllers/taxCode.controller';
 import VendorController from '../controllers/vendor.controller';
 import CustomerController from '../controllers/customer.controller';
 import PettyCashController from '../controllers/pettyCash.controller';
+import UserPlantController from '../controllers/userPlant.controller';
 
 import { checkAuthenticated, verifyRouteAccess } from '../middleware/auth';
 
@@ -165,6 +166,12 @@ const routesMiddleware = (app: Application) => {
     '/petty-cash/delete',
     checkAuthenticated,
     PettyCashController.deleteTransactions,
+  );
+  
+  app.get(
+    '/plant/selected/:plantId',
+    checkAuthenticated,
+    UserPlantController.updateUserActivePlant,
   );
 };
 

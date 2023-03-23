@@ -13,6 +13,7 @@ interface SessionModel
   > {
   sid: string;
   userId: string;
+  activePlantId:string,
   expires: string;
   data: string;
 }
@@ -23,6 +24,10 @@ const Session = sequelize.define<SessionModel>('Session', {
     primaryKey: true,
   },
   userId: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  activePlantId: {
     type: DataTypes.STRING,
     allowNull: true,
   },

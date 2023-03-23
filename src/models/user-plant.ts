@@ -8,20 +8,8 @@ import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import User from './user';
 import Plant from './plant';
+import UserPlantModel from '../interfaces/masters/userPlant.interface';
 
-interface UserPlantModel
-  extends Model<
-    InferAttributes<UserPlantModel>,
-    InferCreationAttributes<UserPlantModel>
-  > {
-  id: string;
-  userId: string;
-  plantId: string;
-  createdBy: string;
-  updatedBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 const UserPlant = sequelize.define<UserPlantModel>('user_plant', {
   id: {
@@ -61,4 +49,5 @@ UserPlant.belongsTo(User, {
 UserPlant.belongsTo(Plant, {
   foreignKey: 'plantId',
 });
+
 export default UserPlant;
