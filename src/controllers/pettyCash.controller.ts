@@ -41,6 +41,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       : null;
     pettyCashBody.createdBy = req.user.id;
     pettyCashBody.updatedBy = req.user.id;
+    pettyCashBody.plantId = req.session.activePlantId;
     const pettyCashResult = await PettyCash.create(pettyCashBody);
     const response = responseFormatter(
       CODE[200],
@@ -106,6 +107,7 @@ const getPettyCashData = (
     }
 
     query.push({ pettyCashType });
+    query.push({ plantId: req.session.activePlantId });
 
     return PettyCash.findAndCountAll({
       include: [
@@ -353,6 +355,7 @@ const deleteTransactions = async (
     next(err);
   }
 };
+
 const exportPettyCash = async (
   req: Request,
   res: Response,
@@ -407,6 +410,7 @@ const exportPettyCash = async (
         [Op.and]: [
           { createdAt: { [Op.between]: [fromDate, toDate] } },
           { documentStatus: { [Op.eq]: 'Update' } },
+          { plantId: { [Op.eq]: req.session.activePlantId } },
         ],
       },
     });
