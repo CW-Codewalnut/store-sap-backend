@@ -11,6 +11,6 @@ const dateFormat = (_date: string) => {
   const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Get the month as a two-digit string (e.g. "07"), adding 1 to account for 0-based indexing
   const year = date.getFullYear().toString(); // Get the year as a four-digit string (e.g. "2023")
   return `${day}.${month}.${year}`; // Concatenate the day, month, and year strings with the period separator
-}
+};
 
 export { validateEmail, getIdArrays, dateFormat };

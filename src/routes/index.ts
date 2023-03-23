@@ -168,6 +168,12 @@ const routesMiddleware = (app: Application) => {
     PettyCashController.deleteTransactions,
   );
 
+  app.post(
+    '/petty-cash/balance-calculation',
+    checkAuthenticated,
+    PettyCashController.getBalanceCalculation,
+  );
+
   app.get(
     '/plant/selected/:plantId',
     checkAuthenticated,

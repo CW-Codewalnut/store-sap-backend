@@ -10,6 +10,7 @@ import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import { saveSessionActivity } from '../middleware/auth';
 import UserPlant from '../models/user-plant';
 import UserPlantModel from '../interfaces/masters/userPlant.interface';
+import RolePermission from '../models/role-permission';
 
 const auth = async (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('local', (err: any, user: any) => {
@@ -54,7 +55,7 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
         return saveSessionActivity({
           req,
           userId,
-          callBackFn: (errSession: any) => {
+          callBackFn: async (errSession: any) => {
             if (errSession) {
               const response = responseFormatter(
                 CODE[500],
@@ -65,11 +66,13 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
               return res.status(CODE[500]).send(response);
             }
 
+            const permissions = await getUserPermissions();
+
             const response = responseFormatter(
               CODE[200],
               SUCCESS.TRUE,
               'Logged in successfully',
-              null,
+              permissions,
             );
             return res.status(CODE[200]).send(response);
           },
@@ -80,6 +83,8 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
     }
   })(req, res, next);
 };
+
+const getUserPermissions = () => {};
 
 const getPlantsByUserId = async (
   next: NextFunction,

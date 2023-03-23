@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { Op, Sequelize } from 'sequelize';
+import sequelize, { Op, Sequelize } from 'sequelize';
 import * as xlsx from 'xlsx';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import { MESSAGE } from '../utils/constant';
@@ -17,7 +17,6 @@ import Segment from '../models/segment';
 import Employee from '../models/employee';
 import HouseBank from '../models/house-bank';
 import { dateFormat } from '../utils/helper';
-import sequelize from 'sequelize';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -170,16 +169,6 @@ const findPaymentsWithPaginate = async (
   try {
     const cashPayment = await getPettyCashData(req, next, 'Payment');
 
-    const openingBalance = await getOpeningBalance();
-    const totalCashPayments = await getTotalCashPayments();
-    const totalCashReceipts = await getTotalCashReceipts();
-    const closingBalance = openingBalance + totalCashReceipts - totalCashPayments;
-
-    console.log('openingBalance====> ', openingBalance)
-    console.log('totalCashPayments====> ', totalCashPayments)
-    console.log('totalCashReceipts====> ', totalCashReceipts)
-    console.log('closingBalance====> ', closingBalance)
-
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
@@ -191,61 +180,6 @@ const findPaymentsWithPaginate = async (
     next(err);
   }
 };
-
-const getOpeningBalance = () => {
-  const today = new Date(); 
-  const formattedDate = today.toISOString().substring(0, 10); 
-  return PettyCash.sum('amount', {
-    where: {
-      createdAt: {
-        [Op.lt]: formattedDate 
-        }
-      }
-  });
-}
-
-const getTotalCashPayments = () => {
-  const fromDate = new Date('2023-03-23 00:00:00').toISOString();
-  const toDate = new Date('2023-03-23 23:59:59').toISOString();
-  return PettyCash.sum('amount', {
-    where: {
-      [Op.and]: [
-        {
-          createdAt:{
-            [Op.between] :[fromDate,toDate]
-          }
-        },
-        {
-          pettyCashType: {
-            [Op.eq]: 'Payment'
-          }
-        }
-      ]
-     
-      }
-  });
-}
-const getTotalCashReceipts = () => {
-  const fromDate = new Date('2023-03-23 00:00:00').toISOString();
-  const toDate = new Date('2023-03-23 23:59:59').toISOString();
-  return PettyCash.sum('amount', {
-    where: {
-      [Op.and]: [
-        {
-          createdAt:{
-            [Op.between] :[fromDate,toDate]
-          }
-        },
-        {
-          pettyCashType: {
-            [Op.eq]: 'Receipt'
-          }
-        }
-      ]
-     
-      }
-  });
-}
 
 const findReceiptsWithPaginate = async (
   req: Request,
@@ -496,7 +430,7 @@ const exportPettyCash = async (
       text: transaction.text ? transaction.text : '',
       venderNo: transaction.vendor ? transaction.vendor.venderNo : '',
       customerNo: transaction.customer ? transaction.customer.customerNo : '',
-      postingDate:  dateFormat(transaction.postingDate),
+      postingDate: dateFormat(transaction.postingDate),
       documentDate: dateFormat(transaction.documentDate),
       costCentre: transaction.cost_centre
         ? transaction.cost_centre.costCentre
@@ -563,6 +497,106 @@ const exportPettyCash = async (
   }
 };
 
+const getBalanceCalculation = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { fromDate, toDate } = req.body;
+    if (!req.body || !fromDate || !toDate) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    const openingBalance = (await getOpeningBalance()) || 0;
+    const totalCashReceipts = (await getTotalCashReceipts()) || 0;
+    const totalCashPayments = (await getTotalCashPayments()) || 0;
+    const closingBalance = openingBalance + totalCashReceipts - totalCashPayments;
+
+    console.log('openingBalance====> ', openingBalance);
+    console.log('totalCashReceipts====> ', totalCashReceipts);
+    console.log('totalCashPayments====> ', totalCashPayments);
+    console.log('closingBalance====> ', closingBalance);
+
+    const balanceCalculations = {
+      openingBalance,
+      totalCashReceipts,
+      totalCashPayments,
+      closingBalance,
+    };
+
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      'Fetched',
+      balanceCalculations,
+    );
+    res.status(200).send(response);
+  } catch (err: any) {
+    next(err);
+  }
+};
+
+const getOpeningBalance = () => {
+  const today = new Date();
+  const formattedDate = today.toISOString().substring(0, 10);
+  return PettyCash.sum('amount', {
+    where: {
+      createdAt: {
+        [Op.lt]: formattedDate,
+      },
+    },
+  });
+};
+
+const getTotalCashPayments = () => {
+  const fromDate = new Date('2023-03-23 00:00:00').toISOString();
+  const toDate = new Date('2023-03-23 23:59:59').toISOString();
+  return PettyCash.sum('amount', {
+    where: {
+      [Op.and]: [
+        {
+          createdAt: {
+            [Op.between]: [fromDate, toDate],
+          },
+        },
+        {
+          pettyCashType: {
+            [Op.eq]: 'Payment',
+          },
+        },
+      ],
+    },
+  });
+};
+
+const getTotalCashReceipts = () => {
+  const fromDate = new Date('2023-03-23 00:00:00').toISOString();
+  const toDate = new Date('2023-03-23 23:59:59').toISOString();
+  return PettyCash.sum('amount', {
+    where: {
+      [Op.and]: [
+        {
+          createdAt: {
+            [Op.between]: [fromDate, toDate],
+          },
+        },
+        {
+          pettyCashType: {
+            [Op.eq]: 'Receipt',
+          },
+        },
+      ],
+    },
+  });
+};
+
 export default {
   create,
   findPaymentsWithPaginate,
@@ -571,4 +605,5 @@ export default {
   updateDocumentStatus,
   deleteTransactions,
   exportPettyCash,
+  getBalanceCalculation,
 };
