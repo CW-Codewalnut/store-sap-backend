@@ -142,10 +142,13 @@ const getPlantsByUserId = async (
 const logout = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const sessionId = req.session.id;
-    await SessionActivity.update({logoutTime: new Date()}, {where: {sessionId: sessionId}});
-    
+    await SessionActivity.update(
+      { logoutTime: new Date() },
+      { where: { sessionId } },
+    );
+
     req.session.destroy((err: any) => {
-        if(err) {
+      if (err) {
         console.error('Throwing error while destroying session=> ', err);
       }
     });
@@ -155,7 +158,7 @@ const logout = async (req: Request, res: Response, next: NextFunction) => {
       SUCCESS.TRUE,
       'Logout securely',
       null,
-      );
+    );
     res.status(CODE[200]).clearCookie('connect.sid').send(response);
   } catch (err) {
     next(err);
@@ -170,6 +173,9 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       || !req.body.email
       || !req.body.password
       || !req.body.roleId
+      || !req.body.plantIds
+      || !Array.isArray(req.body.plantIds)
+      || !req.body.plantIds.length
     ) {
       const response = responseFormatter(
         CODE[400],
@@ -180,7 +186,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(CODE[400]).send(response);
     }
 
-    const { email } = req.body;
+    const { email, plantIds, passport } = req.body;
 
     const existingUser = await User.findOne({ where: { email } });
 
@@ -194,26 +200,23 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(CODE[422]).send(response);
     }
 
-    if (req.body.password) {
-      req.body.password = md5(req.body.password.trim());
+    if (passport) {
+      req.body.passport = md5(passport.trim());
     }
     req.body.createdBy = req.user.id;
     req.body.updatedBy = req.user.id;
     const user = await User.create(req.body);
 
-    if (Array.isArray(req.body.plantIds) && req.body.plantIds.length) {
-      const { plantIds } = req.body;
-      const userPlantBody = plantIds.map((plantId: string) => ({
-        id: nanoid(16),
-        userId: user.id,
-        plantId,
-        createdBy: req.user.id,
-        updatedBy: req.user.id,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }));
-      await UserPlant.bulkCreate(userPlantBody);
-    }
+    const userPlantBody = plantIds.map((plantId: string) => ({
+      id: nanoid(16),
+      userId: user.id,
+      plantId,
+      createdBy: req.user.id,
+      updatedBy: req.user.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }));
+    await UserPlant.bulkCreate(userPlantBody);
 
     const userData = await User.findOne({
       include: [
@@ -226,7 +229,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     const response = responseFormatter(
       CODE[201],
       SUCCESS.TRUE,
-      'Created',
+      'User created successfully',
       userData,
     );
     return res.status(201).send(response);
