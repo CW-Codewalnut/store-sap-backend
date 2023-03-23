@@ -101,6 +101,12 @@ const getUserPermissions = async (req: Request, next: NextFunction) => {
     const groupedPermission = groupBy(permissions, 'groupName');
 
     const userData = await User.findOne({
+      include: [
+        {
+          model: Role,
+          attributes: ['name']
+        }
+      ],
       attributes: ['name', 'email'],
       where: { id: req.user.id },
     });
