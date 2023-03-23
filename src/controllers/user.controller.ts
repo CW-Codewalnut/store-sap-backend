@@ -4,6 +4,7 @@ import passport from 'passport';
 
 import { Op } from 'sequelize';
 import groupBy from 'lodash.groupby';
+import { nanoid } from 'nanoid';
 import User from '../models/user';
 import Role from '../models/role';
 
@@ -104,8 +105,8 @@ const getUserPermissions = async (req: Request, next: NextFunction) => {
       include: [
         {
           model: Role,
-          attributes: ['name']
-        }
+          attributes: ['name'],
+        },
       ],
       attributes: ['name', 'email'],
       where: { id: req.user.id },
@@ -169,12 +170,41 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(CODE[400]).send(response);
     }
 
+    const { email } = req.body;
+
+    const dd = await User.findOne({ where: { email } });
+
+    if (dd) {
+      const response = responseFormatter(
+        CODE[422],
+        SUCCESS.FALSE,
+        'Email already in use',
+        null,
+      );
+      return res.status(CODE[422]).send(response);
+    }
+
     if (req.body.password) {
       req.body.password = md5(req.body.password.trim());
     }
     req.body.createdBy = req.user.id;
     req.body.updatedBy = req.user.id;
     const user = await User.create(req.body);
+
+    if (Array.isArray(req.body.plantIds) && req.body.plantIds.length) {
+      const { plantIds } = req.body;
+      const userPlantBody = plantIds.map((plantId: string) => ({
+        id: nanoid(16),
+        userId: user.id,
+        plantId,
+        createdBy: req.user.id,
+        updatedBy: req.user.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }));
+      await UserPlant.bulkCreate(userPlantBody);
+    }
+
     const userData = await User.findOne({
       include: [
         {

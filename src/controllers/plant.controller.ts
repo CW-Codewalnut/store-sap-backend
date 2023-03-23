@@ -3,6 +3,23 @@ import UserPlant from '../models/user-plant';
 import Plant from '../models/plant';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 
+const findAll = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const plants = await Plant.findAll({
+      attributes: ['id', 'plant', 'plantCode'],
+    });
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      'Fetched',
+      plants,
+    );
+    res.status(CODE[200]).send(response);
+  } catch (err: any) {
+    next(err);
+  }
+};
+
 const getPlantsByUserId = async (
   req: Request,
   res: Response,
@@ -33,4 +50,4 @@ const getPlantsByUserId = async (
   }
 };
 
-export default { getPlantsByUserId };
+export default { findAll, getPlantsByUserId };

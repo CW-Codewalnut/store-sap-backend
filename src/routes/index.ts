@@ -60,6 +60,8 @@ const routesMiddleware = (app: Application) => {
     PlantController.getPlantsByUserId,
   );
 
+  app.get('/plants', checkAuthenticated, PlantController.findAll);
+
   app.get(
     '/cost-centres/:plantId',
     checkAuthenticated,
