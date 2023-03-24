@@ -182,12 +182,14 @@ const updateRolePermissions = async (
     } else {
       query = { roleId: req.params.id };
     }
-    RolePermission.destroy({
+    await RolePermission.destroy({
       where: query,
     });
     let response;
     if (permissionIds && permissionIds.length > 0) {
-      permissionIds.forEach(async (id: string) => {
+      // permissionIds.forEach(async (id: string) => {
+        for(let id of permissionIds) {
+        console.log('11111111111');
         const data = await RolePermission.findOne({
           where: { [Op.and]: [{ roleId: req.params.id }, { permissionId: id }] },
         });
@@ -199,16 +201,16 @@ const updateRolePermissions = async (
             createdBy: req.user.id,
             updatedBy: req.user.id,
           };
-          RolePermission.create(rolePermissionData);
+          await RolePermission.create(rolePermissionData);
         }
-      });
-
+      }
+      console.log('222222222222');
       const ids = await RolePermission.findAll({
         where: { roleId: req.user.roleId },
         attributes: ['permissionId'],
         raw: true,
       });
-  
+      console.log('iddddddddddddddddddddd=> ', ids);
       const _permissionIds = ids.map((id) => id.permissionId);
       const permissions = await Permission.findAll({
         where: { id: { [Op.in]: _permissionIds } },
@@ -230,11 +232,13 @@ const updateRolePermissions = async (
         userData,
         permissions: groupedPermission,
       };
-
+      console.log('groupedPermission====> ', groupedPermission)
       response = responseFormatter(CODE[200], SUCCESS.TRUE, 'success', userAndPermissions);
     } else {
+      console.log('test44444444444444');
       response = responseFormatter(CODE[200], SUCCESS.TRUE, 'success', null);
     }
+    console.log('test5555555555555');
     return res.status(CODE[200]).send(response);
   } catch (err: any) {
     next(err);
