@@ -31,6 +31,7 @@ const Role = sequelize.define<RoleModel>('role', {
   name: {
     type: DataTypes.STRING(100),
     allowNull: false,
+    // unique: true,
     validate: {
       notNull: {
         msg: 'Name is required!',

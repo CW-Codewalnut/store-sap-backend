@@ -515,24 +515,25 @@ const getBalanceCalculation = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const openingBalance = (await getOpeningBalance()) || 0;
-    const totalCashReceipts = (await getTotalCashReceipts()) || 0;
-    const totalCashPayments = (await getTotalCashPayments()) || 0;
-    const closingBalance = +new BigNumber(
-      openingBalance + totalCashReceipts - totalCashPayments,
-    ).abs();
+    if(req.session.activePlantId) {
+      const openingBalance = (await getOpeningBalance(req.session.activePlantId)) || 0;
+      const totalCashReceipts = (await getTotalCashReceipts(req.session.activePlantId)) || 0;
+      const totalCashPayments = (await getTotalCashPayments(req.session.activePlantId)) || 0;
+      const closingBalance = +new BigNumber(
+        openingBalance + totalCashReceipts - totalCashPayments,
+      ).abs();
 
-    console.log('openingBalance====> ', openingBalance);
-    console.log('totalCashReceipts====> ', totalCashReceipts);
-    console.log('totalCashPayments====> ', totalCashPayments);
-    console.log('closingBalance====> ', closingBalance);
+      console.log('openingBalance====> ', openingBalance);
+      console.log('totalCashReceipts====> ', totalCashReceipts);
+      console.log('totalCashPayments====> ', totalCashPayments);
+      console.log('closingBalance====> ', closingBalance);
 
-    const balanceCalculations = {
-      openingBalance,
-      totalCashReceipts,
-      totalCashPayments,
-      closingBalance,
-    };
+      const balanceCalculations = {
+        openingBalance,
+        totalCashReceipts,
+        totalCashPayments,
+        closingBalance,
+      };
 
     const response = responseFormatter(
       CODE[200],
@@ -541,24 +542,40 @@ const getBalanceCalculation = async (
       balanceCalculations,
     );
     res.status(200).send(response);
+    } else {
+      const response = responseFormatter(
+        CODE[200],
+        SUCCESS.TRUE,
+        'Fetched',
+        null,
+      );
+      res.status(200).send(response);
+    }
   } catch (err: any) {
     next(err);
   }
 };
 
-const getOpeningBalance = () => {
+const getOpeningBalance = (plantId: string) => {
   const today = new Date();
   const formattedDate = today.toISOString().substring(0, 10);
   return PettyCash.sum('amount', {
     where: {
-      createdAt: {
-        [Op.lt]: formattedDate,
-      },
+      [Op.and]: [
+        {
+          createdAt: {
+            [Op.lt]: formattedDate,
+          },
+        },
+        {
+          plantId: plantId
+        }
+      ]
     },
   });
 };
 
-const getTotalCashPayments = () => {
+const getTotalCashPayments = (plantId: string) => {
   const fromDate = new Date('2023-03-23 00:00:00').toISOString();
   const toDate = new Date('2023-03-23 23:59:59').toISOString();
   return PettyCash.sum('amount', {
@@ -574,12 +591,15 @@ const getTotalCashPayments = () => {
             [Op.eq]: 'Payment',
           },
         },
+        {
+          plantId: plantId
+        }
       ],
     },
   });
 };
 
-const getTotalCashReceipts = () => {
+const getTotalCashReceipts = (plantId: string) => {
   const fromDate = new Date('2023-03-23 00:00:00').toISOString();
   const toDate = new Date('2023-03-23 23:59:59').toISOString();
   return PettyCash.sum('amount', {
@@ -595,6 +615,9 @@ const getTotalCashReceipts = () => {
             [Op.eq]: 'Receipt',
           },
         },
+        {
+          plantId: plantId
+        }
       ],
     },
   });
