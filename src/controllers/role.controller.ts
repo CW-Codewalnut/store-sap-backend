@@ -5,6 +5,7 @@ import Role from '../models/role';
 import Permission from '../models/permission';
 import RolePermission from '../models/role-permission';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
+import User from '../models/user';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -214,7 +215,23 @@ const updateRolePermissions = async (
       });
       const groupedPermission = groupBy(permissions, 'groupName');
 
-      response = responseFormatter(CODE[200], SUCCESS.TRUE, 'success', groupedPermission);
+      const userData = await User.findOne({
+        include: [
+          {
+            model: Role,
+            attributes: ['name'],
+          },
+        ],
+        attributes: ['name', 'email'],
+        where: { id: req.user.id },
+      });
+
+      const userAndPermissions = {
+        userData,
+        permissions: groupedPermission,
+      };
+
+      response = responseFormatter(CODE[200], SUCCESS.TRUE, 'success', userAndPermissions);
     } else {
       response = responseFormatter(CODE[200], SUCCESS.TRUE, 'success', null);
     }
