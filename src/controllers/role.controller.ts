@@ -25,7 +25,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     const response = responseFormatter(
       CODE[201],
       SUCCESS.TRUE,
-      'Created',
+      'Role created successfully',
       roleData,
     );
     return res.status(201).send(response);
@@ -150,7 +150,7 @@ const findRolePermissions = async (
   }
 };
 
-const updateRolePermissions = (
+const updateRolePermissions = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -201,7 +201,20 @@ const updateRolePermissions = (
           RolePermission.create(rolePermissionData);
         }
       });
-      response = responseFormatter(CODE[200], SUCCESS.TRUE, 'success', null);
+
+      const ids = await RolePermission.findAll({
+        where: { roleId: req.user.roleId },
+        attributes: ['permissionId'],
+        raw: true,
+      });
+  
+      const _permissionIds = ids.map((id) => id.permissionId);
+      const permissions = await Permission.findAll({
+        where: { id: { [Op.in]: _permissionIds } },
+      });
+      const groupedPermission = groupBy(permissions, 'groupName');
+
+      response = responseFormatter(CODE[200], SUCCESS.TRUE, 'success', groupedPermission);
     } else {
       response = responseFormatter(CODE[200], SUCCESS.TRUE, 'success', null);
     }
