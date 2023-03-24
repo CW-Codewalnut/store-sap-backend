@@ -200,9 +200,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(CODE[422]).send(response);
     }
 
-    if (password) {
-      req.body.password = md5(password.trim());
-    }
+    req.body.password = md5(password.trim());
     req.body.createdBy = req.user.id;
     req.body.updatedBy = req.user.id;
     const user = await User.create(req.body);
@@ -335,9 +333,6 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(CODE[400]).send(response);
     }
 
-    if (req.body.password) {
-      req.body.password = md5(req.body.password.trim());
-    }
     req.body.password = md5(req.body.password.trim());
     req.body.updatedBy = req.user.id;
     await User.update(req.body, {
