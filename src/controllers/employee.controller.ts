@@ -3,6 +3,7 @@ import { Op } from 'sequelize';
 import Employee from '../models/employee';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import Plant from '../models/plant';
+import MESSAGE from '../config/message.json';
 
 const getEmployeesByPlantId = async (
   req: Request,
@@ -17,7 +18,7 @@ const getEmployeesByPlantId = async (
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       employees,
     );
     res.status(CODE[200]).send(response);
@@ -64,7 +65,7 @@ const findWithPaginate = async (
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       employees,
     );
     res.status(200).send(response);

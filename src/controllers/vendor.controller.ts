@@ -3,6 +3,7 @@ import { Op } from 'sequelize';
 import Vendor from '../models/vendor';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import PaymentTerm from '../models/payment-term';
+import MESSAGE from '../config/message.json';
 
 const findAll = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -10,7 +11,7 @@ const findAll = async (req: Request, res: Response, next: NextFunction) => {
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       vendors,
     );
     res.status(CODE[200]).send(response);
@@ -63,7 +64,7 @@ const findWithPaginate = async (
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       vendors,
     );
     res.status(200).send(response);

@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import UserPlant from '../models/user-plant';
 import Plant from '../models/plant';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
+import MESSAGE from '../config/message.json';
 
 const findAll = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -11,7 +12,7 @@ const findAll = async (req: Request, res: Response, next: NextFunction) => {
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       plants,
     );
     res.status(CODE[200]).send(response);
@@ -41,7 +42,7 @@ const getPlantsByUserId = async (
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       userPlants,
     );
     res.status(CODE[200]).send(response);

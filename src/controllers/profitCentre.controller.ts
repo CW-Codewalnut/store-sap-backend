@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import ProfitCentre from '../models/profit-centre';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
+import MESSAGE from '../config/message.json';
 
 const getProfitCentreByCostCentreId = async (
   req: Request,
@@ -15,7 +16,7 @@ const getProfitCentreByCostCentreId = async (
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       profitCentres,
     );
     res.status(CODE[200]).send(response);

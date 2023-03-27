@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
-import BankAccount from '../models/bank-account';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import UserPlant from '../models/user-plant';
-import { MESSAGE } from '../utils/constant';
+import MESSAGE from '../config/message.json';
 
 const updateUserActivePlant = async (
   req: Request,
@@ -34,7 +33,7 @@ const updateUserActivePlant = async (
       const response = responseFormatter(
         CODE[200],
         SUCCESS.TRUE,
-        'Success',
+        MESSAGE.SUCCESS,
         null,
       );
       return res.status(CODE[200]).send(response);

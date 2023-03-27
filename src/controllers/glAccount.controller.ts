@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import GlAccount from '../models/gl-account';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
+import MESSAGE from '../config/message.json';
 
 const getGlAccountsByBusinessTransactionId = async (
   req: Request,
@@ -15,7 +16,7 @@ const getGlAccountsByBusinessTransactionId = async (
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       glAccounts,
     );
     res.status(CODE[200]).send(response);

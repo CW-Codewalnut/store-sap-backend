@@ -6,6 +6,7 @@ import Permission from '../models/permission';
 import RolePermission from '../models/role-permission';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import User from '../models/user';
+import MESSAGE from '../config/message.json';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -13,7 +14,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        'Content can not be empty!',
+        MESSAGE.EMPTY_CONTENT,
         null,
       );
       return res.status(CODE[400]).send(response);
@@ -26,7 +27,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     const response = responseFormatter(
       CODE[201],
       SUCCESS.TRUE,
-      'Role created successfully',
+      MESSAGE.ROLE_CREATED,
       roleData,
     );
     return res.status(201).send(response);
@@ -47,7 +48,7 @@ const findAll = async (req: Request, res: Response, next: NextFunction) => {
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       data,
     );
     res.status(200).send(response);
@@ -64,7 +65,7 @@ const findById = async (req: Request, res: Response, next: NextFunction) => {
       const response = responseFormatter(
         CODE[404],
         SUCCESS.TRUE,
-        'Data not found',
+        MESSAGE.DATA_NOT_FOUND,
         role,
       );
       return res.status(200).send(response);
@@ -72,7 +73,7 @@ const findById = async (req: Request, res: Response, next: NextFunction) => {
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       role,
     );
     return res.status(200).send(response);
@@ -87,7 +88,7 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        'Content can not be empty!',
+        MESSAGE.EMPTY_CONTENT,
         null,
       );
       return res.status(CODE[400]).send(response);
@@ -101,7 +102,7 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Updated',
+      MESSAGE.ROLE_UPDATED,
       roleData,
     );
     return res.status(CODE[200]).send(response);
@@ -142,7 +143,7 @@ const findRolePermissions = async (
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       newData,
     );
     res.status(CODE[200]).send(response);
@@ -161,7 +162,7 @@ const updateRolePermissions = async (
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        'Content can not be empty!',
+        MESSAGE.EMPTY_CONTENT,
         null,
       );
       return res.status(CODE[400]).send(response);
@@ -232,13 +233,10 @@ const updateRolePermissions = async (
         userData,
         permissions: groupedPermission,
       };
-      console.log('groupedPermission====> ', groupedPermission)
-      response = responseFormatter(CODE[200], SUCCESS.TRUE, 'success', userAndPermissions);
+      response = responseFormatter(CODE[200], SUCCESS.TRUE, MESSAGE.SUCCESS, userAndPermissions);
     } else {
-      console.log('test44444444444444');
-      response = responseFormatter(CODE[200], SUCCESS.TRUE, 'success', null);
+      response = responseFormatter(CODE[200], SUCCESS.TRUE, MESSAGE.SUCCESS, null);
     }
-    console.log('test5555555555555');
     return res.status(CODE[200]).send(response);
   } catch (err: any) {
     next(err);

@@ -13,4 +13,20 @@ const dateFormat = (_date: string) => {
   return `${day}.${month}.${year}`; // Concatenate the day, month, and year strings with the period separator
 };
 
-export { validateEmail, getIdArrays, dateFormat };
+const convertFromDate = (_date: string) => {
+  const date = new Date(_date);
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0'); 
+  const year = date.getFullYear().toString();
+  return `${year}-${month}-${day} 00:00:00.000 +05:30`;
+};
+
+const convertToDate = (_date: string) => {
+  const date = new Date(_date);
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear().toString();
+  return `${year}-${month}-${day} 23:59:59.999 +05:30`;
+};
+
+export { validateEmail, getIdArrays, dateFormat, convertFromDate, convertToDate };

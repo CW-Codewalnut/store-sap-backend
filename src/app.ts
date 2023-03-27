@@ -25,13 +25,15 @@ global.baseDir = __dirname;
 /**
  * Helmet helps to secure express to setting a various header.
  */
-app.use(helmet());
+// app.use(helmet());
 
 const corsOptions: CorsOptions = {
-  origin: ['http://localhost:3000', 'https://sap-dev-api.codewalnut.com'],
+  origin: ['http://localhost:3000', 'https://sap-dev.codewalnut.com'],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  optionsSuccessStatus: 200,
   credentials: true,
   exposedHeaders: ['set-cookie'],
+  maxAge: 3600
 };
 
 app.use(cors(corsOptions));

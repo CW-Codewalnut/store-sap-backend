@@ -15,6 +15,7 @@ import UserPlantModel from '../interfaces/masters/userPlant.interface';
 import RolePermission from '../models/role-permission';
 import Permission from '../models/permission';
 import SessionActivity from '../models/session-activity';
+import MESSAGE from '../config/message.json';
 
 const auth = async (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('local', (err: any, user: any) => {
@@ -26,7 +27,7 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
         const response = responseFormatter(
           CODE[400],
           SUCCESS.FALSE,
-          'Invalid credentials',
+          MESSAGE.INVALID_CREDENTIAL,
           null,
         );
         return res.status(CODE[400]).send(response);
@@ -51,7 +52,7 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
           const response = responseFormatter(
             CODE[400],
             SUCCESS.FALSE,
-            "User doesn't have plant access",
+            MESSAGE.USER_ACCESS_PREVENT,
             null,
           );
           return res.status(CODE[400]).send(response);
@@ -76,7 +77,7 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
             const response = responseFormatter(
               CODE[200],
               SUCCESS.TRUE,
-              'Logged in successfully',
+              MESSAGE.LOGGED_IN,
               userData,
             );
             return res.status(CODE[200]).send(response);
@@ -156,7 +157,7 @@ const logout = async (req: Request, res: Response, next: NextFunction) => {
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Logout securely',
+      MESSAGE.LOGGED_OUT,
       null,
     );
     res.status(CODE[200]).clearCookie('connect.sid').send(response);
@@ -180,7 +181,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        'Content can not be empty!',
+        MESSAGE.EMPTY_CONTENT,
         null,
       );
       return res.status(CODE[400]).send(response);
@@ -194,7 +195,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       const response = responseFormatter(
         CODE[422],
         SUCCESS.FALSE,
-        'Email already in use',
+        MESSAGE.EMAIL_EXIST,
         null,
       );
       return res.status(CODE[422]).send(response);
@@ -227,7 +228,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     const response = responseFormatter(
       CODE[201],
       SUCCESS.TRUE,
-      'User created successfully',
+      MESSAGE.USER_CREATED,
       userData,
     );
     return res.status(201).send(response);
@@ -274,7 +275,7 @@ const findWithPaginate = async (
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       users,
     );
     res.status(200).send(response);
@@ -298,7 +299,7 @@ const findById = async (req: Request, res: Response, next: NextFunction) => {
       const response = responseFormatter(
         CODE[404],
         SUCCESS.TRUE,
-        'Data not found',
+        MESSAGE.DATA_NOT_FOUND,
         user,
       );
       return res.status(200).send(response);
@@ -306,7 +307,7 @@ const findById = async (req: Request, res: Response, next: NextFunction) => {
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       user,
     );
     return res.status(200).send(response);
@@ -327,7 +328,7 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        'Content can not be empty!',
+        MESSAGE.EMPTY_CONTENT,
         null,
       );
       return res.status(CODE[400]).send(response);
@@ -351,7 +352,7 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Updated',
+      MESSAGE.USER_UPDATED,
       userData,
     );
     return res.status(CODE[200]).send(response);
