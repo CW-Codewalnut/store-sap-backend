@@ -18,8 +18,10 @@ import SessionActivity from '../models/session-activity';
 import MESSAGE from '../config/message.json';
 
 const auth = async (req: Request, res: Response, next: NextFunction) => {
+  console.log('tets')
   passport.authenticate('local', (err: any, user: any) => {
     try {
+      console.log('test===================1')
       if (err) {
         return next(err);
       }
@@ -78,8 +80,9 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
               CODE[200],
               SUCCESS.TRUE,
               MESSAGE.LOGGED_IN,
-              userData,
+              userData
             );
+            console.log('test===================10', response)
             return res.status(CODE[200]).send(response);
           },
         });
