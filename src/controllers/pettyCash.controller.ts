@@ -36,14 +36,14 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     const preferenceMatched = await Preference.findOne({
       where: {
         [Op.and]: [
-          { name: 'pettyCashStoreLimit'},
-          { value: {[Op.gte]: pettyCashBody.amount}}
-        ]
+          { name: 'pettyCashStoreLimit' },
+          { value: { [Op.gte]: pettyCashBody.amount } },
+        ],
       },
-      raw: true
+      raw: true,
     });
 
-    if(!preferenceMatched) {
+    if (!preferenceMatched) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -92,7 +92,7 @@ const checkTaxCode = async (
     if (!isTaxCodeExist) {
       return false;
     }
-    
+
     if (+pettyCashBody.taxRate !== 0) {
       return false;
     }
@@ -116,12 +116,10 @@ const getPettyCashData = (
     const { toDate } = req.body;
     const query = [];
 
-
-
     if (fromDate && toDate) {
       const from = convertFromDate(fromDate);
-      const to = convertToDate(toDate)
-      console.log('formattedDateString=> ', from, to );
+      const to = convertToDate(toDate);
+      console.log('formattedDateString=> ', from, to);
       const dateBy = { createdAt: { [Op.between]: [from, to] } };
       query.push(dateBy);
     }
@@ -357,7 +355,7 @@ const deleteTransactions = async (
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.ALLOWED_DELETION_FOR_SAVED_STATUS  ,
+        MESSAGE.ALLOWED_DELETION_FOR_SAVED_STATUS,
         null,
       );
       return res.status(CODE[400]).send(response);
@@ -543,10 +541,18 @@ const getBalanceCalculation = async (
       return res.status(CODE[400]).send(response);
     }
 
-    if(req.session.activePlantId) {
+    if (req.session.activePlantId) {
       const openingBalance = (await getOpeningBalance(req.session.activePlantId)) || 0;
-      const totalCashReceipts = (await getTotalCashReceipts(req.session.activePlantId, fromDate, toDate)) || 0;
-      const totalCashPayments = (await getTotalCashPayments(req.session.activePlantId, fromDate, toDate)) || 0;
+      const totalCashReceipts = (await getTotalCashReceipts(
+        req.session.activePlantId,
+        fromDate,
+        toDate,
+      )) || 0;
+      const totalCashPayments = (await getTotalCashPayments(
+        req.session.activePlantId,
+        fromDate,
+        toDate,
+      )) || 0;
       const closingBalance = +new BigNumber(
         openingBalance + totalCashReceipts - totalCashPayments,
       ).abs();
@@ -558,13 +564,13 @@ const getBalanceCalculation = async (
         closingBalance,
       };
 
-    const response = responseFormatter(
-      CODE[200],
-      SUCCESS.TRUE,
-      MESSAGE.FETCHED,
-      balanceCalculations,
-    );
-    res.status(200).send(response);
+      const response = responseFormatter(
+        CODE[200],
+        SUCCESS.TRUE,
+        MESSAGE.FETCHED,
+        balanceCalculations,
+      );
+      res.status(200).send(response);
     } else {
       const response = responseFormatter(
         CODE[200],
@@ -591,14 +597,18 @@ const getOpeningBalance = (plantId: string) => {
           },
         },
         {
-          plantId: plantId
-        }
-      ]
+          plantId,
+        },
+      ],
     },
   });
 };
 
-const getTotalCashPayments = (plantId: string, fromDate: string, toDate: string) => {
+const getTotalCashPayments = (
+  plantId: string,
+  fromDate: string,
+  toDate: string,
+) => {
   const startDate = convertFromDate(fromDate);
   const endDate = convertToDate(toDate);
   return PettyCash.sum('amount', {
@@ -615,14 +625,18 @@ const getTotalCashPayments = (plantId: string, fromDate: string, toDate: string)
           },
         },
         {
-          plantId: plantId
-        }
+          plantId,
+        },
       ],
     },
   });
 };
 
-const getTotalCashReceipts = (plantId: string, fromDate: string, toDate: string) => {
+const getTotalCashReceipts = (
+  plantId: string,
+  fromDate: string,
+  toDate: string,
+) => {
   const startDate = convertFromDate(fromDate);
   const endDate = convertToDate(toDate);
   return PettyCash.sum('amount', {
@@ -639,8 +653,8 @@ const getTotalCashReceipts = (plantId: string, fromDate: string, toDate: string)
           },
         },
         {
-          plantId: plantId
-        }
+          plantId,
+        },
       ],
     },
   });

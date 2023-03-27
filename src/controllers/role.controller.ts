@@ -188,9 +188,7 @@ const updateRolePermissions = async (
     });
     let response;
     if (permissionIds && permissionIds.length > 0) {
-      // permissionIds.forEach(async (id: string) => {
-        for(let id of permissionIds) {
-        console.log('11111111111');
+      for (const id of permissionIds) {
         const data = await RolePermission.findOne({
           where: { [Op.and]: [{ roleId: req.params.id }, { permissionId: id }] },
         });
@@ -205,13 +203,11 @@ const updateRolePermissions = async (
           await RolePermission.create(rolePermissionData);
         }
       }
-      console.log('222222222222');
       const ids = await RolePermission.findAll({
         where: { roleId: req.user.roleId },
         attributes: ['permissionId'],
         raw: true,
       });
-      console.log('iddddddddddddddddddddd=> ', ids);
       const _permissionIds = ids.map((id) => id.permissionId);
       const permissions = await Permission.findAll({
         where: { id: { [Op.in]: _permissionIds } },
@@ -233,9 +229,19 @@ const updateRolePermissions = async (
         userData,
         permissions: groupedPermission,
       };
-      response = responseFormatter(CODE[200], SUCCESS.TRUE, MESSAGE.SUCCESS, userAndPermissions);
+      response = responseFormatter(
+        CODE[200],
+        SUCCESS.TRUE,
+        MESSAGE.PERMISSION_UPDATED,
+        userAndPermissions,
+      );
     } else {
-      response = responseFormatter(CODE[200], SUCCESS.TRUE, MESSAGE.SUCCESS, null);
+      response = responseFormatter(
+        CODE[200],
+        SUCCESS.TRUE,
+        MESSAGE.SUCCESS,
+        null,
+      );
     }
     return res.status(CODE[200]).send(response);
   } catch (err: any) {

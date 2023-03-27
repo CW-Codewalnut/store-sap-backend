@@ -17,6 +17,7 @@
     "LOGGED_IN": "Logged in successfully",
     "LOGGED_OUT": "Logged out securely",
     "NO_MATCH_FOUND": "No match found",
+    "PERMISSION_UPDATED": "Permission updated successfully",
     "PETTY_CASH_LIMIT": "Accept only under 10000 amount",
     "ROLE_CREATED": "Role created successfully",
     "ROLE_UPDATED": "Role updated successfully",

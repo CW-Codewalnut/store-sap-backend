@@ -33,7 +33,7 @@ const corsOptions: CorsOptions = {
   optionsSuccessStatus: 200,
   credentials: true,
   exposedHeaders: ['set-cookie'],
-  maxAge: 3600
+  maxAge: 3600,
 };
 
 app.use(cors(corsOptions));
