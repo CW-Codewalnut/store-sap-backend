@@ -542,7 +542,7 @@ const getBalanceCalculation = async (
     }
 
     if (req.session.activePlantId) {
-      const openingBalance = (await getOpeningBalance(req.session.activePlantId)) || 0;
+      const openingBalance = (await getOpeningBalance(req.session.activePlantId, fromDate)) || 0;
       const totalCashReceipts = (await getTotalCashReceipts(
         req.session.activePlantId,
         fromDate,
@@ -585,23 +585,56 @@ const getBalanceCalculation = async (
   }
 };
 
-const getOpeningBalance = (plantId: string) => {
-  const today = convertFromDate(new Date().toISOString());
-  console.log('========today==========', today);
-  return PettyCash.sum('amount', {
+const getOpeningBalance = async (plantId: string, fromDate: string) => {
+  const startDate = convertFromDate(fromDate);
+  let totalCashPayment = await PettyCash.sum('amount', {
     where: {
       [Op.and]: [
         {
           createdAt: {
-            [Op.lt]: today,
+            [Op.lt]: startDate,
           },
         },
         {
           plantId,
         },
+        {
+          pettyCashType: {
+            [Op.eq]: 'Payment',
+          },
+        },
       ],
     },
   });
+
+  let totalCashReceipt = await PettyCash.sum('amount', {
+    where: {
+      [Op.and]: [
+        {
+          createdAt: {
+            [Op.gt]: startDate,
+          },
+        },
+        {
+          plantId,
+        },
+        {
+          pettyCashType: {
+            [Op.eq]: 'Receipt',
+          },
+        },
+      ],
+    },
+  });
+
+  totalCashReceipt = totalCashReceipt ? totalCashReceipt : 0;
+  totalCashPayment = totalCashPayment ? totalCashPayment : 0;
+
+  const openingBalance = +new BigNumber(
+    totalCashReceipt - totalCashPayment,
+  ).abs();
+  
+  return openingBalance;
 };
 
 const getTotalCashPayments = (
