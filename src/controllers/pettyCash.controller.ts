@@ -33,11 +33,12 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       );
       return res.status(CODE[400]).send(response);
     }
+    const amount = +pettyCashBody.amount;
     const preferenceMatched = await Preference.findOne({
       where: {
         [Op.and]: [
           { name: 'pettyCashStoreLimit' },
-          { value: { [Op.gte]: pettyCashBody.amount } },
+          { value: { [Op.gte]: amount } },
         ],
       },
       raw: true,
