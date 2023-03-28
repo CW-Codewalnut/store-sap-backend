@@ -1,28 +1,8 @@
-import {
-  Model,
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-} from 'sequelize';
+import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import BusinessTransaction from './business-transaction';
-
-interface GlAccountModel
-  extends Model<
-    InferAttributes<GlAccountModel>,
-    InferCreationAttributes<GlAccountModel>
-  > {
-  id: string;
-  glAccounts: number;
-  shortText: string;
-  longText: string;
-  businessTransactionId: string;
-  createdBy: string;
-  updatedBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import GlAccountModel from '../interfaces/masters/glAccount.interface';
 
 const GlAccount = sequelize.define<GlAccountModel>('gl_account', {
   id: {

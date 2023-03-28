@@ -36,10 +36,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     const amount = +pettyCashBody.amount;
     const preferenceMatched = await Preference.findOne({
       where: {
-        [Op.and]: [
-          { name: 'pettyCashStoreLimit' },
-          { value: { [Op.gte]: amount } },
-        ],
+        [Op.and]: [{ name: 'pettyCashStoreLimit' }, { value: { [Op.gte]: amount } }],
       },
       raw: true,
     });
@@ -120,7 +117,6 @@ const getPettyCashData = (
     if (fromDate && toDate) {
       const from = convertFromDate(fromDate);
       const to = convertToDate(toDate);
-      console.log('formattedDateString=> ', from, to);
       const dateBy = { createdAt: { [Op.between]: [from, to] } };
       query.push(dateBy);
     }
@@ -628,13 +624,13 @@ const getOpeningBalance = async (plantId: string, fromDate: string) => {
     },
   });
 
-  totalCashReceipt = totalCashReceipt ? totalCashReceipt : 0;
-  totalCashPayment = totalCashPayment ? totalCashPayment : 0;
+  totalCashReceipt = totalCashReceipt || 0;
+  totalCashPayment = totalCashPayment || 0;
 
   const openingBalance = +new BigNumber(
     totalCashReceipt - totalCashPayment,
   ).abs();
-  
+
   return openingBalance;
 };
 

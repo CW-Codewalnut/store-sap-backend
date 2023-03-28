@@ -1,26 +1,7 @@
-import {
-  Model,
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-} from 'sequelize';
+import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
-
-interface PaymentTermModel
-  extends Model<
-    InferAttributes<PaymentTermModel>,
-    InferCreationAttributes<PaymentTermModel>
-  > {
-  id: string;
-  payTerm: string;
-  payTermDescription: string;
-  netDueDate: string;
-  createdBy?: string;
-  updatedBy?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+import PaymentTermModel from '../interfaces/masters/paymentTerm.interface';
 
 const PaymentTerm = sequelize.define<PaymentTermModel>('payment_term', {
   id: {

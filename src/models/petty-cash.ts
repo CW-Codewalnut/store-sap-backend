@@ -1,9 +1,4 @@
-import {
-  Model,
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-} from 'sequelize';
+import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import BusinessTransaction from './business-transaction';
@@ -17,51 +12,7 @@ import CostCentre from './cost-centre';
 import ProfitCentre from './profit-centre';
 import Segment from './segment';
 import Employee from './employee';
-
-interface PettyCashModel
-  extends Model<
-    InferAttributes<PettyCashModel>,
-    InferCreationAttributes<PettyCashModel>
-  > {
-  id: string;
-  pettyCashType: 'Payment' | 'Receipt';
-  documentStatus: 'Saved' | 'Updated' | 'Posted';
-  businessTransactionId: string;
-  taxCodeId: string;
-  glAccountId: string;
-  amount: number;
-  netAmount: number;
-  taxRate: number;
-  taxBaseAmount: number;
-  bankAccountId: string;
-  vendorId: string;
-  customerId: string;
-  receiptRecipient: string;
-  postingDate: Date;
-  documentDate: Date;
-  plantId: string;
-  costCentreId: string;
-  profitCentreId: string;
-  segmentId: string;
-  cjDocNo: string;
-  refDocNo: string;
-  orderNo: string;
-  employeeId: string;
-  profitabilitySegmentNo: string;
-  controllingArea: string;
-  assets: string;
-  subNumber: string;
-  referenceDate: Date;
-  transactionType: string;
-  assignment: string;
-  text: string;
-  additionalText1: string;
-  additionalText2: string;
-  createdBy: string;
-  updatedBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import PettyCashModel from '../interfaces/masters/pettyCash.interface';
 
 const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
   id: {

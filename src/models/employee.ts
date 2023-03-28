@@ -1,27 +1,8 @@
-import {
-  Model,
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-} from 'sequelize';
+import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import Plant from './plant';
-
-interface EmployeeModel
-  extends Model<
-    InferAttributes<EmployeeModel>,
-    InferCreationAttributes<EmployeeModel>
-  > {
-  id: string;
-  employeeCode: string;
-  employeeName: string;
-  plantId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  createdBy: string;
-  updatedBy: string;
-}
+import EmployeeModel from '../interfaces/masters/employee.interface';
 
 const Employee = sequelize.define<EmployeeModel>('employee', {
   id: {

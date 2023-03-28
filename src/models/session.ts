@@ -1,22 +1,6 @@
-import {
-  Model,
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-} from 'sequelize';
+import { DataTypes } from 'sequelize';
 import { sequelize } from '.';
-
-interface SessionModel
-  extends Model<
-    InferAttributes<SessionModel>,
-    InferCreationAttributes<SessionModel>
-  > {
-  sid: string;
-  userId: string;
-  activePlantId: string;
-  expires: string;
-  data: string;
-}
+import SessionModel from '../interfaces/masters/session.interface';
 
 const Session = sequelize.define<SessionModel>('Session', {
   sid: {

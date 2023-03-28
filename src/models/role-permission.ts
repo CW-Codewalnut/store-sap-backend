@@ -1,27 +1,9 @@
-import {
-  Model,
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-} from 'sequelize';
+import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import Role from './role';
 import Permission from './permission';
-
-interface RolePermissionModel
-  extends Model<
-    InferAttributes<RolePermissionModel>,
-    InferCreationAttributes<RolePermissionModel>
-  > {
-  id: string;
-  roleId: string;
-  permissionId: string;
-  createdBy: string;
-  updatedBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import RolePermissionModel from '../interfaces/masters/rolePermission.interface';
 
 const RolePermission = sequelize.define<RolePermissionModel>(
   'role_permission',

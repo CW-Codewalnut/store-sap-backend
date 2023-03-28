@@ -1,29 +1,8 @@
-import {
-  Model,
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-} from 'sequelize';
+import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import Role from './role';
-
-interface UserModel
-  extends Model<
-    InferAttributes<UserModel>,
-    InferCreationAttributes<UserModel>
-  > {
-  id: string;
-  name: string;
-  email: string;
-  password: string;
-  roleId: number;
-  createdBy: string;
-  updatedBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt: Date;
-}
+import UserModel from '../interfaces/masters/user.interface';
 
 const User = sequelize.define<UserModel>('user', {
   id: {

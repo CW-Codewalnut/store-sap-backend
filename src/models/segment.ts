@@ -1,26 +1,8 @@
-import {
-  Model,
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-} from 'sequelize';
+import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import ProfitCentre from './profit-centre';
-
-interface SegmentModel
-  extends Model<
-    InferAttributes<SegmentModel>,
-    InferCreationAttributes<SegmentModel>
-  > {
-  id: string;
-  segment: string;
-  profitCentreId: string;
-  createdBy: string;
-  updatedBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import SegmentModel from '../interfaces/masters/segment.interface';
 
 const Segment = sequelize.define<SegmentModel>('segment', {
   id: {

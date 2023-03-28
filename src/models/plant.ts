@@ -1,25 +1,7 @@
-import {
-  Model,
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-} from 'sequelize';
+import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
-
-interface PlantModel
-  extends Model<
-    InferAttributes<PlantModel>,
-    InferCreationAttributes<PlantModel>
-  > {
-  id: string;
-  plantCode: number;
-  plant: string;
-  createdBy: string;
-  updatedBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import PlantModel from '../interfaces/masters/plant.interface';
 
 const Plant = sequelize.define<PlantModel>('plant', {
   id: {

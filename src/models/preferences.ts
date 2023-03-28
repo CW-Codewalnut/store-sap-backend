@@ -1,26 +1,7 @@
-import {
-  Model,
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-} from 'sequelize';
+import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
-
-interface PreferenceModel
-  extends Model<
-    InferAttributes<PreferenceModel>,
-    InferCreationAttributes<PreferenceModel>
-  > {
-  id: string;
-  name: string;
-  value: string;
-  description: string;
-  createdBy: string;
-  updatedBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import PreferenceModel from '../interfaces/masters/preference.interface';
 
 const Preference = sequelize.define<PreferenceModel>('preference', {
   id: {
