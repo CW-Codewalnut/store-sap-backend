@@ -22,8 +22,20 @@ import Preference from '../models/preferences';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const pettyCashBody = req.body;
-    const isValidTaxCode = await checkTaxCode(pettyCashBody, res);
+    let pettyCashBody = req.body;
+
+    if (!pettyCashBody || !pettyCashBody.amount) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.EMPTY_CONTENT,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    // Check for valid tax code
+    const isValidTaxCode = await checkTaxCode(pettyCashBody);
     if (!isValidTaxCode) {
       const response = responseFormatter(
         CODE[400],
@@ -33,15 +45,11 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       );
       return res.status(CODE[400]).send(response);
     }
-    const amount = +pettyCashBody.amount;
-    const preferenceMatched = await Preference.findOne({
-      where: {
-        [Op.and]: [{ name: 'pettyCashStoreLimit' }, { value: { [Op.gte]: amount } }],
-      },
-      raw: true,
-    });
 
-    if (!preferenceMatched) {
+    // Check valid amount
+    const isValidAmount = await checkValidAmount(+pettyCashBody.amount);
+
+    if (!isValidAmount) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -51,19 +59,13 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(CODE[400]).send(response);
     }
 
-    pettyCashBody.postingDate = new Date(
-      pettyCashBody.postingDate,
-    ).toISOString();
-    pettyCashBody.documentDate = new Date(
-      pettyCashBody.documentDate,
-    ).toISOString();
-    pettyCashBody.referenceDate = pettyCashBody.referenceDate
-      ? new Date(pettyCashBody.referenceDate).toISOString()
-      : null;
+    pettyCashBody = convertDatesIntoIso(pettyCashBody);
     pettyCashBody.createdBy = req.user.id;
     pettyCashBody.updatedBy = req.user.id;
     pettyCashBody.plantId = req.session.activePlantId;
+
     const pettyCashResult = await PettyCash.create(pettyCashBody);
+
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
@@ -79,14 +81,12 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
 /**
  * To check tax code must be V0
  */
-const checkTaxCode = async (
-  pettyCashBody: any,
-  res: Response,
-): Promise<boolean> => {
+const checkTaxCode = async (pettyCashBody: any): Promise<boolean> => {
   if (pettyCashBody.taxCodeId) {
     const isTaxCodeExist = await TaxCode.findOne({
       where: { id: pettyCashBody.taxCodeId, taxCode: 'V0' },
     });
+
     if (!isTaxCodeExist) {
       return false;
     }
@@ -97,6 +97,35 @@ const checkTaxCode = async (
     return true;
   }
   return false;
+};
+
+/**
+ * Amount should be valid
+ */
+const checkValidAmount = async (amount: number): Promise<boolean> => {
+  const isValidAmount = await Preference.findOne({
+    where: {
+      [Op.and]: [{ name: 'pettyCashStoreLimit' }, { value: { [Op.gte]: amount } }],
+    },
+    raw: true,
+  });
+
+  if (!isValidAmount) {
+    return false;
+  }
+
+  return true;
+};
+
+const convertDatesIntoIso = (pettyCashBody: any): Promise<any> => {
+  pettyCashBody.postingDate = new Date(pettyCashBody.postingDate).toISOString();
+  pettyCashBody.documentDate = new Date(
+    pettyCashBody.documentDate,
+  ).toISOString();
+  pettyCashBody.referenceDate = pettyCashBody.referenceDate
+    ? new Date(pettyCashBody.referenceDate).toISOString()
+    : null;
+  return pettyCashBody;
 };
 
 const getPettyCashData = (
@@ -234,19 +263,23 @@ const findReceiptsWithPaginate = async (
 const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { transactionId } = req.params;
-    const pettyCashBody = req.body;
-    pettyCashBody.postingDate = new Date(
-      pettyCashBody.postingDate,
-    ).toISOString();
-    pettyCashBody.documentDate = new Date(
-      pettyCashBody.documentDate,
-    ).toISOString();
-    pettyCashBody.referenceDate = pettyCashBody.referenceDate
-      ? new Date(pettyCashBody.referenceDate).toISOString()
-      : null;
+    let pettyCashBody = req.body;
+
+    if (!transactionId || !pettyCashBody) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.EMPTY_CONTENT,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    // Only 'Saved' status should be allow to update
     const transactionData = await PettyCash.findOne({
       where: { id: transactionId, documentStatus: 'Saved' },
     });
+
     if (!transactionData) {
       const response = responseFormatter(
         CODE[400],
@@ -256,10 +289,43 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
       );
       return res.status(CODE[400]).send(response);
     }
+
+    // Check for valid tax code
+    const isValidTaxCode = await checkTaxCode(pettyCashBody);
+    if (!isValidTaxCode) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.INVALID_TAX_CODE,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    // Check valid amount
+    const isValidAmount = await checkValidAmount(+pettyCashBody.amount);
+
+    if (!isValidAmount) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.PETTY_CASH_LIMIT,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    pettyCashBody = convertDatesIntoIso(pettyCashBody);
+
+    pettyCashBody.updateAt = new Date();
+    pettyCashBody.updatedBy = req.user.id;
+
     await PettyCash.update(pettyCashBody, { where: { id: transactionId } });
+
     const pettyCashResult = await PettyCash.findOne({
       where: { id: transactionId },
     });
+
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
@@ -521,6 +587,13 @@ const exportPettyCash = async (
   }
 };
 
+/**
+ * Get balance calculation
+ * @param req
+ * @param res
+ * @param next
+ * @returns
+ */
 const getBalanceCalculation = async (
   req: Request,
   res: Response,
@@ -638,35 +711,28 @@ const getTotalCashPayments = (
   plantId: string,
   fromDate: string,
   toDate: string,
-) => {
-  const startDate = convertFromDate(fromDate);
-  const endDate = convertToDate(toDate);
-  return PettyCash.sum('amount', {
-    where: {
-      [Op.and]: [
-        {
-          createdAt: {
-            [Op.between]: [startDate, endDate],
-          },
-        },
-        {
-          pettyCashType: {
-            [Op.eq]: 'Payment',
-          },
-        },
-        {
-          plantId,
-        },
-      ],
-    },
-  });
-};
+) => getSumAmount(plantId, fromDate, toDate, 'Payment');
 
 const getTotalCashReceipts = (
   plantId: string,
   fromDate: string,
   toDate: string,
-) => {
+) => getSumAmount(plantId, fromDate, toDate, 'Receipt');
+
+/**
+ *
+ * @param plantId
+ * @param fromDate
+ * @param toDate
+ * @param pettyCashType
+ * @returns
+ */
+const getSumAmount = (
+  plantId: string,
+  fromDate: string,
+  toDate: string,
+  pettyCashType: string,
+): Promise<number> => {
   const startDate = convertFromDate(fromDate);
   const endDate = convertToDate(toDate);
   return PettyCash.sum('amount', {
@@ -679,7 +745,7 @@ const getTotalCashReceipts = (
         },
         {
           pettyCashType: {
-            [Op.eq]: 'Receipt',
+            [Op.eq]: pettyCashType,
           },
         },
         {
