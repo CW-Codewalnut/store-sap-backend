@@ -8,11 +8,11 @@ module.exports = {
       },
       pettyCashType: {
         allowNull: false,
-        type: Sequelize.ENUM('Payment', 'Receipt'),
+        type: Sequelize.STRING(20),
       },
       documentStatus: {
         allowNull: false,
-        type: Sequelize.ENUM('Saved', 'Updated', 'Posted'),
+        type: Sequelize.STRING(20),
         defaultValue: 'Saved',
       },
       businessTransactionId: {

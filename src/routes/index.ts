@@ -181,6 +181,12 @@ const routesMiddleware = (app: Application) => {
     checkAuthenticated,
     UserPlantController.updateUserActivePlant,
   );
+
+  app.get(
+    '/petty-cash/transaction-reverse/:transactionId',
+    checkAuthenticated,
+    PettyCashController.transactionReverse,
+  );
 };
 
 export default routesMiddleware;
