@@ -27,9 +27,10 @@ const Customer = sequelize.define<CustomerModel>('customer', {
   customerNo: {
     type: DataTypes.BIGINT,
     allowNull: false,
+    unique: true,
     validate: {
       notNull: {
-        msg: 'Title is required!',
+        msg: 'Customer number is required!',
       },
     },
   },

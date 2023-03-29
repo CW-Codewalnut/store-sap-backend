@@ -10,6 +10,11 @@ module.exports = {
         type: Sequelize.STRING(30),
         allowNull: false,
       },
+      vendorNo: {
+        type: Sequelize.BIGINT,
+        allowNull: false,
+        unique: true,
+      },
       name1: {
         type: Sequelize.STRING(100),
         allowNull: false,

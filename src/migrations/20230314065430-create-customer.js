@@ -11,7 +11,7 @@ module.exports = {
         allowNull: false,
       },
       customerNo: {
-        type: Sequelize.BIGINT(10),
+        type: Sequelize.BIGINT,
         allowNull: false,
         unique: true,
       },

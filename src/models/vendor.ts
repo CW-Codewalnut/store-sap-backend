@@ -11,6 +11,16 @@ const Vendor = sequelize.define<VendorModel>('vendor', {
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
+  vendorNo: {
+    type: DataTypes.BIGINT,
+    allowNull: false,
+    unique: true,
+    validate: {
+      notNull: {
+        msg: 'Vendor number is required!',
+      },
+    },
+  },
   title: {
     type: DataTypes.STRING(30),
     allowNull: false,

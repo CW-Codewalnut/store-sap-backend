@@ -7,7 +7,7 @@ module.exports = {
         type: Sequelize.STRING(16),
       },
       glAccounts: {
-        type: Sequelize.BIGINT(10),
+        type: Sequelize.BIGINT,
         allowNull: false,
         unique: true,
       },
