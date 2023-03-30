@@ -1,6 +1,4 @@
-import {
-  DataTypes,
-} from 'sequelize';
+import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import BusinessTransaction from './business-transaction';
@@ -26,12 +24,12 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
   pettyCashType: {
     allowNull: false,
     type: DataTypes.STRING(20),
-    validate: { 
+    validate: {
       isIn: {
         args: [['Payment', 'Receipt']],
-        msg: "Cash journal type must be 'Payment' or 'Receipt'"
-      }
-    }
+        msg: "Cash journal type must be 'Payment' or 'Receipt'",
+      },
+    },
   },
   documentStatus: {
     allowNull: false,
@@ -39,10 +37,12 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
     defaultValue: 'Saved',
     validate: {
       isIn: {
-        args: [['Saved', 'Updated', 'Posted', 'Updated Reversed', 'Posted Reversed']],
-        msg: "Document status must be 'Saved', 'Updated', 'Posted', 'Updated Reversed' or 'Posted Reversed'"
-      }
-    }
+        args: [
+          ['Saved', 'Updated', 'Posted', 'Updated Reversed', 'Posted Reversed'],
+        ],
+        msg: "Document status must be 'Saved', 'Updated', 'Posted', 'Updated Reversed' or 'Posted Reversed'",
+      },
+    },
   },
   businessTransactionId: {
     type: DataTypes.STRING(16),

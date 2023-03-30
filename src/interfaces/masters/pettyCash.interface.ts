@@ -7,7 +7,12 @@ interface PettyCashModel
   > {
   id: string;
   pettyCashType: 'Payment' | 'Receipt';
-  documentStatus: 'Saved' | 'Updated' | 'Posted' | 'Updated Reversed' | 'Posted Reversed';
+  documentStatus:
+    | 'Saved'
+    | 'Updated'
+    | 'Posted'
+    | 'Updated Reversed'
+    | 'Posted Reversed';
   businessTransactionId: string;
   taxCodeId: string;
   glAccountId: string;

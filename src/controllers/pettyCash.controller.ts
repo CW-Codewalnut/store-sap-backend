@@ -624,7 +624,7 @@ const getBalanceCalculation = async (
         fromDate,
         toDate,
       )) || 0;
-      const closingBalance =   +new BigNumber(
+      const closingBalance = +new BigNumber(
         openingBalance + totalCashReceipts - totalCashPayments,
       ).abs();
 
@@ -757,7 +757,6 @@ const getSumAmount = (
   });
 };
 
-
 const transactionReverse = async (
   req: Request,
   res: Response,
@@ -766,7 +765,7 @@ const transactionReverse = async (
   try {
     const { transactionId } = req.params;
 
-    if(!transactionId) {
+    if (!transactionId) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -776,9 +775,17 @@ const transactionReverse = async (
       return res.status(CODE[400]).send(response);
     }
 
-    let {id, createdBy, updatedBy, documentStatus, amount, reverseTransactionId, ...restPettyCashData}: any = await PettyCash.findOne({where: {id: transactionId}, raw: true});
+    const {
+      id,
+      createdBy,
+      updatedBy,
+      documentStatus,
+      amount,
+      reverseTransactionId,
+      ...restPettyCashData
+    }: any = await PettyCash.findOne({ where: { id: transactionId }, raw: true });
 
-    if(restPettyCashData.plantId !== req.session.activePlantId) {
+    if (restPettyCashData.plantId !== req.session.activePlantId) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -788,7 +795,7 @@ const transactionReverse = async (
       return res.status(CODE[400]).send(response);
     }
 
-    if(restPettyCashData.documentStatus !== 'Updated') {
+    if (restPettyCashData.documentStatus !== 'Updated') {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -798,14 +805,14 @@ const transactionReverse = async (
       return res.status(CODE[400]).send(response);
     }
 
-    if(restPettyCashData) {
+    if (restPettyCashData) {
       const pettyCash = {
         reverseTransactionId: id,
         createdBy: req.user.id,
         updatedBy: req.user.id,
         documentStatus: 'Updated Reversed',
         amount: +new BigNumber(+amount).negated(),
-        ...restPettyCashData
+        ...restPettyCashData,
       };
       const pettyCashData = await PettyCash.create(pettyCash);
       const response = responseFormatter(
@@ -815,20 +822,18 @@ const transactionReverse = async (
         pettyCashData,
       );
       return res.status(CODE[201]).send(response);
-    } else {
-      const response = responseFormatter(
-        CODE[400],
-        SUCCESS.FALSE,
-        MESSAGE.DATA_NOT_FOUND,
-        null,
-      );
-      return res.status(CODE[400]).send(response);
     }
-  } catch(err) {
+    const response = responseFormatter(
+      CODE[400],
+      SUCCESS.FALSE,
+      MESSAGE.DATA_NOT_FOUND,
+      null,
+    );
+    return res.status(CODE[400]).send(response);
+  } catch (err) {
     next(err);
   }
-
-}
+};
 
 export default {
   create,
@@ -839,5 +844,5 @@ export default {
   deleteTransactions,
   exportPettyCash,
   getBalanceCalculation,
-  transactionReverse
+  transactionReverse,
 };
