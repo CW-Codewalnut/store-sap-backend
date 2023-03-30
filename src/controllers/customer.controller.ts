@@ -3,6 +3,7 @@ import { Op } from 'sequelize';
 import Customer from '../models/customer';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import PaymentTerm from '../models/payment-term';
+import MESSAGE from '../config/message.json';
 
 const findWithPaginate = async (
   req: Request,
@@ -49,7 +50,7 @@ const findWithPaginate = async (
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       customers,
     );
     res.status(200).send(response);

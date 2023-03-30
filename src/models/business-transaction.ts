@@ -1,28 +1,8 @@
-import {
-  Model,
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-} from 'sequelize';
+import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import Module from './module';
-
-interface BusinessTransactionModel
-  extends Model<
-    InferAttributes<BusinessTransactionModel>,
-    InferCreationAttributes<BusinessTransactionModel>
-  > {
-  id: string;
-  businessTransactionNo: number;
-  shortText: string;
-  longText: string;
-  moduleId: string;
-  createdBy: string;
-  updatedBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import BusinessTransactionModel from '../interfaces/masters/businessTransaction.interface';
 
 const BusinessTransaction = sequelize.define<BusinessTransactionModel>(
   'business_transaction',

@@ -1,27 +1,8 @@
-import {
-  Model,
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-} from 'sequelize';
+import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import Plant from './plant';
-
-interface CostCentreModel
-  extends Model<
-    InferAttributes<CostCentreModel>,
-    InferCreationAttributes<CostCentreModel>
-  > {
-  id: string;
-  costCentre: number;
-  sapDescription: string;
-  plantId: string;
-  createdBy: string;
-  updatedBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import CostCentreModel from '../interfaces/masters/costCentre.interface';
 
 const CostCentre = sequelize.define<CostCentreModel>('cost_centre', {
   id: {

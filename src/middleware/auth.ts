@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
-import { MESSAGE } from '../utils/constant';
 import SessionActivity from '../models/session-activity';
 import sessionActivityArgs from '../interfaces/sessionActivity/sessionActivity.interface';
+import MESSAGE from '../config/message.json';
 
 const checkAuthenticated = (
   req: Request,
@@ -26,7 +26,7 @@ const checkLoggedIn = (req: Request, res: Response, next: NextFunction) => {
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Access allowed',
+      MESSAGE.ACCESS_ALLOWED,
       null,
     );
     return res.status(CODE[200]).send(response);
@@ -56,6 +56,7 @@ const verifyRouteAccess = (req: Request, res: Response, next: NextFunction) => {
 const saveSessionActivity = ({
   req,
   userId,
+  sessionId,
   callBackFn,
 }: sessionActivityArgs) => {
   try {
@@ -65,6 +66,7 @@ const saveSessionActivity = ({
 
     const body: any = {
       userId,
+      sessionId,
       isExpired: req.body.isExpired,
       device,
       ip,

@@ -16,6 +16,7 @@ import TaxCodeController from '../controllers/taxCode.controller';
 import VendorController from '../controllers/vendor.controller';
 import CustomerController from '../controllers/customer.controller';
 import PettyCashController from '../controllers/pettyCash.controller';
+import UserPlantController from '../controllers/userPlant.controller';
 
 import { checkAuthenticated, verifyRouteAccess } from '../middleware/auth';
 
@@ -54,10 +55,12 @@ const routesMiddleware = (app: Application) => {
   );
 
   app.get(
-    '/plants/:userId',
+    '/user/plants',
     checkAuthenticated,
     PlantController.getPlantsByUserId,
   );
+
+  app.get('/plants', checkAuthenticated, PlantController.findAll);
 
   app.get(
     '/cost-centres/:plantId',
@@ -165,6 +168,18 @@ const routesMiddleware = (app: Application) => {
     '/petty-cash/delete',
     checkAuthenticated,
     PettyCashController.deleteTransactions,
+  );
+
+  app.post(
+    '/petty-cash/balance-calculation',
+    checkAuthenticated,
+    PettyCashController.getBalanceCalculation,
+  );
+
+  app.get(
+    '/plant/selected/:plantId',
+    checkAuthenticated,
+    UserPlantController.updateUserActivePlant,
   );
 };
 

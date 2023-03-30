@@ -1,0 +1,21 @@
+import { InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+
+interface SessionActivityModel
+  extends Model<
+    InferAttributes<SessionActivityModel>,
+    InferCreationAttributes<SessionActivityModel>
+  > {
+  id: string;
+  sessionId: string;
+  userId: number;
+  loginTime: Date;
+  logoutTime: Date;
+  isExpired: boolean;
+  device: string;
+  ip: string;
+  lat: string;
+  long: string;
+  updatedAt: Date;
+}
+
+export default SessionActivityModel;

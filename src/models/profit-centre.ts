@@ -1,27 +1,8 @@
-import {
-  Model,
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-} from 'sequelize';
+import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import CostCentre from './cost-centre';
-
-interface ProfitCentreModel
-  extends Model<
-    InferAttributes<ProfitCentreModel>,
-    InferCreationAttributes<ProfitCentreModel>
-  > {
-  id: string;
-  profitCentre: number;
-  sapDescription: string;
-  costCentreId: string;
-  createdBy: string;
-  updatedBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import ProfitCentreModel from '../interfaces/masters/profitCentre.interface';
 
 const ProfitCentre = sequelize.define<ProfitCentreModel>('profit_centre', {
   id: {

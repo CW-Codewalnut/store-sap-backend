@@ -5,6 +5,8 @@ import Role from '../models/role';
 import Permission from '../models/permission';
 import RolePermission from '../models/role-permission';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
+import User from '../models/user';
+import MESSAGE from '../config/message.json';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -12,7 +14,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        'Content can not be empty!',
+        MESSAGE.EMPTY_CONTENT,
         null,
       );
       return res.status(CODE[400]).send(response);
@@ -25,7 +27,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     const response = responseFormatter(
       CODE[201],
       SUCCESS.TRUE,
-      'Created',
+      MESSAGE.ROLE_CREATED,
       roleData,
     );
     return res.status(201).send(response);
@@ -46,7 +48,7 @@ const findAll = async (req: Request, res: Response, next: NextFunction) => {
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       data,
     );
     res.status(200).send(response);
@@ -63,7 +65,7 @@ const findById = async (req: Request, res: Response, next: NextFunction) => {
       const response = responseFormatter(
         CODE[404],
         SUCCESS.TRUE,
-        'Data not found',
+        MESSAGE.DATA_NOT_FOUND,
         role,
       );
       return res.status(200).send(response);
@@ -71,7 +73,7 @@ const findById = async (req: Request, res: Response, next: NextFunction) => {
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       role,
     );
     return res.status(200).send(response);
@@ -86,7 +88,7 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        'Content can not be empty!',
+        MESSAGE.EMPTY_CONTENT,
         null,
       );
       return res.status(CODE[400]).send(response);
@@ -100,7 +102,7 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Updated',
+      MESSAGE.ROLE_UPDATED,
       roleData,
     );
     return res.status(CODE[200]).send(response);
@@ -141,7 +143,7 @@ const findRolePermissions = async (
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       newData,
     );
     res.status(CODE[200]).send(response);
@@ -150,7 +152,7 @@ const findRolePermissions = async (
   }
 };
 
-const updateRolePermissions = (
+const updateRolePermissions = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -160,7 +162,7 @@ const updateRolePermissions = (
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        'Content can not be empty!',
+        MESSAGE.EMPTY_CONTENT,
         null,
       );
       return res.status(CODE[400]).send(response);
@@ -181,12 +183,12 @@ const updateRolePermissions = (
     } else {
       query = { roleId: req.params.id };
     }
-    RolePermission.destroy({
+    await RolePermission.destroy({
       where: query,
     });
     let response;
     if (permissionIds && permissionIds.length > 0) {
-      permissionIds.forEach(async (id: string) => {
+      for (const id of permissionIds) {
         const data = await RolePermission.findOne({
           where: { [Op.and]: [{ roleId: req.params.id }, { permissionId: id }] },
         });
@@ -198,12 +200,48 @@ const updateRolePermissions = (
             createdBy: req.user.id,
             updatedBy: req.user.id,
           };
-          RolePermission.create(rolePermissionData);
+          await RolePermission.create(rolePermissionData);
         }
+      }
+      const ids = await RolePermission.findAll({
+        where: { roleId: req.user.roleId },
+        attributes: ['permissionId'],
+        raw: true,
       });
-      response = responseFormatter(CODE[200], SUCCESS.TRUE, 'success', null);
+      const _permissionIds = ids.map((id) => id.permissionId);
+      const permissions = await Permission.findAll({
+        where: { id: { [Op.in]: _permissionIds } },
+      });
+      const groupedPermission = groupBy(permissions, 'groupName');
+
+      const userData = await User.findOne({
+        include: [
+          {
+            model: Role,
+            attributes: ['name'],
+          },
+        ],
+        attributes: ['name', 'email'],
+        where: { id: req.user.id },
+      });
+
+      const userAndPermissions = {
+        userData,
+        permissions: groupedPermission,
+      };
+      response = responseFormatter(
+        CODE[200],
+        SUCCESS.TRUE,
+        MESSAGE.PERMISSION_UPDATED,
+        userAndPermissions,
+      );
     } else {
-      response = responseFormatter(CODE[200], SUCCESS.TRUE, 'success', null);
+      response = responseFormatter(
+        CODE[200],
+        SUCCESS.TRUE,
+        MESSAGE.SUCCESS,
+        null,
+      );
     }
     return res.status(CODE[200]).send(response);
   } catch (err: any) {

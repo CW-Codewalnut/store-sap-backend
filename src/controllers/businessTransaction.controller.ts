@@ -8,6 +8,7 @@ import Module, { ModuleModel } from '../models/module';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import { getHouseBanks, getTaxCodes } from './common.controller';
 import { getIdArrays } from '../utils/helper';
+import MESSAGE from '../config/message.json';
 
 const getBusinessTransactionsByModuleId = async (
   req: Request,
@@ -22,7 +23,7 @@ const getBusinessTransactionsByModuleId = async (
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       businessTransactions,
     );
     res.status(CODE[200]).send(response);
@@ -95,7 +96,7 @@ const getMasters = async (req: Request, res: Response, next: NextFunction) => {
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       masterList,
     );
     res.status(CODE[200]).send(response);

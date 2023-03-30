@@ -1,25 +1,7 @@
-import {
-  Model,
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-} from 'sequelize';
+import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
-
-interface ModuleModel
-  extends Model<
-    InferAttributes<ModuleModel>,
-    InferCreationAttributes<ModuleModel>
-  > {
-  id: string;
-  name: string;
-  slug: string;
-  createdBy: string;
-  updatedBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import ModuleModel from '../interfaces/masters/module.interface';
 
 const Module = sequelize.define<ModuleModel>('module', {
   id: {

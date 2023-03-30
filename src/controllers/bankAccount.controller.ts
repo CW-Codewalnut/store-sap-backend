@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import BankAccount from '../models/bank-account';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
+import MESSAGE from '../config/message.json';
 
 const getAccountsByHouseBankId = async (
   req: Request,
@@ -15,7 +16,7 @@ const getAccountsByHouseBankId = async (
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      'Fetched',
+      MESSAGE.FETCHED,
       bankAccounts,
     );
     res.status(CODE[200]).send(response);

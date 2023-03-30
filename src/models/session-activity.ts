@@ -1,29 +1,8 @@
-import {
-  Model,
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-} from 'sequelize';
+import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import User from './user';
-
-interface SessionActivityModel
-  extends Model<
-    InferAttributes<SessionActivityModel>,
-    InferCreationAttributes<SessionActivityModel>
-  > {
-  id: string;
-  userId: number;
-  loginTime: Date;
-  logoutTime: Date;
-  isExpired: boolean;
-  device: string;
-  ip: string;
-  lat: string;
-  long: string;
-  updatedAt: Date;
-}
+import SessionActivityModel from '../interfaces/masters/sessionActivity.interface';
 
 const SessionActivity = sequelize.define<SessionActivityModel>(
   'session_activity',
@@ -33,6 +12,10 @@ const SessionActivity = sequelize.define<SessionActivityModel>(
       primaryKey: true,
       allowNull: false,
       defaultValue: () => nanoid(16),
+    },
+    sessionId: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     userId: {
       type: DataTypes.BIGINT,
