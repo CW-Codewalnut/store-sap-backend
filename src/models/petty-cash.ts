@@ -13,6 +13,7 @@ import ProfitCentre from './profit-centre';
 import Segment from './segment';
 import Employee from './employee';
 import PettyCashModel from '../interfaces/masters/pettyCash.interface';
+import MESSAGE from '../config/message.json';
 
 const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
   id: {
@@ -25,9 +26,12 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
     allowNull: false,
     type: DataTypes.STRING(20),
     validate: {
+      notNull: {
+        msg: MESSAGE.PETTY_CASH_TYPE_REQUIRED
+      },
       isIn: {
         args: [['Payment', 'Receipt']],
-        msg: "Cash journal type must be 'Payment' or 'Receipt'",
+        msg: MESSAGE.PETTY_CASH_TYPE_EXPECTED,
       },
     },
   },
@@ -37,32 +41,72 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
     defaultValue: 'Saved',
     validate: {
       isIn: {
-        args: [
-          ['Saved', 'Updated', 'Posted', 'Updated Reversed', 'Posted Reversed'],
-        ],
-        msg: "Document status must be 'Saved', 'Updated', 'Posted', 'Updated Reversed' or 'Posted Reversed'",
+        args: [['Saved', 'Updated', 'Posted', 'Updated Reversed', 'Posted Reversed']],
+        msg: MESSAGE.DOCUMENT_STATUS_ALLOWED_VALUES,
       },
     },
   },
   businessTransactionId: {
     type: DataTypes.STRING(16),
     allowNull: false,
+    validate: {
+      notNull: {
+        msg: MESSAGE.BUSINESS_TRANSACTION_REQUIRED
+      },
+      is: {
+        args: /^[A-Za-z0-9_-]{16}$/,
+        msg: MESSAGE.BUSINESS_TRANSACTION_INVALID,
+      }
+    },
   },
   taxCodeId: {
     type: DataTypes.STRING(16),
     allowNull: false,
+    validate: {
+      notNull: {
+        msg: MESSAGE.TAX_CODE_REQUIRED
+      },
+      is: {
+        args: /^[A-Za-z0-9_-]{16}$/,
+        msg: MESSAGE.TAX_CODE_INVALID,
+      }
+    },
   },
   glAccountId: {
     type: DataTypes.STRING(16),
     allowNull: false,
+    validate: {
+      notNull: {
+        msg: MESSAGE.GL_ACCOUNT_REQUIRED
+      },
+      is: {
+        args: /^[A-Za-z0-9_-]{16}$/,
+        msg: MESSAGE.GL_ACCOUNT_INVALID,
+      }
+    },
   },
   amount: {
     allowNull: false,
     type: DataTypes.BIGINT,
+    validate: {
+      notNull: {
+        msg: MESSAGE.AMOUNT_REQUIRED
+      },
+      customValidator() {
+        if (this.amount !== this.netAmount || this.amount !== this.taxBaseAmount) {
+          throw new Error(MESSAGE.AMOUNT_EQUALITY_CHECKS);
+        }
+      }
+    },
   },
   netAmount: {
     allowNull: false,
     type: DataTypes.BIGINT,
+    validate: {
+      notNull: {
+        msg: MESSAGE.NET_AMOUNT_REQUIRED
+      },
+    },
   },
   taxRate: {
     allowNull: false,
@@ -71,6 +115,11 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
   taxBaseAmount: {
     allowNull: false,
     type: DataTypes.BIGINT,
+    validate: {
+      notNull: {
+        msg: MESSAGE.TAX_BASE_AMOUNT_REQUIRED
+      },
+    },
   },
   bankAccountId: {
     type: DataTypes.STRING(16),
@@ -79,6 +128,15 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
   vendorId: {
     allowNull: true,
     type: DataTypes.STRING(16),
+    validate: {
+      customValidator() {
+        if (this.vendorId) {
+          if(this.customerId) {
+            throw new Error(MESSAGE.EITHER_SUPPLIER_CUSTOMER);
+          }
+        }
+      }
+    },
   },
   customerId: {
     allowNull: true,
@@ -87,6 +145,15 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
   receiptRecipient: {
     allowNull: true,
     type: DataTypes.STRING(35),
+    validate: {
+      customValidator() {
+        if (this.vendorId || this.customerId) {
+          if(!this.receiptRecipient) {
+            throw new Error(MESSAGE.RECEIPT_RECIPIENT_REQUIRED);
+          }
+        }
+      }
+    }
   },
   postingDate: {
     allowNull: false,
@@ -99,6 +166,15 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
   plantId: {
     allowNull: false,
     type: DataTypes.STRING(16),
+    validate: {
+      notNull: {
+        msg: MESSAGE.PLANT_REQUIRED
+      },
+      is: {
+        args: /^[A-Za-z0-9_-]{16}$/,
+        msg: MESSAGE.PLANT_INVALID,
+      }
+    },
   },
   costCentreId: {
     allowNull: true,
@@ -107,10 +183,28 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
   profitCentreId: {
     allowNull: false,
     type: DataTypes.STRING(16),
+    validate: {
+      notNull: {
+        msg: MESSAGE.PROFIT_CENTRE_REQUIRED
+      },
+      is: {
+        args: /^[A-Za-z0-9_-]{16}$/,
+        msg: MESSAGE.PROFIT_CENTRE_INVALID,
+      }
+    },
   },
   segmentId: {
     allowNull: false,
     type: DataTypes.STRING(16),
+    validate: {
+      notNull: {
+        msg: MESSAGE.SEGMENT_REQUIRED
+      },
+      is: {
+        args: /^[A-Za-z0-9_-]{16}$/,
+        msg: MESSAGE.SEGMENT_INVALID,
+      }
+    },
   },
   cjDocNo: {
     allowNull: true,
@@ -127,6 +221,12 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
   employeeId: {
     allowNull: true,
     type: DataTypes.STRING(16),
+    validate: {
+      is: {
+        args: /^[A-Za-z0-9_-]{16}$/,
+        msg: MESSAGE.EMPLOYEE_INVALID,
+      }
+    },
   },
   profitabilitySegmentNo: {
     allowNull: true,
@@ -155,22 +255,65 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
   assignment: {
     allowNull: true,
     type: DataTypes.STRING(18),
+    validate: {
+      len: {
+        args: [1, 18],
+        msg: MESSAGE.ASSIGNMENT_VALID_LENGTH,
+      },
+    },
   },
   text: {
     allowNull: true,
     type: DataTypes.STRING(25),
+    validate: {
+      len: {
+        args: [1, 25],
+        msg: MESSAGE.TEXT_VALID_LENGTH,
+      },
+    },
   },
   additionalText1: {
     allowNull: true,
     type: DataTypes.STRING(100),
+    validate: {
+      len: {
+        args: [1, 100],
+        msg: MESSAGE.ADDITIONAL_TEXT_1_VALID_LENGTH,
+      },
+    },
   },
   additionalText2: {
     allowNull: true,
     type: DataTypes.STRING(30),
+    validate: {
+      len: {
+        args: [1, 30],
+        msg: 'AdditionalText2 must be under 1-30 characters.',
+      },
+    },
   },
   reverseTransactionId: {
     type: DataTypes.STRING(16),
     allowNull: true,
+    validate: {
+      is: {
+        args: /^[A-Za-z0-9_-]{16}$/,
+        msg: MESSAGE.REVERSE_TRANSACTION_INVALID,
+      }
+    },
+  },
+  cashJournalId: {
+    type: DataTypes.STRING(16),
+    allowNull: false,
+    validate: {
+      notNull: {
+        msg: MESSAGE.CASH_JOURNAL_REQUIRED
+      },
+      is: {
+        args: /^[A-Za-z0-9_-]{16}$/,
+        msg: MESSAGE.CASH_JOURNAL_INVALID,
+      }
+    },
   },
   createdBy: {
     allowNull: true,

@@ -45,6 +45,7 @@ interface PettyCashModel
   additionalText1: string;
   additionalText2: string;
   reverseTransactionId: string;
+  cashJournalId: string;
   createdBy: string;
   updatedBy: string;
   createdAt: Date;

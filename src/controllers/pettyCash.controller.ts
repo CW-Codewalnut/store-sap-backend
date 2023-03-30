@@ -41,7 +41,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.INVALID_TAX_CODE,
+        MESSAGE.TAX_CODE_INVALID,
         null,
       );
       return res.status(CODE[400]).send(response);
@@ -297,7 +297,7 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.INVALID_TAX_CODE,
+        MESSAGE.TAX_CODE_INVALID,
         null,
       );
       return res.status(CODE[400]).send(response);
