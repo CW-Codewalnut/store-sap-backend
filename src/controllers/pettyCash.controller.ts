@@ -629,10 +629,10 @@ const getBalanceCalculation = async (
       ).abs();
 
       const balanceCalculations = {
-        openingBalance,
-        totalCashReceipts,
-        totalCashPayments,
-        closingBalance,
+        openingBalance: new BigNumber(openingBalance).abs().toFixed(2),
+        totalCashReceipts: new BigNumber(totalCashReceipts).toFixed(2),
+        totalCashPayments: new BigNumber(totalCashPayments).abs().toFixed(2),
+        closingBalance: new BigNumber(closingBalance).toFixed(2),
       };
 
       const response = responseFormatter(
@@ -683,7 +683,7 @@ const getOpeningBalance = async (plantId: string, fromDate: string) => {
       [Op.and]: [
         {
           createdAt: {
-            [Op.gt]: startDate,
+            [Op.lt]: startDate,
           },
         },
         {
@@ -703,8 +703,7 @@ const getOpeningBalance = async (plantId: string, fromDate: string) => {
 
   const openingBalance = +new BigNumber(
     totalCashReceipt - totalCashPayment,
-  ).abs();
-
+  );
   return openingBalance;
 };
 
