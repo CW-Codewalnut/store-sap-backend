@@ -265,78 +265,93 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { transactionId } = req.params;
     let pettyCashBody = req.body;
+    const isAllowedKeysExist = objectIncludesKeys(pettyCashBody);
 
-    if (!transactionId || !pettyCashBody) {
+    if (!transactionId || !pettyCashBody || !isAllowedKeysExist) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.EMPTY_CONTENT,
+        MESSAGE.BAD_REQUEST,
         null,
       );
       return res.status(CODE[400]).send(response);
     }
 
-    // Only 'Saved' status should be allow to update
-    const transactionData = await PettyCash.findOne({
-      where: { id: transactionId, documentStatus: 'Saved' },
-    });
+    const transactionData = await PettyCash.findByPk(transactionId);
 
-    if (!transactionData) {
-      const response = responseFormatter(
-        CODE[400],
-        SUCCESS.FALSE,
-        MESSAGE.UPDATE_NOT_ALLOWED,
-        null,
-      );
-      return res.status(CODE[400]).send(response);
+    if (transactionData && transactionData.documentStatus === 'Updated') {
+      const allowedUpdatedData = {
+        assignment: pettyCashBody.assignment,
+        text: pettyCashBody.text,
+        refDocNo: pettyCashBody.refDocNo,
+        updatedBy: req.user.id,
+        updateAt: new Date(),
+      };
+
+      const response = await updatePettyCash(allowedUpdatedData, transactionId);
+      console.log('if ', response);
+      res.status(CODE[200]).send(response);
+    } else {
+      // Check for valid tax code
+      const isValidTaxCode = await checkTaxCode(pettyCashBody);
+      if (!isValidTaxCode) {
+        const response = responseFormatter(
+          CODE[400],
+          SUCCESS.FALSE,
+          MESSAGE.TAX_CODE_INVALID,
+          null,
+        );
+        return res.status(CODE[400]).send(response);
+      }
+
+      // Check valid amount
+      const isValidAmount = await checkValidAmount(+pettyCashBody.amount);
+
+      if (!isValidAmount) {
+        const response = responseFormatter(
+          CODE[400],
+          SUCCESS.FALSE,
+          MESSAGE.PETTY_CASH_LIMIT,
+          null,
+        );
+        return res.status(CODE[400]).send(response);
+      }
+
+      pettyCashBody = convertDatesIntoIso(pettyCashBody);
+
+      pettyCashBody.updateAt = new Date();
+      pettyCashBody.updatedBy = req.user.id;
+
+      const response = await updatePettyCash(pettyCashBody, transactionId);
+      console.log('else ', response);
+      res.status(CODE[200]).send(response);
     }
-
-    // Check for valid tax code
-    const isValidTaxCode = await checkTaxCode(pettyCashBody);
-    if (!isValidTaxCode) {
-      const response = responseFormatter(
-        CODE[400],
-        SUCCESS.FALSE,
-        MESSAGE.TAX_CODE_INVALID,
-        null,
-      );
-      return res.status(CODE[400]).send(response);
-    }
-
-    // Check valid amount
-    const isValidAmount = await checkValidAmount(+pettyCashBody.amount);
-
-    if (!isValidAmount) {
-      const response = responseFormatter(
-        CODE[400],
-        SUCCESS.FALSE,
-        MESSAGE.PETTY_CASH_LIMIT,
-        null,
-      );
-      return res.status(CODE[400]).send(response);
-    }
-
-    pettyCashBody = convertDatesIntoIso(pettyCashBody);
-
-    pettyCashBody.updateAt = new Date();
-    pettyCashBody.updatedBy = req.user.id;
-
-    await PettyCash.update(pettyCashBody, { where: { id: transactionId } });
-
-    const pettyCashResult = await PettyCash.findOne({
-      where: { id: transactionId },
-    });
-
-    const response = responseFormatter(
-      CODE[200],
-      SUCCESS.TRUE,
-      MESSAGE.DOCUMENT_UPDATED,
-      pettyCashResult,
-    );
-    res.status(CODE[200]).send(response);
   } catch (err: any) {
     next(err);
   }
+};
+
+const objectIncludesKeys = (pettyCashData: any) => {
+  const allowedKeys = ['assignment', 'text', 'refDocNo'];
+  const pettyCashKeys = Object.keys(pettyCashData);
+  return allowedKeys.every((allowedKey) => pettyCashKeys.includes(allowedKey));
+};
+
+const updatePettyCash = async (pettyCashData: any, transactionId: string) => {
+  await PettyCash.update(pettyCashData, {
+    where: { id: transactionId },
+  });
+
+  const pettyCashResult = await PettyCash.findOne({
+    where: { id: transactionId },
+  });
+
+  return responseFormatter(
+    CODE[200],
+    SUCCESS.TRUE,
+    MESSAGE.DOCUMENT_UPDATED,
+    pettyCashResult,
+  );
 };
 
 /**
@@ -701,9 +716,7 @@ const getOpeningBalance = async (plantId: string, fromDate: string) => {
   totalCashReceipt = totalCashReceipt || 0;
   totalCashPayment = totalCashPayment || 0;
 
-  const openingBalance = +new BigNumber(
-    totalCashReceipt - totalCashPayment,
-  );
+  const openingBalance = +new BigNumber(totalCashReceipt - totalCashPayment);
   return openingBalance;
 };
 
