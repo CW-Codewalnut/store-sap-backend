@@ -10,6 +10,8 @@ interface BusinessTransactionModel
   shortText: string;
   longText: string;
   moduleId: string;
+  vendorMandatory: boolean,
+  customerMandatory: boolean,
   createdBy: string;
   updatedBy: string;
   createdAt: Date;
