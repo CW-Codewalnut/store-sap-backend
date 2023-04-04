@@ -108,10 +108,10 @@ const routesMiddleware = (app: Application) => {
     EmployeeController.getEmployeesByPlantId,
   );
 
-  app.get(
-    '/gl-accounts/:businessTransactionId',
+  app.post(
+    '/gl-accounts',
     checkAuthenticated,
-    GlAccountController.getGlAccountsByBusinessTransactionId,
+    GlAccountController.getGlAccounts,
   );
 
   app.get('/tax-codes', checkAuthenticated, TaxCodeController.findAll);
