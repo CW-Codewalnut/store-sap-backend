@@ -37,6 +37,7 @@ const routesMiddleware = (app: Application) => {
 
   app.get('/users/:id', checkAuthenticated, UserController.findById);
   app.patch('/users/:id', checkAuthenticated, UserController.update);
+  app.get('/users/change-account-status/:id', checkAuthenticated, UserController.changeAccountStatus);
 
   app.get('/roles', checkAuthenticated, RoleController.findAll);
   app.post('/role', checkAuthenticated, RoleController.create);

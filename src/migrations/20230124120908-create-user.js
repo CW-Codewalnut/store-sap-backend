@@ -20,7 +20,8 @@ module.exports = {
         type: Sequelize.STRING(100),
       },
       password: {
-        allowNull: false,
+        allowNull: true,
+        defaultValue: null,
         type: Sequelize.STRING(100),
       },
       roleId: {
@@ -53,6 +54,7 @@ module.exports = {
       },
     });
   },
+  // eslint-disable-next-line arrow-parens
   down: async queryInterface => {
     await queryInterface.dropTable('users');
   },

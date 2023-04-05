@@ -18,6 +18,9 @@ import SessionActivity from '../models/session-activity';
 import MESSAGE from '../config/message.json';
 import Employee from '../models/employee';
 import sequelize from 'sequelize';
+import session from 'express-session';
+import ConnectSession from 'connect-session-sequelize';
+const SequelizeStore = ConnectSession(session.Store);
 
 const auth = async (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('local', (err: any, user: any) => {
@@ -178,7 +181,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       !req.body
       || !req.body.employeeCode
       || !req.body.email
-      || !req.body.password
+      || req.body.password
       || !req.body.roleId
       || !req.body.plantIds
       || !Array.isArray(req.body.plantIds)
@@ -193,7 +196,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(CODE[400]).send(response);
     }
 
-    const { email, plantIds, password } = req.body;
+    const { email, plantIds } = req.body;
 
     const existingUser = await User.findOne({ where: { email } });
 
@@ -207,7 +210,6 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(CODE[422]).send(response);
     }
 
-    req.body.password = md5(password.trim());
     req.body.createdBy = req.user.id;
     req.body.updatedBy = req.user.id;
     const user = await User.create(req.body);
@@ -241,6 +243,8 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
   } catch (err) {
     next(err);
   }
+
+  //req.body.password = md5(password.trim());
 };
 
 const findWithPaginate = async (
@@ -324,20 +328,19 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (
       !req.body
+      || req.body.password
       || !req.body.email
-      || !req.body.password
       || !req.body.roleId
     ) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.EMPTY_CONTENT,
+        MESSAGE.BAD_REQUEST,
         null,
       );
       return res.status(CODE[400]).send(response);
     }
 
-    req.body.password = md5(req.body.password.trim());
     req.body.updatedBy = req.user.id;
     await User.update(req.body, {
       where: {
@@ -364,6 +367,47 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+const changeAccountStatus = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    const userData = await User.findByPk(id);
+
+    const userUpdateData = {
+      // accountStatus: userData.accountStatus === 'Active' ? 'Inactive' : 'Active',
+      updatedBy: req.user.id,
+      updatedAt: new Date()
+    }
+   
+    await User.update({}, {
+      where: {id},
+    });
+
+    // Destroy all session of the user
+    // destroyUserSession();
+
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      MESSAGE.USER_UPDATED,
+      userData,
+    );
+    return res.status(CODE[200]).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export default {
   auth,
   create,
@@ -371,4 +415,5 @@ export default {
   logout,
   findById,
   update,
+  changeAccountStatus
 };

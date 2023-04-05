@@ -73,5 +73,6 @@
     "VENDOR_INVALID": "Invalid vendor",
     "EMPLOYEE_CODE_REQUIRED": "Employee code is required",
     "EMAIL_INVALID": "Invalid email address",
-    "PASSWORD_LENGTH": "Invalid password..try again"
+    "PASSWORD_LENGTH": "Invalid password..try again",
+    "EMPLOYEE_CODE_UNIQUE": "Employee code must be unique"
 }

@@ -16,7 +16,10 @@ const User = sequelize.define<UserModel>('user', {
   employeeCode: {
     type: DataTypes.STRING(50),
     allowNull: false,
-    unique: true,
+    unique: {
+      name: 'employeeCode',
+      msg: MESSAGE.EMPLOYEE_CODE_UNIQUE,
+    },
     validate: {
       notNull: {
         msg: MESSAGE.EMPLOYEE_CODE_REQUIRED,
@@ -25,7 +28,7 @@ const User = sequelize.define<UserModel>('user', {
   },
   email: {
     type: DataTypes.STRING(100),
-    defaultValue: null,
+    allowNull: false,
     validate: {
       isEmail: {
         msg: MESSAGE.EMAIL_INVALID,
@@ -34,6 +37,7 @@ const User = sequelize.define<UserModel>('user', {
   },
   password: {
     type: DataTypes.STRING,
+    allowNull: true,
     defaultValue: null,
     validate: {
       len: {
