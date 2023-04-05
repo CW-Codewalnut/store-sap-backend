@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { ForeignKeyConstraintError } from 'sequelize';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 
 const ErrorHandler = (
@@ -9,7 +10,14 @@ const ErrorHandler = (
 ) => {
   console.error(err);
   const errStatus = err.statusCode || CODE[500];
-  const errMsg = err.message || 'Something went wrong';
+  let errMsg;
+
+  if (err instanceof ForeignKeyConstraintError) {
+    errMsg = 'Reference error: Provided values is invalid';
+  } else {
+    errMsg = err.message || 'Something went wrong';
+  }
+
   const stack: any = process.env.NODE_ENV === 'local' || process.env.NODE_ENV === 'dev'
     ? err.stack
     : {};

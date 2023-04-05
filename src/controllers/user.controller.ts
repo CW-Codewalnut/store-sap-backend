@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import md5 from 'md5';
 import passport from 'passport';
 
-import { Op } from 'sequelize';
+import sequelize, { Op } from 'sequelize';
 import groupBy from 'lodash.groupby';
 import { nanoid } from 'nanoid';
 import User from '../models/user';
@@ -17,10 +17,7 @@ import Permission from '../models/permission';
 import SessionActivity from '../models/session-activity';
 import MESSAGE from '../config/message.json';
 import Employee from '../models/employee';
-import sequelize from 'sequelize';
-import session from 'express-session';
-import ConnectSession from 'connect-session-sequelize';
-const SequelizeStore = ConnectSession(session.Store);
+import Plant from '../models/plant';
 
 const auth = async (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('local', (err: any, user: any) => {
@@ -244,7 +241,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     next(err);
   }
 
-  //req.body.password = md5(password.trim());
+  // req.body.password = md5(password.trim());
 };
 
 const findWithPaginate = async (
@@ -269,9 +266,14 @@ const findWithPaginate = async (
     }
 
     const users = await User.findAndCountAll({
+      distinct: true,
       include: [
         {
           model: Role,
+        },
+        {
+          model: Plant,
+          through: { attributes: [] },
         },
       ],
       where: condition,
@@ -326,12 +328,7 @@ const findById = async (req: Request, res: Response, next: NextFunction) => {
 
 const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (
-      !req.body
-      || req.body.password
-      || !req.body.email
-      || !req.body.roleId
-    ) {
+    if (!req.body || req.body.password || !req.body.email || !req.body.roleId) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -367,7 +364,11 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const changeAccountStatus = async (req: Request, res: Response, next: NextFunction) => {
+const changeAccountStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { id } = req.params;
 
@@ -386,12 +387,15 @@ const changeAccountStatus = async (req: Request, res: Response, next: NextFuncti
     const userUpdateData = {
       // accountStatus: userData.accountStatus === 'Active' ? 'Inactive' : 'Active',
       updatedBy: req.user.id,
-      updatedAt: new Date()
-    }
-   
-    await User.update({}, {
-      where: {id},
-    });
+      updatedAt: new Date(),
+    };
+
+    await User.update(
+      {},
+      {
+        where: { id },
+      },
+    );
 
     // Destroy all session of the user
     // destroyUserSession();
@@ -415,5 +419,5 @@ export default {
   logout,
   findById,
   update,
-  changeAccountStatus
+  changeAccountStatus,
 };

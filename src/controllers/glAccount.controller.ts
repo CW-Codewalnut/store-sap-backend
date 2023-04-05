@@ -12,12 +12,12 @@ const getGlAccounts = async (
     const { businessTransactionId, glOf } = req.body;
     let query = {};
 
-    if(businessTransactionId) {
-      query = {businessTransactionId: businessTransactionId}
-    } else if(glOf === 'vendor') {
-      query = {venderGl: true}
-    } else if(glOf === 'customer') {
-      query = {customerGl: true}
+    if (businessTransactionId) {
+      query = { businessTransactionId };
+    } else if (glOf === 'vendor') {
+      query = { venderGl: true };
+    } else if (glOf === 'customer') {
+      query = { customerGl: true };
     }
 
     const glAccounts = await GlAccount.findAll({

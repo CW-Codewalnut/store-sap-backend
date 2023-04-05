@@ -17,11 +17,6 @@ const User = sequelize.define<UserModel>('user', {
     type: DataTypes.STRING(50),
     allowNull: false,
     unique: true,
-    validate: {
-      notNull: {
-        msg: MESSAGE.EMPLOYEE_CODE_REQUIRED,
-      },
-    },
   },
   email: {
     type: DataTypes.STRING(100),

@@ -13,11 +13,11 @@ const UserPlant = sequelize.define<UserPlantModel>('user_plant', {
     defaultValue: () => nanoid(16),
   },
   userId: {
-    allowNull: true,
+    allowNull: false,
     type: DataTypes.STRING(16),
   },
   plantId: {
-    allowNull: true,
+    allowNull: false,
     type: DataTypes.STRING(16),
   },
   createdBy: {
@@ -37,9 +37,11 @@ const UserPlant = sequelize.define<UserPlantModel>('user_plant', {
     type: DataTypes.DATE,
   },
 });
+
 UserPlant.belongsTo(User, {
   foreignKey: 'userId',
 });
+
 UserPlant.belongsTo(Plant, {
   foreignKey: 'plantId',
 });

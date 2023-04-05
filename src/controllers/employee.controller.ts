@@ -74,11 +74,7 @@ const findWithPaginate = async (
   }
 };
 
-const findAll = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+const findAll = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { search } = req.query;
     let condition = {};
