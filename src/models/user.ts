@@ -70,7 +70,7 @@ User.belongsTo(Role, {
 
 User.belongsTo(Employee, {
   foreignKey: 'employeeCode',
-  targetKey: 'employeeCode'
+  targetKey: 'employeeCode',
 });
 
 export default User;
