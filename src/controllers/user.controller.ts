@@ -328,7 +328,14 @@ const findById = async (req: Request, res: Response, next: NextFunction) => {
 
 const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (!req.body || req.body.password || !req.body.email || !req.body.roleId) {
+    if (
+      !req.body
+      || req.body.password
+      || !req.body.email
+      || !req.body.roleId
+      || !Array.isArray(req.body.plantIds)
+      || !req.body.plantIds.length
+    ) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -339,11 +346,28 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
     }
 
     req.body.updatedBy = req.user.id;
-    await User.update(req.body, {
+
+    const { plantIds, ...restUserBody } = req.body;
+
+    await User.update(restUserBody, {
       where: {
         id: req.params.id,
       },
     });
+
+    await UserPlant.destroy({ where: { userId: req.params.id } });
+
+    const userPlantBody = plantIds.map((plantId: string) => ({
+      id: nanoid(16),
+      userId: req.params.id,
+      plantId,
+      createdBy: req.user.id,
+      updatedBy: req.user.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }));
+    await UserPlant.bulkCreate(userPlantBody);
+
     const userData = await User.findOne({
       include: [
         {
