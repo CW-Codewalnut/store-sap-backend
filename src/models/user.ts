@@ -3,6 +3,8 @@ import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import Role from './role';
 import UserModel from '../interfaces/masters/user.interface';
+import Employee from './employee';
+import MESSAGE from '../config/message.json';
 
 const User = sequelize.define<UserModel>('user', {
   id: {
@@ -11,26 +13,22 @@ const User = sequelize.define<UserModel>('user', {
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  name: {
-    type: DataTypes.STRING(100),
+  employeeCode: {
+    type: DataTypes.STRING(50),
     allowNull: false,
+    unique: true,
     validate: {
       notNull: {
-        msg: 'Name is required!',
-      },
-      len: {
-        args: [3, 50],
-        msg: 'Name must be under 3-50 characters.',
+        msg: MESSAGE.EMPLOYEE_CODE_REQUIRED,
       },
     },
   },
   email: {
     type: DataTypes.STRING(100),
     defaultValue: null,
-    unique: true,
     validate: {
       isEmail: {
-        msg: 'Invalid email address!',
+        msg: MESSAGE.EMAIL_INVALID,
       },
     },
   },
@@ -40,7 +38,7 @@ const User = sequelize.define<UserModel>('user', {
     validate: {
       len: {
         args: [32, 32],
-        msg: 'Invalid password..try again.',
+        msg: MESSAGE.PASSWORD_LENGTH,
       },
     },
   },
@@ -72,6 +70,11 @@ const User = sequelize.define<UserModel>('user', {
 
 User.belongsTo(Role, {
   foreignKey: 'roleId',
+});
+
+User.belongsTo(Employee, {
+  foreignKey: 'employeeCode',
+  targetKey: 'employeeCode'
 });
 
 export default User;

@@ -74,4 +74,39 @@ const findWithPaginate = async (
   }
 };
 
-export default { getEmployeesByPlantId, findWithPaginate };
+const findAll = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { search } = req.query;
+    let condition = {};
+
+    if (search) {
+      condition = {
+        [Op.or]: {
+          employeeCode: { [Op.like]: `%${search}%` },
+          employeeName: { [Op.like]: `%${search}%` },
+        },
+      };
+    }
+
+    const employees = await Employee.findAll({
+      where: condition,
+      order: [['employeeName', 'ASC']],
+    });
+
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      MESSAGE.FETCHED,
+      employees,
+    );
+    res.status(200).send(response);
+  } catch (err: any) {
+    next(err);
+  }
+};
+
+export default { getEmployeesByPlantId, findWithPaginate, findAll };

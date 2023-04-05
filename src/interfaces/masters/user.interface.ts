@@ -6,7 +6,7 @@ interface UserModel
     InferCreationAttributes<UserModel>
   > {
   id: string;
-  name: string;
+  employeeCode: string;
   email: string;
   password: string;
   roleId: number;

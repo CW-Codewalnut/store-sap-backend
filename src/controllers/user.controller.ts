@@ -16,6 +16,8 @@ import RolePermission from '../models/role-permission';
 import Permission from '../models/permission';
 import SessionActivity from '../models/session-activity';
 import MESSAGE from '../config/message.json';
+import Employee from '../models/employee';
+import sequelize from 'sequelize';
 
 const auth = async (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('local', (err: any, user: any) => {
@@ -110,8 +112,12 @@ const getUserPermissions = async (req: Request, next: NextFunction) => {
           model: Role,
           attributes: ['name'],
         },
+        {
+          model: Employee,
+          attributes: [],
+        },
       ],
-      attributes: ['name', 'email'],
+      attributes: [[sequelize.col('employee.employeeName'), 'name'], 'email'],
       where: { id: req.user.id },
     });
 
@@ -170,7 +176,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (
       !req.body
-      || !req.body.name
+      || !req.body.employeeCode
       || !req.body.email
       || !req.body.password
       || !req.body.roleId
@@ -181,7 +187,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.EMPTY_CONTENT,
+        MESSAGE.BAD_REQUEST,
         null,
       );
       return res.status(CODE[400]).send(response);
@@ -253,8 +259,6 @@ const findWithPaginate = async (
     if (search) {
       condition = {
         [Op.or]: {
-          name: { [Op.like]: `%${search}%` },
-          mobile: { [Op.like]: `%${search}%` },
           email: { [Op.like]: `%${search}%` },
         },
       };
@@ -320,7 +324,6 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (
       !req.body
-      || !req.body.name
       || !req.body.email
       || !req.body.password
       || !req.body.roleId

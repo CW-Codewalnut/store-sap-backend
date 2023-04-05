@@ -6,13 +6,17 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.STRING(16),
       },
-      name: {
+      employeeCode: {
+        type: Sequelize.STRING(50),
         allowNull: false,
-        type: Sequelize.STRING(100),
+        unique: true,
+        references: {
+          model: 'employees',
+          key: 'employeeCode',
+        },
       },
       email: {
         allowNull: false,
-        unique: true,
         type: Sequelize.STRING(100),
       },
       password: {
@@ -49,7 +53,7 @@ module.exports = {
       },
     });
   },
-  down: async (queryInterface) => {
+  down: async queryInterface => {
     await queryInterface.dropTable('users');
   },
 };

@@ -10,10 +10,6 @@ const getGlAccounts = async (
 ) => {
   try {
     const { businessTransactionId, glOf } = req.body;
-    // Get gl by btId
-    // Get all gl of vendor 
-    // Get all gl of customer
-    // houseBankMandatory based on gl
     let query = {};
 
     if(businessTransactionId) {

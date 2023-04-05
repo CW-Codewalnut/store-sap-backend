@@ -689,6 +689,11 @@ const getOpeningBalance = async (plantId: string, fromDate: string) => {
             [Op.eq]: 'Payment',
           },
         },
+        {
+          documentStatus: {
+            [Op.ne]: 'Saved',
+          },
+        },
       ],
     },
   });
@@ -707,6 +712,11 @@ const getOpeningBalance = async (plantId: string, fromDate: string) => {
         {
           pettyCashType: {
             [Op.eq]: 'Receipt',
+          },
+        },
+        {
+          documentStatus: {
+            [Op.ne]: 'Saved',
           },
         },
       ],
@@ -763,6 +773,11 @@ const getSumAmount = (
         },
         {
           plantId,
+        },
+        {
+          documentStatus: {
+            [Op.ne]: 'Saved',
+          },
         },
       ],
     },

@@ -70,5 +70,8 @@
     "USER_ACCESS_PREVENT": "User doesn't have plant access",
     "USER_CREATED": "User created successfully",
     "USER_UPDATED": "User updated successfully",
-    "VENDOR_INVALID": "Invalid vendor"
+    "VENDOR_INVALID": "Invalid vendor",
+    "EMPLOYEE_CODE_REQUIRED": "Employee code is required",
+    "EMAIL_INVALID": "Invalid email address",
+    "PASSWORD_LENGTH": "Invalid password..try again"
 }
