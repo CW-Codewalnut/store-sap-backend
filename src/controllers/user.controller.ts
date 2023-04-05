@@ -179,8 +179,8 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (
       !req.body
-      || !req.body.employeeCode
       || !req.body.email
+      || !req.body.employeeCode
       || req.body.password
       || !req.body.roleId
       || !req.body.plantIds
@@ -196,15 +196,15 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(CODE[400]).send(response);
     }
 
-    const { email, plantIds } = req.body;
+    const { employeeCode, plantIds } = req.body;
 
-    const existingUser = await User.findOne({ where: { email } });
+    const existingEmployeeCode = await User.findOne({ where: { employeeCode } });
 
-    if (existingUser) {
+    if (existingEmployeeCode) {
       const response = responseFormatter(
         CODE[422],
         SUCCESS.FALSE,
-        MESSAGE.EMAIL_EXIST,
+        MESSAGE.EMPLOYEE_CODE_UNIQUE,
         null,
       );
       return res.status(CODE[422]).send(response);
