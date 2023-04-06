@@ -7,6 +7,7 @@ interface VendorModel
   > {
   id: string;
   title: string;
+  vendorNo: number;
   name1: string;
   name2: string;
   searchTerm1: string;

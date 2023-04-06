@@ -23,36 +23,38 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
   },
   pettyCashType: {
     allowNull: false,
-    type: DataTypes.ENUM('Payment', 'Receipt'),
+    type: DataTypes.STRING(20),
+    validate: {
+      isIn: {
+        args: [['Payment', 'Receipt']],
+        msg: "Cash journal type must be 'Payment' or 'Receipt'",
+      },
+    },
   },
   documentStatus: {
     allowNull: false,
-    type: DataTypes.ENUM('Saved', 'Updated', 'Postd'),
+    type: DataTypes.STRING(20),
     defaultValue: 'Saved',
+    validate: {
+      isIn: {
+        args: [
+          ['Saved', 'Updated', 'Posted', 'Updated Reversed', 'Posted Reversed'],
+        ],
+        msg: "Document status must be 'Saved', 'Updated', 'Posted', 'Updated Reversed' or 'Posted Reversed'",
+      },
+    },
   },
   businessTransactionId: {
     type: DataTypes.STRING(16),
     allowNull: false,
-    references: {
-      model: 'business_transactions',
-      key: 'id',
-    },
   },
   taxCodeId: {
     type: DataTypes.STRING(16),
     allowNull: false,
-    references: {
-      model: 'tax_codes',
-      key: 'id',
-    },
   },
   glAccountId: {
     type: DataTypes.STRING(16),
     allowNull: false,
-    references: {
-      model: 'gl_accounts',
-      key: 'id',
-    },
   },
   amount: {
     allowNull: false,
@@ -73,26 +75,14 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
   bankAccountId: {
     type: DataTypes.STRING(16),
     allowNull: true,
-    references: {
-      model: 'bank_accounts',
-      key: 'id',
-    },
   },
   vendorId: {
     allowNull: true,
     type: DataTypes.STRING(16),
-    references: {
-      model: 'vendors',
-      key: 'id',
-    },
   },
   customerId: {
     allowNull: true,
     type: DataTypes.STRING(16),
-    references: {
-      model: 'customers',
-      key: 'id',
-    },
   },
   receiptRecipient: {
     allowNull: true,
@@ -109,34 +99,18 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
   plantId: {
     allowNull: false,
     type: DataTypes.STRING(16),
-    references: {
-      model: 'plants',
-      key: 'id',
-    },
   },
   costCentreId: {
     allowNull: true,
     type: DataTypes.STRING(16),
-    references: {
-      model: 'cost_centres',
-      key: 'id',
-    },
   },
   profitCentreId: {
     allowNull: false,
     type: DataTypes.STRING(16),
-    references: {
-      model: 'profit_centres',
-      key: 'id',
-    },
   },
   segmentId: {
     allowNull: false,
     type: DataTypes.STRING(16),
-    references: {
-      model: 'segments',
-      key: 'id',
-    },
   },
   cjDocNo: {
     allowNull: true,
@@ -153,10 +127,6 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
   employeeId: {
     allowNull: true,
     type: DataTypes.STRING(16),
-    references: {
-      model: 'employees',
-      key: 'id',
-    },
   },
   profitabilitySegmentNo: {
     allowNull: true,
@@ -197,6 +167,10 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
   additionalText2: {
     allowNull: true,
     type: DataTypes.STRING(30),
+  },
+  reverseTransactionId: {
+    type: DataTypes.STRING(16),
+    allowNull: true,
   },
   createdBy: {
     allowNull: true,

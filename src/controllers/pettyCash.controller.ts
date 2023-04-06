@@ -19,6 +19,7 @@ import HouseBank from '../models/house-bank';
 import { dateFormat, convertFromDate, convertToDate } from '../utils/helper';
 import MESSAGE from '../config/message.json';
 import Preference from '../models/preferences';
+import PettyCashModel from '../interfaces/masters/pettyCash.interface';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -756,6 +757,84 @@ const getSumAmount = (
   });
 };
 
+const transactionReverse = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { transactionId } = req.params;
+
+    if (!transactionId) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.EMPTY_CONTENT,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    const {
+      id,
+      createdBy,
+      updatedBy,
+      documentStatus,
+      amount,
+      reverseTransactionId,
+      ...restPettyCashData
+    }: any = await PettyCash.findOne({ where: { id: transactionId }, raw: true });
+
+    if (restPettyCashData.plantId !== req.session.activePlantId) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    if (restPettyCashData.documentStatus !== 'Updated') {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.REVERSE_NOT_ALLOWED,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    if (restPettyCashData) {
+      const pettyCash = {
+        reverseTransactionId: id,
+        createdBy: req.user.id,
+        updatedBy: req.user.id,
+        documentStatus: 'Updated Reversed',
+        amount: +new BigNumber(+amount).negated(),
+        ...restPettyCashData,
+      };
+      const pettyCashData = await PettyCash.create(pettyCash);
+      const response = responseFormatter(
+        CODE[201],
+        SUCCESS.TRUE,
+        MESSAGE.TRANSACTION_REVERSED,
+        pettyCashData,
+      );
+      return res.status(CODE[201]).send(response);
+    }
+    const response = responseFormatter(
+      CODE[400],
+      SUCCESS.FALSE,
+      MESSAGE.DATA_NOT_FOUND,
+      null,
+    );
+    return res.status(CODE[400]).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export default {
   create,
   findPaymentsWithPaginate,
@@ -765,4 +844,5 @@ export default {
   deleteTransactions,
   exportPettyCash,
   getBalanceCalculation,
+  transactionReverse,
 };

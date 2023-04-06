@@ -9,7 +9,7 @@ module.exports = {
       costCentre: {
         allowNull: false,
         unique: true,
-        type: Sequelize.BIGINT(10),
+        type: Sequelize.BIGINT,
       },
       sapDescription: {
         allowNull: false,
