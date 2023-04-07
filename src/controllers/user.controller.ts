@@ -222,7 +222,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     req.body.updatedBy = req.user.id;
     const user = await User.create(req.body);
 
-    await sendPasswordLink(user.id, user.employeeCode);
+    await sendPasswordLink(user.id, user.employeeCode, 'set');
 
     const userPlantBody = plantIds.map((plantId: string) => ({
       id: nanoid(16),
@@ -255,7 +255,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const sendPasswordLink = async (userId: string, employeeCode: string) => {
+const sendPasswordLink = async (userId: string, employeeCode: string, passwordState: string) => {
   try {
     const expiresIn = '2d';
     const token = jwt.sign({ userId }, config.jwtSecret, {
@@ -268,7 +268,7 @@ const sendPasswordLink = async (userId: string, employeeCode: string) => {
     };
 
     const passwordTokenData = await PasswordValidateToken.create(resetData);
-    return sendEmail(passwordTokenData.id, employeeCode);
+    return sendEmail(passwordTokenData.id, employeeCode, passwordState);
   } catch (err) {
     throw err;
   }
@@ -277,6 +277,7 @@ const sendPasswordLink = async (userId: string, employeeCode: string) => {
 const sendEmail = async (
   passwordValidateTokenId: string,
   employeeCode: string,
+  passwordState: string
 ) => {
   try {
     const transporter = await nodeMailer.createTransport({
@@ -299,7 +300,7 @@ const sendEmail = async (
       subject: `Set your password for ${employeeCode}`,
       html: `<html>
       <body><h4>Dear ${employeeData?.employeeName},</h4><br>
-      <p>Click below to set your Store SAP App password</p>
+      <p>Click below to ${passwordState} your Store SAP App password</p>
       <p><a href="${config.appBaseUrl}/reset-password/${passwordValidateTokenId}">${config.appBaseUrl}/reset-password/${passwordValidateTokenId}</a></p><br><br>
       <p>At your service,<br>Team Buildpro<br>
       </body></html>`,
@@ -586,6 +587,53 @@ const setUserPassword = async (
   }
 };
 
+const verifyAndSendPasswordResetLink = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { employeeCode } = req.body;
+    
+    if (!req.body || !employeeCode) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    const user = await User.findOne({
+      where: { employeeCode },
+    });
+
+    if (!user) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.EMPLOYEE_CODE_NOT_FOUND,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    await sendPasswordLink(user.id, user.employeeCode, 'reset');
+
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      MESSAGE.PASSWORD_RESET_LINK,
+      null,
+    );
+    return res.status(CODE[200]).send(response);
+    
+  } catch (err) {
+    next(err);
+  }
+};
+
 export default {
   auth,
   create,
@@ -595,4 +643,5 @@ export default {
   update,
   changeAccountStatus,
   setUserPassword,
+  verifyAndSendPasswordResetLink
 };
