@@ -10,6 +10,7 @@ interface UserModel
   email: string;
   password: string;
   roleId: number;
+  accountStatus: boolean;
   createdBy: string;
   updatedBy: string;
   createdAt: Date;

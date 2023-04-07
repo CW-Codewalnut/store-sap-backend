@@ -289,7 +289,6 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
       };
 
       const response = await updatePettyCash(allowedUpdatedData, transactionId);
-      console.log('if ', response);
       res.status(CODE[200]).send(response);
     } else {
       // Check for valid tax code
@@ -323,7 +322,6 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
       pettyCashBody.updatedBy = req.user.id;
 
       const response = await updatePettyCash(pettyCashBody, transactionId);
-      console.log('else ', response);
       res.status(CODE[200]).send(response);
     }
   } catch (err: any) {

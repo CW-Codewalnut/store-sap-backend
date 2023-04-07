@@ -39,4 +39,3 @@ const Module = sequelize.define<ModuleModel>('module', {
 });
 
 export default Module;
-export { ModuleModel };

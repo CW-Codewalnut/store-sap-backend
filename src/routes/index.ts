@@ -25,6 +25,7 @@ const routesMiddleware = (app: Application) => {
   app.post('/auth', UserController.auth);
   app.get('/route/verify', verifyRouteAccess);
   app.get('/logout', checkAuthenticated, UserController.logout);
+  app.post('/user/set-password', UserController.setUserPassword);
 
   // Masters api
   app.get(

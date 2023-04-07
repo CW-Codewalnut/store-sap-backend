@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { ForeignKeyConstraintError } from 'sequelize';
+import jwt from 'jsonwebtoken';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
+import MESSAGE from '../config/message.json';
 
 const ErrorHandler = (
   err: any,
@@ -13,9 +15,11 @@ const ErrorHandler = (
   let errMsg;
 
   if (err instanceof ForeignKeyConstraintError) {
-    errMsg = 'Reference error: Provided values is invalid';
+    errMsg = MESSAGE.FOREIGN_KEY_ERROR;
+  } else if (err instanceof jwt.TokenExpiredError) {
+    errMsg = MESSAGE.PASSWORD_EXPIRED_LINK;
   } else {
-    errMsg = err.message || 'Something went wrong';
+    errMsg = err.message || MESSAGE.SOMETHING_WENT_WRONG;
   }
 
   const stack: any = process.env.NODE_ENV === 'local' || process.env.NODE_ENV === 'dev'

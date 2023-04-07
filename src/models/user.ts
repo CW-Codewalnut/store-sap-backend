@@ -42,6 +42,11 @@ const User = sequelize.define<UserModel>('user', {
     type: DataTypes.STRING(16),
     allowNull: true,
   },
+  accountStatus: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: 0,
+  },
   createdBy: {
     allowNull: true,
     type: DataTypes.STRING(16),

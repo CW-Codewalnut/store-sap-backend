@@ -34,6 +34,7 @@
 	"EMPTY_CONTENT": "Content can not be empty",
 	"FAILURE": "Failure",
 	"FETCHED": "Fetched",
+	"FOREIGN_KEY_ERROR": "Reference error: Provided values is invalid",
 	"GL_ACCOUNT_INVALID": "Invalid GL account",
 	"GL_ACCOUNT_REQUIRED": "GL account is required",
 	"INVALID_CREDENTIAL": "Invalid credentials",
@@ -44,6 +45,10 @@
 	"NO_MATCH_FOUND": "No match found",
 	"ORDER_NO_LENGTH": "Order no must be under 1-10 characters",
 	"PASSWORD_LENGTH": "Invalid password..try again",
+	"PASSWORD_EXPIRED_LINK": "The link you followed has been expired",
+	"PASSWORD_USED_LINK": "The link you followed has been used",
+	"PASSWORD_SETTING_ERROR": "Error occurred: while setting the password",
+	"PASSWORD_SETTING_SUCCESS": "The password has been set successfully",
 	"PERMISSION_UPDATED": "Permission updated successfully",
 	"PETTY_CASH_LIMIT": "Accept only under 10000 amount",
 	"PETTY_CASH_TYPE_EXPECTED": "Petty cash type must be 'Payment' or 'Receipt'",
@@ -74,5 +79,6 @@
 	"USER_ACCESS_PREVENT": "User doesn't have plant access",
 	"USER_CREATED": "User created successfully",
 	"USER_UPDATED": "User updated successfully",
-	"VENDOR_INVALID": "Invalid vendor"
+	"VENDOR_INVALID": "Invalid vendor",
+	"SOMETHING_WENT_WRONG": "Something went wrong"
 }
