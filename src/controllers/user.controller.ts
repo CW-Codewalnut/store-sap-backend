@@ -117,7 +117,7 @@ const getUserPermissions = async (req: Request, next: NextFunction) => {
           attributes: [],
         },
       ],
-      attributes: [[sequelize.col('employee.employeeName'), 'name'], 'email'],
+      attributes: [[sequelize.col('employee.employeeName'), 'name'], 'employeeCode'],
       where: { id: req.user.id },
     });
 
