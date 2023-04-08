@@ -19,6 +19,7 @@ import PettyCashController from '../controllers/pettyCash.controller';
 import UserPlantController from '../controllers/userPlant.controller';
 
 import { checkAuthenticated, verifyRouteAccess } from '../middleware/auth';
+import CashJournalController from '../controllers/cashJournal.controller';
 
 const routesMiddleware = (app: Application) => {
   // Auth api
@@ -198,6 +199,12 @@ const routesMiddleware = (app: Application) => {
     '/petty-cash/transaction-reverse/:transactionId',
     checkAuthenticated,
     PettyCashController.transactionReverse,
+  );
+
+  app.get(
+    '/cash-journal/:plantId',
+    checkAuthenticated,
+    CashJournalController.getCashJournalByPlantId,
   );
 };
 

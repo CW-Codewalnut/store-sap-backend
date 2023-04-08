@@ -19,7 +19,6 @@ import HouseBank from '../models/house-bank';
 import { dateFormat, convertFromDate, convertToDate } from '../utils/helper';
 import MESSAGE from '../config/message.json';
 import Preference from '../models/preferences';
-import PettyCashModel from '../interfaces/masters/pettyCash.interface';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -140,8 +139,7 @@ const getPettyCashData = (
     const { search } = req.query;
     const offset = page * pageSize - pageSize;
     const limit = pageSize;
-    const { fromDate } = req.body;
-    const { toDate } = req.body;
+    const { fromDate, toDate, cashJournalId } = req.body;
     const query = [];
 
     if (fromDate && toDate) {
@@ -162,6 +160,7 @@ const getPettyCashData = (
 
     query.push({ pettyCashType });
     query.push({ plantId: req.session.activePlantId });
+    query.push({ cashJournalId });
 
     return PettyCash.findAndCountAll({
       include: [
@@ -220,6 +219,20 @@ const findPaymentsWithPaginate = async (
   next: NextFunction,
 ) => {
   try {
+    if( !req.body 
+        || !req.query 
+        || !req.query.page 
+        || !req.query.pageSize 
+        || !req.body.cashJournalId) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      res.status(400).send(response);
+    }
+
     const cashPayment = await getPettyCashData(req, next, 'Payment');
 
     const response = responseFormatter(
@@ -240,6 +253,20 @@ const findReceiptsWithPaginate = async (
   next: NextFunction,
 ) => {
   try {
+    if( !req.body 
+        || !req.query 
+        || !req.query.page 
+        || !req.query.pageSize 
+        || !req.body.cashJournalId) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      res.status(400).send(response);
+    }
+
     const cashReceipt = await getPettyCashData(req, next, 'Receipt');
 
     const response = responseFormatter(

@@ -383,8 +383,8 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
   },
   cashJournalId: {
     type: DataTypes.STRING(16),
-    allowNull: true,
-    /* validate: {
+    allowNull: false,
+    validate: {
       notNull: {
         msg: MESSAGE.CASH_JOURNAL_REQUIRED
       },
@@ -392,7 +392,7 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
         args: /^[A-Za-z0-9_-]{16}$/,
         msg: MESSAGE.CASH_JOURNAL_INVALID,
       }
-    }, */
+    },
   },
   createdBy: {
     allowNull: true,
