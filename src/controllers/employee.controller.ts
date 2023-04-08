@@ -22,7 +22,7 @@ const getEmployeesByPlantId = async (
       employees,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -69,7 +69,7 @@ const findWithPaginate = async (
       employees,
     );
     res.status(200).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -100,7 +100,7 @@ const findAll = async (req: Request, res: Response, next: NextFunction) => {
       employees,
     );
     res.status(200).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };

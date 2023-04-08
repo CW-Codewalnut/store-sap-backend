@@ -20,7 +20,7 @@ const getProfitCentreByCostCentreId = async (
       profitCentres,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };

@@ -54,7 +54,7 @@ const findWithPaginate = async (
       customers,
     );
     res.status(200).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };

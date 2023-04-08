@@ -21,7 +21,7 @@ const getSegmentsByProfitCentreId = async (
       Segments,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };

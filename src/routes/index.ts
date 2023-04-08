@@ -26,7 +26,10 @@ const routesMiddleware = (app: Application) => {
   app.get('/route/verify', verifyRouteAccess);
   app.get('/logout', checkAuthenticated, UserController.logout);
   app.post('/user/set-password', UserController.setUserPassword);
-  app.post('/employee/verify-employee-code', UserController.verifyAndSendPasswordResetLink);
+  app.post(
+    '/employee/verify-employee-code',
+    UserController.verifyAndSendPasswordResetLink,
+  );
 
   // Masters api
   app.get(

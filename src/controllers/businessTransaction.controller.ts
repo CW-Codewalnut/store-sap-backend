@@ -28,7 +28,7 @@ const getBusinessTransactionsByModuleId = async (
       businessTransactions,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -101,7 +101,7 @@ const getMasters = async (req: Request, res: Response, next: NextFunction) => {
       masterList,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };

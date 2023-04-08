@@ -18,4 +18,9 @@ interface UserModel
   deletedAt: Date;
 }
 
+interface DecodedTokenData {
+  userId: string;
+}
+
 export default UserModel;
+export { DecodedTokenData };

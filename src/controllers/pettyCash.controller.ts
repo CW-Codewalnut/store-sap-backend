@@ -74,7 +74,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       pettyCashResult,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -209,7 +209,7 @@ const getPettyCashData = (
       offset,
       limit,
     });
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -229,7 +229,7 @@ const findPaymentsWithPaginate = async (
       cashPayment,
     );
     res.status(200).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -249,7 +249,7 @@ const findReceiptsWithPaginate = async (
       cashReceipt,
     );
     res.status(200).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -324,7 +324,7 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
       const response = await updatePettyCash(pettyCashBody, transactionId);
       res.status(CODE[200]).send(response);
     }
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -389,7 +389,7 @@ const updateDocumentStatus = async (
       null,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -455,7 +455,7 @@ const deleteTransactions = async (
       null,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -596,7 +596,7 @@ const exportPettyCash = async (
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
     res.send(buffer);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -664,7 +664,7 @@ const getBalanceCalculation = async (
       );
       res.status(200).send(response);
     }
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };

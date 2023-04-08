@@ -3,6 +3,7 @@ import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import SessionActivity from '../models/session-activity';
 import sessionActivityArgs from '../interfaces/sessionActivity/sessionActivity.interface';
 import MESSAGE from '../config/message.json';
+import SessionActivityModel from '../interfaces/masters/sessionActivity.interface';
 
 const checkAuthenticated = (
   req: Request,
@@ -64,7 +65,7 @@ const saveSessionActivity = ({
       || req.socket.remoteAddress;
     const device = req.headers['user-agent'];
 
-    const body: any = {
+    const body = {
       userId,
       sessionId,
       isExpired: req.body.isExpired,

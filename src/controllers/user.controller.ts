@@ -5,7 +5,7 @@ import passport from 'passport';
 import sequelize, { Op } from 'sequelize';
 import groupBy from 'lodash.groupby';
 import { nanoid } from 'nanoid';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import nodeMailer from 'nodemailer';
 import User from '../models/user';
 import Role from '../models/role';
@@ -21,6 +21,8 @@ import MESSAGE from '../config/message.json';
 import Employee from '../models/employee';
 import Plant from '../models/plant';
 import PasswordValidateToken from '../models/password-validate-token';
+import { DecodedTokenData } from '../interfaces/masters/user.interface';
+import PasswordValidateTokenModel from '../interfaces/masters/passwordValidateToken.interface';
 
 const configs = require('../config/config');
 
@@ -255,7 +257,11 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const sendPasswordLink = async (userId: string, employeeCode: string, passwordState: string) => {
+const sendPasswordLink = async (
+  userId: string,
+  employeeCode: string,
+  passwordState: string,
+) => {
   try {
     const expiresIn = '2d';
     const token = jwt.sign({ userId }, config.jwtSecret, {
@@ -277,7 +283,7 @@ const sendPasswordLink = async (userId: string, employeeCode: string, passwordSt
 const sendEmail = async (
   passwordValidateTokenId: string,
   employeeCode: string,
-  passwordState: string
+  passwordState: string,
 ) => {
   try {
     const transporter = await nodeMailer.createTransport({
@@ -357,7 +363,7 @@ const findWithPaginate = async (
       users,
     );
     res.status(200).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -538,10 +544,11 @@ const setUserPassword = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const tokenData: any = await jwt.verify(
+    const tokenData = (await jwt.verify(
       passwordValidateData.token,
       config.jwtSecret,
-    );
+    )) as DecodedTokenData;
+
     if (passwordValidateData.isUsed === true) {
       const response = responseFormatter(
         CODE[500],
@@ -594,7 +601,7 @@ const verifyAndSendPasswordResetLink = async (
 ) => {
   try {
     const { employeeCode } = req.body;
-    
+
     if (!req.body || !employeeCode) {
       const response = responseFormatter(
         CODE[400],
@@ -628,7 +635,6 @@ const verifyAndSendPasswordResetLink = async (
       null,
     );
     return res.status(CODE[200]).send(response);
-    
   } catch (err) {
     next(err);
   }
@@ -643,5 +649,5 @@ export default {
   update,
   changeAccountStatus,
   setUserPassword,
-  verifyAndSendPasswordResetLink
+  verifyAndSendPasswordResetLink,
 };

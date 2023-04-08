@@ -7,6 +7,7 @@ import {
   DefaultFields,
   ExtendReturnData,
 } from '../interfaces/session/session.interface';
+import SessionModel from '../interfaces/masters/session.interface';
 
 const configs = require('../config/config');
 
@@ -19,7 +20,7 @@ const SequelizeStore = ConnectSession(session.Store);
 
 function extendDefaultFields(
   defaults: DefaultFields,
-  session: any,
+  session: SessionModel,
 ): ExtendReturnData {
   return {
     data: defaults.data,

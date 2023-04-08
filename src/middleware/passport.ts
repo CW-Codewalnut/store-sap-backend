@@ -3,6 +3,7 @@ import md5 from 'md5';
 import { Strategy as LocalStrategy } from 'passport-local';
 import User from '../models/user';
 import MESSAGE from '../config/message.json';
+import UserModel from '../interfaces/masters/user.interface';
 
 const authenticateUser = async (
   employeeCode: string,
