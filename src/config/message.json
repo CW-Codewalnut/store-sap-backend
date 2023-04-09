@@ -65,6 +65,7 @@
 	"REFERENCE_DOC_NO_LENGTH": "Reference must be under 1-16 characters",
 	"REVERSE_NOT_ALLOWED": "Failed: Only 'Updated' document can be reversed",
 	"REVERSE_TRANSACTION_INVALID": "Something went wrong while reversing the transaction",
+	"ROLE_UNIQUE": "Role already taken",
 	"ROLE_CREATED": "Role created successfully",
 	"ROLE_UPDATED": "Role updated successfully",
 	"SEGMENT_INVALID": "Invalid segment",
@@ -80,6 +81,8 @@
 	"TRANSACTION_TYPE_LENGTH": "Transaction type must be under 1-3 characters",
 	"UNAUTHORIZED": "Unauthorized",
 	"USER_ACCESS_PREVENT": "User doesn't have plant access",
+	"USER_ACCOUNT_ACTIVE": "User account active successfully",
+	"USER_ACCOUNT_INACTIVE": "User account inactive successfully",
 	"USER_CREATED": "User created successfully and Password link sent to authorized email",
 	"USER_UPDATED": "User updated successfully",
 	"VENDOR_INVALID": "Invalid vendor"

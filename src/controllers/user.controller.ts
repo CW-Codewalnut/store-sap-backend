@@ -22,7 +22,7 @@ import Employee from '../models/employee';
 import Plant from '../models/plant';
 import PasswordValidateToken from '../models/password-validate-token';
 import { DecodedTokenData } from '../interfaces/masters/user.interface';
-import PasswordValidateTokenModel from '../interfaces/masters/passwordValidateToken.interface';
+import Session from '../models/session';
 
 const configs = require('../config/config');
 
@@ -470,39 +470,44 @@ const changeAccountStatus = async (
   try {
     const { id } = req.params;
 
-    if (!id) {
-      const response = responseFormatter(
-        CODE[400],
-        SUCCESS.FALSE,
-        MESSAGE.BAD_REQUEST,
-        null,
-      );
-      return res.status(CODE[400]).send(response);
-    }
-
     const userData = await User.findByPk(id);
 
-    const userUpdateData = {
-      // accountStatus: userData.accountStatus === 'Active' ? 'Inactive' : 'Active',
+    const userUpdateData: any = {
+      accountStatus: userData?.accountStatus ? false : true,
       updatedBy: req.user.id,
       updatedAt: new Date(),
     };
 
     await User.update(
-      {},
+      userUpdateData,
       {
         where: { id },
       },
     );
 
     // Destroy all session of the user
-    // destroyUserSession();
+    await Session.destroy({where: {userId: id}});
+
+    const updatedUserData = await User.findOne({
+      include: [
+        {
+          model: Role,
+        },
+        {
+          model: Plant,
+          through: { attributes: [] },
+        },
+      ],
+      where: { id },
+    });
+
+    const message  = userData?.accountStatus ? MESSAGE.USER_ACCOUNT_INACTIVE : MESSAGE.USER_ACCOUNT_ACTIVE;
 
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      MESSAGE.USER_UPDATED,
-      userData,
+      message,
+      updatedUserData,
     );
     return res.status(CODE[200]).send(response);
   } catch (err) {

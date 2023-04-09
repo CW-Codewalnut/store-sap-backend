@@ -20,6 +20,19 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       );
       return res.status(CODE[400]).send(response);
     }
+
+    const roleIsExist = await Role.findOne({ where: { name: req.body.name } });
+
+    if (roleIsExist) {
+      const response = responseFormatter(
+        CODE[422],
+        SUCCESS.FALSE,
+        MESSAGE.ROLE_UNIQUE,
+        null,
+      );
+      return res.status(CODE[422]).send(response);
+    }
+
     req.body.createdBy = req.user.id;
     req.body.updatedBy = req.user.id;
     const role = await Role.create(req.body);
