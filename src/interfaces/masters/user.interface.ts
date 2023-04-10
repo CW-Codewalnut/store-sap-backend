@@ -8,7 +8,7 @@ interface UserModel
   id: string;
   employeeCode: string;
   email: string;
-  password: string;
+  password: string | any;
   roleId: number;
   accountStatus: boolean;
   createdBy: string;

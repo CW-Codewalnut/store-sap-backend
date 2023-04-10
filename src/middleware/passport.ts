@@ -3,7 +3,7 @@ import md5 from 'md5';
 import { Strategy as LocalStrategy } from 'passport-local';
 import User from '../models/user';
 import MESSAGE from '../config/message.json';
-import UserModel from '../interfaces/masters/user.interface';
+import { Op } from 'sequelize';
 
 const authenticateUser = async (
   employeeCode: string,
@@ -11,7 +11,16 @@ const authenticateUser = async (
   done: Function,
 ) => {
   try {
-    const user = await User.findOne({ where: { employeeCode } });
+    const user = await User.findOne({ 
+      where: { 
+          [Op.and]: [
+              { employeeCode: employeeCode },
+              { accountStatus: true },
+              { password: { [Op.not]: null } } 
+          ]
+      } 
+    });
+
     if (user === null) {
       return done(null, false, {
         message: MESSAGE.INVALID_CREDENTIAL,
@@ -50,7 +59,7 @@ const passportMiddleware = () => {
 
   passport.deserializeUser(async (userId: string, done: Function) => {
     try {
-      const user = await User.findByPk(userId);
+      const user = await User.findOne({where: {id: userId}});
       done(null, user);
     } catch (err) {
       done(err);
