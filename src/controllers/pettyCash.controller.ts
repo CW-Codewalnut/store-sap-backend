@@ -821,22 +821,14 @@ const transactionReverse = async (
   try {
     const { transactionId } = req.params;
 
-    if (!transactionId) {
-      const response = responseFormatter(
-        CODE[400],
-        SUCCESS.FALSE,
-        MESSAGE.EMPTY_CONTENT,
-        null,
-      );
-      return res.status(CODE[400]).send(response);
-    }
-
     const {
       id,
       createdBy,
       updatedBy,
       documentStatus,
       amount,
+      netAmount,
+      taxBaseAmount,
       reverseTransactionId,
       ...restPettyCashData
     }: any = await PettyCash.findOne({ where: { id: transactionId }, raw: true });
@@ -850,8 +842,7 @@ const transactionReverse = async (
       );
       return res.status(CODE[400]).send(response);
     }
-
-    if (restPettyCashData.documentStatus !== 'Updated') {
+    if (documentStatus !== 'Updated') {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -868,8 +859,11 @@ const transactionReverse = async (
         updatedBy: req.user.id,
         documentStatus: 'Updated Reversed',
         amount: +new BigNumber(+amount).negated(),
+        netAmount: +new BigNumber(+amount).negated(),
+        taxBaseAmount: +new BigNumber(+amount).negated(),
         ...restPettyCashData,
       };
+      
       const pettyCashData = await PettyCash.create(pettyCash);
       const response = responseFormatter(
         CODE[201],
