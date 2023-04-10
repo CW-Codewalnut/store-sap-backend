@@ -386,12 +386,12 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
     allowNull: false,
     validate: {
       notNull: {
-        msg: MESSAGE.CASH_JOURNAL_REQUIRED
+        msg: MESSAGE.CASH_JOURNAL_REQUIRED,
       },
       is: {
         args: /^[A-Za-z0-9_-]{16}$/,
         msg: MESSAGE.CASH_JOURNAL_INVALID,
-      }
+      },
     },
   },
   createdBy: {

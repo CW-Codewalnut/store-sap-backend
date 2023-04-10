@@ -473,20 +473,17 @@ const changeAccountStatus = async (
     const userData = await User.findByPk(id);
 
     const userUpdateData: any = {
-      accountStatus: userData?.accountStatus ? false : true,
+      accountStatus: !userData?.accountStatus,
       updatedBy: req.user.id,
       updatedAt: new Date(),
     };
 
-    await User.update(
-      userUpdateData,
-      {
-        where: { id },
-      },
-    );
+    await User.update(userUpdateData, {
+      where: { id },
+    });
 
     // Destroy all session of the user
-    await Session.destroy({where: {userId: id}});
+    await Session.destroy({ where: { userId: id } });
 
     const updatedUserData = await User.findOne({
       include: [
@@ -501,7 +498,9 @@ const changeAccountStatus = async (
       where: { id },
     });
 
-    const message  = userData?.accountStatus ? MESSAGE.USER_ACCOUNT_INACTIVE : MESSAGE.USER_ACCOUNT_ACTIVE;
+    const message = userData?.accountStatus
+      ? MESSAGE.USER_ACCOUNT_INACTIVE
+      : MESSAGE.USER_ACCOUNT_ACTIVE;
 
     const response = responseFormatter(
       CODE[200],

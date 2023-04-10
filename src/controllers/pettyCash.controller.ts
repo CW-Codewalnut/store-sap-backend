@@ -219,11 +219,13 @@ const findPaymentsWithPaginate = async (
   next: NextFunction,
 ) => {
   try {
-    if( !req.body 
-        || !req.query 
-        || !req.query.page 
-        || !req.query.pageSize 
-        || !req.body.cashJournalId) {
+    if (
+      !req.body
+      || !req.query
+      || !req.query.page
+      || !req.query.pageSize
+      || !req.body.cashJournalId
+    ) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -253,11 +255,13 @@ const findReceiptsWithPaginate = async (
   next: NextFunction,
 ) => {
   try {
-    if( !req.body 
-        || !req.query 
-        || !req.query.page 
-        || !req.query.pageSize 
-        || !req.body.cashJournalId) {
+    if (
+      !req.body
+      || !req.query
+      || !req.query.page
+      || !req.query.pageSize
+      || !req.body.cashJournalId
+    ) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
