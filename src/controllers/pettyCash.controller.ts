@@ -645,7 +645,7 @@ const getBalanceCalculation = async (
   next: NextFunction,
 ) => {
   try {
-    const { fromDate, toDate } = req.body;
+    const { fromDate, toDate, cashJournalId } = req.body;
     if (!req.body || !fromDate || !toDate) {
       const response = responseFormatter(
         CODE[400],
@@ -657,14 +657,16 @@ const getBalanceCalculation = async (
     }
 
     if (req.session.activePlantId) {
-      const openingBalance = (await getOpeningBalance(req.session.activePlantId, fromDate)) || 0;
+      const openingBalance = (await getOpeningBalance(req.session.activePlantId, cashJournalId, fromDate)) || 0;
       const totalCashReceipts = (await getTotalCashReceipts(
         req.session.activePlantId,
+        cashJournalId,
         fromDate,
         toDate,
       )) || 0;
       const totalCashPayments = (await getTotalCashPayments(
         req.session.activePlantId,
+        cashJournalId,
         fromDate,
         toDate,
       )) || 0;
@@ -700,7 +702,7 @@ const getBalanceCalculation = async (
   }
 };
 
-const getOpeningBalance = async (plantId: string, fromDate: string) => {
+const getOpeningBalance = async (plantId: string, cashJournalId: string, fromDate: string) => {
   const startDate = convertFromDate(fromDate);
   let totalCashPayment = await PettyCash.sum('amount', {
     where: {
@@ -712,6 +714,9 @@ const getOpeningBalance = async (plantId: string, fromDate: string) => {
         },
         {
           plantId,
+        },
+        {
+          cashJournalId,
         },
         {
           pettyCashType: {
@@ -761,15 +766,17 @@ const getOpeningBalance = async (plantId: string, fromDate: string) => {
 
 const getTotalCashPayments = (
   plantId: string,
+  cashJournalId: string,
   fromDate: string,
   toDate: string,
-) => getSumAmount(plantId, fromDate, toDate, 'Payment');
+) => getSumAmount(plantId, cashJournalId, fromDate, toDate, 'Payment');
 
 const getTotalCashReceipts = (
   plantId: string,
+  cashJournalId: string,
   fromDate: string,
   toDate: string,
-) => getSumAmount(plantId, fromDate, toDate, 'Receipt');
+) => getSumAmount(plantId, cashJournalId, fromDate, toDate, 'Receipt');
 
 /**
  *
@@ -781,6 +788,7 @@ const getTotalCashReceipts = (
  */
 const getSumAmount = (
   plantId: string,
+  cashJournalId: string,
   fromDate: string,
   toDate: string,
   pettyCashType: string,
@@ -802,6 +810,9 @@ const getSumAmount = (
         },
         {
           plantId,
+        },
+        {
+          cashJournalId,
         },
         {
           documentStatus: {
