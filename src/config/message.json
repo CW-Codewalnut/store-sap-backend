@@ -17,6 +17,7 @@
 	"CASH_JOURNAL_REQUIRED": "Cash journal is required",
 	"CJ_DOC_NO_LENGTH": "Cash journal document no. must be under 1-10 characters",
 	"CONTROLLING_AREA_LENGTH": "Controlling area must be under 1-10 characters",
+	"CONTROLLING_AREA_VALUE": "Controlling area must be 1000",
 	"COST_CENTRE_INVALID": "Invalid cost centre",
 	"CUSTOMER_INVALID": "Invalid customer",
 	"DATA_NOT_FOUND": "Data not found",
