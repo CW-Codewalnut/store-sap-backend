@@ -876,6 +876,9 @@ const transactionReverse = async (
       };
       
       const pettyCashData = await PettyCash.create(pettyCash);
+
+      await PettyCash.update({documentStatus: 'Updated Reversed'}, {where: {id: transactionId}});
+
       const response = responseFormatter(
         CODE[201],
         SUCCESS.TRUE,
