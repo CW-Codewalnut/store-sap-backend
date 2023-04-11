@@ -8,6 +8,8 @@ import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import User from '../models/user';
 import MESSAGE from '../config/message.json';
 import RolePermissionModel from '../interfaces/masters/rolePermission.interface';
+import Employee from '../models/employee';
+import sequelize from 'sequelize';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -234,8 +236,16 @@ const updateRolePermissions = async (
             model: Role,
             attributes: ['name'],
           },
+          {
+            model: Employee,
+            attributes: [],
+          },
         ],
-        attributes: ['name', 'email'],
+        attributes: [
+          [sequelize.col('employee.employeeName'), 'name'],
+          'employeeCode',
+          'email'
+        ],
         where: { id: req.user.id },
       });
 
