@@ -5,6 +5,8 @@
 
 # Node artifact files
 node_modules/
+coverage/
+dist/
 
 # Compiled Java class files
 *.class
