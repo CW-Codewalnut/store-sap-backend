@@ -49,6 +49,7 @@
 	"PASSWORD_EXPIRED_LINK": "The link you followed has been expired",
 	"PASSWORD_LENGTH": "Invalid password..try again",
 	"PASSWORD_RESET_LINK": "Reset password link sent successfully to authorized email",
+	"PASSWORD_SET_LINK": "Set password link sent successfully to authorized email",
 	"PASSWORD_SETTING_ERROR": "Error occurred: while setting the password",
 	"PASSWORD_SETTING_SUCCESS": "The password has been set successfully",
 	"PASSWORD_USED_LINK": "The link you followed has been used",
@@ -84,7 +85,9 @@
 	"USER_ACCESS_PREVENT": "User doesn't have plant access",
 	"USER_ACCOUNT_ACTIVE": "User account active successfully",
 	"USER_ACCOUNT_INACTIVE": "User account inactive successfully",
+	"USER_ACCOUNT_INACTIVE_FORGET_PASSWORD": "Inactive user! please contact Admin",
 	"USER_CREATED": "User created successfully and Password link sent to authorized email",
+	"USER_NOT_FOUND": "User not found",
 	"USER_UPDATED": "User updated successfully",
 	"VENDOR_INVALID": "Invalid vendor"
 }

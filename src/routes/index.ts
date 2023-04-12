@@ -49,6 +49,8 @@ const routesMiddleware = (app: Application) => {
     UserController.changeAccountStatus,
   );
 
+  app.get('/user/password-link-regenerate/:userId', checkAuthenticated, UserController.setUserPasswordLinkReGenerate);
+
   app.get('/roles', checkAuthenticated, RoleController.findAll);
   app.post('/role', checkAuthenticated, RoleController.create);
   app.get('/roles/:id', checkAuthenticated, RoleController.findById);

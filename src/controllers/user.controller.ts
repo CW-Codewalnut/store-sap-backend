@@ -242,6 +242,10 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
         {
           model: Role,
         },
+        {
+          model: Plant,
+          through: { attributes: [] },
+        },
       ],
       where: { id: user.id },
     });
@@ -376,6 +380,10 @@ const findById = async (req: Request, res: Response, next: NextFunction) => {
         {
           model: Role,
         },
+        {
+          model: Plant,
+          through: { attributes: [] },
+        },
       ],
       where: { id },
     });
@@ -446,6 +454,10 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
       include: [
         {
           model: Role,
+        },
+        {
+          model: Plant,
+          through: { attributes: [] },
         },
       ],
       where: { id: req.params.id },
@@ -630,6 +642,16 @@ const verifyAndSendPasswordResetLink = async (
       return res.status(CODE[400]).send(response);
     }
 
+    if (user && !user.accountStatus) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.USER_ACCOUNT_INACTIVE_FORGET_PASSWORD,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
     await sendPasswordLink(user.id, user.employeeCode, 'reset');
 
     const response = responseFormatter(
@@ -644,6 +666,40 @@ const verifyAndSendPasswordResetLink = async (
   }
 };
 
+const setUserPasswordLinkReGenerate = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findOne({where: {id: userId}}); 
+
+    if(!user) {
+      const response = responseFormatter(
+        CODE[404],
+        SUCCESS.FALSE,
+        MESSAGE.USER_NOT_FOUND,
+        null,
+      );
+      return res.status(CODE[404]).send(response);
+    }
+
+    await sendPasswordLink(user.id, user.employeeCode, 'set');
+
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      MESSAGE.PASSWORD_SET_LINK,
+      null,
+    );
+    return res.status(CODE[200]).send(response);
+  } catch(err) {
+    next(err);
+  }
+}
+
 export default {
   auth,
   create,
@@ -654,4 +710,5 @@ export default {
   changeAccountStatus,
   setUserPassword,
   verifyAndSendPasswordResetLink,
+  setUserPasswordLinkReGenerate
 };
