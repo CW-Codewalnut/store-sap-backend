@@ -1,34 +1,31 @@
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('users', {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('cash_journals', {
       id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING(16),
       },
-      employeeCode: {
-        type: Sequelize.STRING(50),
+      cashJournalNo: {
         allowNull: false,
         unique: true,
-        references: {
-          model: 'employees',
-          key: 'employeeCode',
-        },
+        type: Sequelize.BIGINT,
       },
-      email: {
+      name: {
+        type: Sequelize.STRING(100),
         allowNull: false,
-        type: Sequelize.STRING(100),
+        unique: true,
       },
-      password: {
-        allowNull: true,
-        defaultValue: null,
-        type: Sequelize.STRING(100),
+      currency: {
+        type: Sequelize.STRING(20),
+        allowNull: false,
+        unique: false,
       },
-      roleId: {
-        allowNull: true,
+      plantId: {
         type: Sequelize.STRING(16),
+        allowNull: false,
         references: {
-          model: 'roles',
+          model: 'plants',
           key: 'id',
         },
       },
@@ -40,10 +37,6 @@ module.exports = {
         allowNull: true,
         type: Sequelize.STRING(16),
       },
-      deletedAt: {
-        allowNull: true,
-        type: Sequelize.DATE,
-      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
@@ -54,8 +47,7 @@ module.exports = {
       },
     });
   },
-  // eslint-disable-next-line arrow-parens
-  down: async queryInterface => {
-    await queryInterface.dropTable('users');
+  async down(queryInterface) {
+    await queryInterface.dropTable('cash_journals');
   },
 };

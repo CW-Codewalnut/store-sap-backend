@@ -41,7 +41,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.INVALID_TAX_CODE,
+        MESSAGE.TAX_CODE_INVALID,
         null,
       );
       return res.status(CODE[400]).send(response);
@@ -74,7 +74,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       pettyCashResult,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -209,7 +209,7 @@ const getPettyCashData = (
       offset,
       limit,
     });
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -229,7 +229,7 @@ const findPaymentsWithPaginate = async (
       cashPayment,
     );
     res.status(200).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -249,7 +249,7 @@ const findReceiptsWithPaginate = async (
       cashReceipt,
     );
     res.status(200).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -265,78 +265,91 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { transactionId } = req.params;
     let pettyCashBody = req.body;
+    const allowedKeys = ['assignment', 'text', 'refDocNo']
+    const isAllowedKeysExist = objectIncludesKeys(pettyCashBody, allowedKeys);
 
-    if (!transactionId || !pettyCashBody) {
+    if (!transactionId || !pettyCashBody || !isAllowedKeysExist) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.EMPTY_CONTENT,
+        MESSAGE.BAD_REQUEST,
         null,
       );
       return res.status(CODE[400]).send(response);
     }
 
-    // Only 'Saved' status should be allow to update
-    const transactionData = await PettyCash.findOne({
-      where: { id: transactionId, documentStatus: 'Saved' },
-    });
+    const transactionData = await PettyCash.findByPk(transactionId);
 
-    if (!transactionData) {
-      const response = responseFormatter(
-        CODE[400],
-        SUCCESS.FALSE,
-        MESSAGE.UPDATE_NOT_ALLOWED,
-        null,
-      );
-      return res.status(CODE[400]).send(response);
+    if (transactionData && transactionData.documentStatus === 'Updated') {
+      const allowedUpdatedData = {
+        assignment: pettyCashBody.assignment,
+        text: pettyCashBody.text,
+        refDocNo: pettyCashBody.refDocNo,
+        updatedBy: req.user.id,
+        updateAt: new Date(),
+      };
+
+      const response = await updatePettyCash(allowedUpdatedData, transactionId);
+      res.status(CODE[200]).send(response);
+    } else {
+      // Check for valid tax code
+      const isValidTaxCode = await checkTaxCode(pettyCashBody);
+      if (!isValidTaxCode) {
+        const response = responseFormatter(
+          CODE[400],
+          SUCCESS.FALSE,
+          MESSAGE.TAX_CODE_INVALID,
+          null,
+        );
+        return res.status(CODE[400]).send(response);
+      }
+
+      // Check valid amount
+      const isValidAmount = await checkValidAmount(+pettyCashBody.amount);
+
+      if (!isValidAmount) {
+        const response = responseFormatter(
+          CODE[400],
+          SUCCESS.FALSE,
+          MESSAGE.PETTY_CASH_LIMIT,
+          null,
+        );
+        return res.status(CODE[400]).send(response);
+      }
+
+      pettyCashBody = convertDatesIntoIso(pettyCashBody);
+
+      pettyCashBody.updateAt = new Date();
+      pettyCashBody.updatedBy = req.user.id;
+
+      const response = await updatePettyCash(pettyCashBody, transactionId);
+      res.status(CODE[200]).send(response);
     }
-
-    // Check for valid tax code
-    const isValidTaxCode = await checkTaxCode(pettyCashBody);
-    if (!isValidTaxCode) {
-      const response = responseFormatter(
-        CODE[400],
-        SUCCESS.FALSE,
-        MESSAGE.INVALID_TAX_CODE,
-        null,
-      );
-      return res.status(CODE[400]).send(response);
-    }
-
-    // Check valid amount
-    const isValidAmount = await checkValidAmount(+pettyCashBody.amount);
-
-    if (!isValidAmount) {
-      const response = responseFormatter(
-        CODE[400],
-        SUCCESS.FALSE,
-        MESSAGE.PETTY_CASH_LIMIT,
-        null,
-      );
-      return res.status(CODE[400]).send(response);
-    }
-
-    pettyCashBody = convertDatesIntoIso(pettyCashBody);
-
-    pettyCashBody.updateAt = new Date();
-    pettyCashBody.updatedBy = req.user.id;
-
-    await PettyCash.update(pettyCashBody, { where: { id: transactionId } });
-
-    const pettyCashResult = await PettyCash.findOne({
-      where: { id: transactionId },
-    });
-
-    const response = responseFormatter(
-      CODE[200],
-      SUCCESS.TRUE,
-      MESSAGE.DOCUMENT_UPDATED,
-      pettyCashResult,
-    );
-    res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
+};
+
+const objectIncludesKeys = (pettyCashData: any, allowedKeys: Array<string>) => {
+  const pettyCashKeys = Object.keys(pettyCashData);
+  return allowedKeys.every((allowedKey) => pettyCashKeys.includes(allowedKey));
+};
+
+const updatePettyCash = async (pettyCashData: any, transactionId: string) => {
+  await PettyCash.update(pettyCashData, {
+    where: { id: transactionId },
+  });
+
+  const pettyCashResult = await PettyCash.findOne({
+    where: { id: transactionId },
+  });
+
+  return responseFormatter(
+    CODE[200],
+    SUCCESS.TRUE,
+    MESSAGE.DOCUMENT_UPDATED,
+    pettyCashResult,
+  );
 };
 
 /**
@@ -376,7 +389,7 @@ const updateDocumentStatus = async (
       null,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -442,7 +455,7 @@ const deleteTransactions = async (
       null,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -583,7 +596,7 @@ const exportPettyCash = async (
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
     res.send(buffer);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -629,10 +642,10 @@ const getBalanceCalculation = async (
       ).abs();
 
       const balanceCalculations = {
-        openingBalance,
-        totalCashReceipts,
-        totalCashPayments,
-        closingBalance,
+        openingBalance: new BigNumber(openingBalance).abs().toFixed(2),
+        totalCashReceipts: new BigNumber(totalCashReceipts).toFixed(2),
+        totalCashPayments: new BigNumber(totalCashPayments).abs().toFixed(2),
+        closingBalance: new BigNumber(closingBalance).toFixed(2),
       };
 
       const response = responseFormatter(
@@ -651,7 +664,7 @@ const getBalanceCalculation = async (
       );
       res.status(200).send(response);
     }
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -674,6 +687,11 @@ const getOpeningBalance = async (plantId: string, fromDate: string) => {
             [Op.eq]: 'Payment',
           },
         },
+        {
+          documentStatus: {
+            [Op.ne]: 'Saved',
+          },
+        },
       ],
     },
   });
@@ -683,7 +701,7 @@ const getOpeningBalance = async (plantId: string, fromDate: string) => {
       [Op.and]: [
         {
           createdAt: {
-            [Op.gt]: startDate,
+            [Op.lt]: startDate,
           },
         },
         {
@@ -694,6 +712,11 @@ const getOpeningBalance = async (plantId: string, fromDate: string) => {
             [Op.eq]: 'Receipt',
           },
         },
+        {
+          documentStatus: {
+            [Op.ne]: 'Saved',
+          },
+        },
       ],
     },
   });
@@ -701,10 +724,7 @@ const getOpeningBalance = async (plantId: string, fromDate: string) => {
   totalCashReceipt = totalCashReceipt || 0;
   totalCashPayment = totalCashPayment || 0;
 
-  const openingBalance = +new BigNumber(
-    totalCashReceipt - totalCashPayment,
-  ).abs();
-
+  const openingBalance = +new BigNumber(totalCashReceipt - totalCashPayment);
   return openingBalance;
 };
 
@@ -751,6 +771,11 @@ const getSumAmount = (
         },
         {
           plantId,
+        },
+        {
+          documentStatus: {
+            [Op.ne]: 'Saved',
+          },
         },
       ],
     },

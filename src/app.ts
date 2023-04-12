@@ -11,6 +11,7 @@ import sessionMiddleware from './middleware/session';
 import passportMiddleware from './middleware/passport';
 import routesMiddleware from './routes';
 import ErrorHandler from './middleware/error-handler';
+import './models/association';
 
 const configs = require('./config/config');
 

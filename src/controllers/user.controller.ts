@@ -2,9 +2,11 @@ import { Request, Response, NextFunction } from 'express';
 import md5 from 'md5';
 import passport from 'passport';
 
-import { Op } from 'sequelize';
+import sequelize, { Op } from 'sequelize';
 import groupBy from 'lodash.groupby';
 import { nanoid } from 'nanoid';
+import jwt from 'jsonwebtoken';
+import nodeMailer from 'nodemailer';
 import User from '../models/user';
 import Role from '../models/role';
 
@@ -16,6 +18,16 @@ import RolePermission from '../models/role-permission';
 import Permission from '../models/permission';
 import SessionActivity from '../models/session-activity';
 import MESSAGE from '../config/message.json';
+import Employee from '../models/employee';
+import Plant from '../models/plant';
+import PasswordValidateToken from '../models/password-validate-token';
+import { DecodedTokenData } from '../interfaces/masters/user.interface';
+import PasswordValidateTokenModel from '../interfaces/masters/passwordValidateToken.interface';
+
+const configs = require('../config/config');
+
+const env = process.env.NODE_ENV || 'local';
+const config = configs[env];
 
 const auth = async (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('local', (err: any, user: any) => {
@@ -110,8 +122,15 @@ const getUserPermissions = async (req: Request, next: NextFunction) => {
           model: Role,
           attributes: ['name'],
         },
+        {
+          model: Employee,
+          attributes: [],
+        },
       ],
-      attributes: ['name', 'email'],
+      attributes: [
+        [sequelize.col('employee.employeeName'), 'name'],
+        'employeeCode',
+      ],
       where: { id: req.user.id },
     });
 
@@ -170,9 +189,9 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (
       !req.body
-      || !req.body.name
       || !req.body.email
-      || !req.body.password
+      || !req.body.employeeCode
+      || req.body.password
       || !req.body.roleId
       || !req.body.plantIds
       || !Array.isArray(req.body.plantIds)
@@ -181,30 +200,31 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.EMPTY_CONTENT,
+        MESSAGE.BAD_REQUEST,
         null,
       );
       return res.status(CODE[400]).send(response);
     }
 
-    const { email, plantIds, password } = req.body;
+    const { employeeCode, plantIds } = req.body;
 
-    const existingUser = await User.findOne({ where: { email } });
+    const existingEmployeeCode = await User.findOne({ where: { employeeCode } });
 
-    if (existingUser) {
+    if (existingEmployeeCode) {
       const response = responseFormatter(
         CODE[422],
         SUCCESS.FALSE,
-        MESSAGE.EMAIL_EXIST,
+        MESSAGE.EMPLOYEE_CODE_UNIQUE,
         null,
       );
       return res.status(CODE[422]).send(response);
     }
 
-    req.body.password = md5(password.trim());
     req.body.createdBy = req.user.id;
     req.body.updatedBy = req.user.id;
     const user = await User.create(req.body);
+
+    await sendPasswordLink(user.id, user.employeeCode, 'set');
 
     const userPlantBody = plantIds.map((plantId: string) => ({
       id: nanoid(16),
@@ -237,6 +257,67 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+const sendPasswordLink = async (
+  userId: string,
+  employeeCode: string,
+  passwordState: string,
+) => {
+  try {
+    const expiresIn = '2d';
+    const token = jwt.sign({ userId }, config.jwtSecret, {
+      expiresIn,
+    });
+
+    const resetData: any = {
+      userId,
+      token,
+    };
+
+    const passwordTokenData = await PasswordValidateToken.create(resetData);
+    return sendEmail(passwordTokenData.id, employeeCode, passwordState);
+  } catch (err) {
+    throw err;
+  }
+};
+
+const sendEmail = async (
+  passwordValidateTokenId: string,
+  employeeCode: string,
+  passwordState: string,
+) => {
+  try {
+    const transporter = await nodeMailer.createTransport({
+      host: config.mailHost,
+      port: 587,
+      secure: false,
+      auth: {
+        user: config.mailUser,
+        pass: config.mailPass,
+      },
+      tls: { rejectUnauthorized: false },
+    });
+
+    const employeeData = await Employee.findOne({ where: { employeeCode } });
+
+    const mailOptions = {
+      from: `Store SAP App <${config.mailFrom}>`,
+      to: 'umesh@codewalnut.com',
+      cc: ['umesh@codewalnut.com', 'lovepreet@codewalnut.com'],
+      subject: `Set your password for ${employeeCode}`,
+      html: `<html>
+      <body><h4>Dear ${employeeData?.employeeName},</h4><br>
+      <p>Click below to ${passwordState} your Store SAP App password</p>
+      <p><a href="${config.appBaseUrl}/reset-password/${passwordValidateTokenId}">${config.appBaseUrl}/reset-password/${passwordValidateTokenId}</a></p><br><br>
+      <p>At your service,<br>Team Buildpro<br>
+      </body></html>`,
+    };
+
+    await transporter.sendMail(mailOptions);
+  } catch (err) {
+    throw err;
+  }
+};
+
 const findWithPaginate = async (
   req: Request,
   res: Response,
@@ -253,17 +334,20 @@ const findWithPaginate = async (
     if (search) {
       condition = {
         [Op.or]: {
-          name: { [Op.like]: `%${search}%` },
-          mobile: { [Op.like]: `%${search}%` },
           email: { [Op.like]: `%${search}%` },
         },
       };
     }
 
     const users = await User.findAndCountAll({
+      distinct: true,
       include: [
         {
           model: Role,
+        },
+        {
+          model: Plant,
+          through: { attributes: [] },
         },
       ],
       where: condition,
@@ -279,7 +363,7 @@ const findWithPaginate = async (
       users,
     );
     res.status(200).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -320,27 +404,44 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (
       !req.body
-      || !req.body.name
+      || req.body.password
       || !req.body.email
-      || !req.body.password
       || !req.body.roleId
+      || !Array.isArray(req.body.plantIds)
+      || !req.body.plantIds.length
     ) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.EMPTY_CONTENT,
+        MESSAGE.BAD_REQUEST,
         null,
       );
       return res.status(CODE[400]).send(response);
     }
 
-    req.body.password = md5(req.body.password.trim());
     req.body.updatedBy = req.user.id;
-    await User.update(req.body, {
+
+    const { plantIds, ...restUserBody } = req.body;
+
+    await User.update(restUserBody, {
       where: {
         id: req.params.id,
       },
     });
+
+    await UserPlant.destroy({ where: { userId: req.params.id } });
+
+    const userPlantBody = plantIds.map((plantId: string) => ({
+      id: nanoid(16),
+      userId: req.params.id,
+      plantId,
+      createdBy: req.user.id,
+      updatedBy: req.user.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }));
+    await UserPlant.bulkCreate(userPlantBody);
+
     const userData = await User.findOne({
       include: [
         {
@@ -361,6 +462,184 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+const changeAccountStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    const userData = await User.findByPk(id);
+
+    const userUpdateData = {
+      // accountStatus: userData.accountStatus === 'Active' ? 'Inactive' : 'Active',
+      updatedBy: req.user.id,
+      updatedAt: new Date(),
+    };
+
+    await User.update(
+      {},
+      {
+        where: { id },
+      },
+    );
+
+    // Destroy all session of the user
+    // destroyUserSession();
+
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      MESSAGE.USER_UPDATED,
+      userData,
+    );
+    return res.status(CODE[200]).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* Reset Password */
+const setUserPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { password } = req.body;
+    const { passwordValidateTokenId } = req.body;
+
+    if (!req.body || !password || !passwordValidateTokenId) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    const passwordValidateData = await PasswordValidateToken.findOne({
+      where: { id: passwordValidateTokenId },
+    });
+
+    if (!passwordValidateData) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    const tokenData = (await jwt.verify(
+      passwordValidateData.token,
+      config.jwtSecret,
+    )) as DecodedTokenData;
+
+    if (passwordValidateData.isUsed === true) {
+      const response = responseFormatter(
+        CODE[500],
+        SUCCESS.FALSE,
+        MESSAGE.PASSWORD_USED_LINK,
+        null,
+      );
+      return res.status(CODE[500]).send(response);
+    }
+
+    const usr_num = await User.update(
+      {
+        password: md5(password.trim()),
+        accountStatus: true,
+        updatedAt: new Date(),
+      },
+      { where: { id: tokenData.userId } },
+    );
+
+    if (usr_num[0] === 1) {
+      await PasswordValidateToken.update(
+        { isUsed: true },
+        { where: { id: passwordValidateTokenId } },
+      );
+
+      const response = responseFormatter(
+        CODE[200],
+        SUCCESS.TRUE,
+        MESSAGE.PASSWORD_SETTING_SUCCESS,
+        null,
+      );
+      return res.status(CODE[200]).send(response);
+    }
+    const response = responseFormatter(
+      CODE[500],
+      SUCCESS.FALSE,
+      MESSAGE.PASSWORD_SETTING_ERROR,
+      null,
+    );
+    return res.status(CODE[500]).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const verifyAndSendPasswordResetLink = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { employeeCode } = req.body;
+
+    if (!req.body || !employeeCode) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    const user = await User.findOne({
+      where: { employeeCode },
+    });
+
+    if (!user) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.EMPLOYEE_CODE_NOT_FOUND,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    await sendPasswordLink(user.id, user.employeeCode, 'reset');
+
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      MESSAGE.PASSWORD_RESET_LINK,
+      null,
+    );
+    return res.status(CODE[200]).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export default {
   auth,
   create,
@@ -368,4 +647,7 @@ export default {
   logout,
   findById,
   update,
+  changeAccountStatus,
+  setUserPassword,
+  verifyAndSendPasswordResetLink,
 };

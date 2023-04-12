@@ -2,17 +2,19 @@ import passport from 'passport';
 import md5 from 'md5';
 import { Strategy as LocalStrategy } from 'passport-local';
 import User from '../models/user';
+import MESSAGE from '../config/message.json';
+import UserModel from '../interfaces/masters/user.interface';
 
 const authenticateUser = async (
-  email: string,
+  employeeCode: string,
   password: string,
   done: Function,
 ) => {
   try {
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ where: { employeeCode } });
     if (user === null) {
       return done(null, false, {
-        message: 'Invalid credentials!',
+        message: MESSAGE.INVALID_CREDENTIAL,
       });
     }
 
@@ -21,7 +23,7 @@ const authenticateUser = async (
 
     if (passDb !== passUser) {
       return done(null, false, {
-        message: 'Invalid credentials!',
+        message: MESSAGE.INVALID_CREDENTIAL,
       });
     }
 
@@ -33,7 +35,7 @@ const authenticateUser = async (
 
 const strategy = new LocalStrategy(
   {
-    usernameField: 'email',
+    usernameField: 'employeeCode',
     passwordField: 'password',
   },
   authenticateUser,

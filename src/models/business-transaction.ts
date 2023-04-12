@@ -32,6 +32,16 @@ const BusinessTransaction = sequelize.define<BusinessTransactionModel>(
       type: DataTypes.STRING(16),
       allowNull: false,
     },
+    vendorMandatory: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    customerMandatory: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
     createdBy: {
       allowNull: true,
       type: DataTypes.STRING(16),

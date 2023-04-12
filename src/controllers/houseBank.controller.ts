@@ -13,7 +13,7 @@ const findAll = async (req: Request, res: Response, next: NextFunction) => {
       houseBanks,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };

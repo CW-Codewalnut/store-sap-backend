@@ -7,6 +7,7 @@ import RolePermission from '../models/role-permission';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import User from '../models/user';
 import MESSAGE from '../config/message.json';
+import RolePermissionModel from '../interfaces/masters/rolePermission.interface';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -52,7 +53,7 @@ const findAll = async (req: Request, res: Response, next: NextFunction) => {
       data,
     );
     res.status(200).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -130,7 +131,7 @@ const findRolePermissions = async (
     const groupedPermission = groupBy(permissions, 'groupName');
     const keys = Object.keys(groupedPermission);
     const permissionIds = rolePermissions.map(
-      (rolePermission: any) => rolePermission.permissionId,
+      (rolePermission: RolePermissionModel) => rolePermission.permissionId,
     );
     const newData = {
       rolePermissions,
@@ -147,7 +148,7 @@ const findRolePermissions = async (
       newData,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -244,7 +245,7 @@ const updateRolePermissions = async (
       );
     }
     return res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
