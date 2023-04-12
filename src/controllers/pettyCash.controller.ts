@@ -265,7 +265,8 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { transactionId } = req.params;
     let pettyCashBody = req.body;
-    const isAllowedKeysExist = objectIncludesKeys(pettyCashBody);
+    const allowedKeys = ['assignment', 'text', 'refDocNo']
+    const isAllowedKeysExist = objectIncludesKeys(pettyCashBody, allowedKeys);
 
     if (!transactionId || !pettyCashBody || !isAllowedKeysExist) {
       const response = responseFormatter(
@@ -329,8 +330,7 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const objectIncludesKeys = (pettyCashData: any) => {
-  const allowedKeys = ['assignment', 'text', 'refDocNo'];
+const objectIncludesKeys = (pettyCashData: any, allowedKeys: Array<string>) => {
   const pettyCashKeys = Object.keys(pettyCashData);
   return allowedKeys.every((allowedKey) => pettyCashKeys.includes(allowedKey));
 };

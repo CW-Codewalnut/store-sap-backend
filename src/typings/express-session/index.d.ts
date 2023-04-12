@@ -1,6 +1,6 @@
 import 'express-session';
 
-interface Cookie {
+type Cookie = {
   originalMaxAge: number;
   expires: Date | null;
   secure?: boolean;
