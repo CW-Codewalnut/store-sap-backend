@@ -480,9 +480,19 @@ const changeAccountStatus = async (
   next: NextFunction,
 ) => {
   try {
-    const { id } = req.params;
+    const { userId } = req.params;
 
-    const userData = await User.findByPk(id);
+    const userData = await User.findOne({where: {id: userId}});
+
+    if(userData && !userData.password && !userData.accountStatus) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.USER_ACTIVATION_NOT_ALLOWED,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
 
     const userUpdateData: any = {
       accountStatus: !userData?.accountStatus,
@@ -491,11 +501,11 @@ const changeAccountStatus = async (
     };
 
     await User.update(userUpdateData, {
-      where: { id },
+      where: { id: userId },
     });
 
     // Destroy all session of the user
-    await Session.destroy({ where: { userId: id } });
+    await Session.destroy({ where: { userId: userId } });
 
     const updatedUserData = await User.findOne({
       include: [
@@ -507,7 +517,7 @@ const changeAccountStatus = async (
           through: { attributes: [] },
         },
       ],
-      where: { id },
+      where: { id: userId },
     });
 
     const message = userData?.accountStatus

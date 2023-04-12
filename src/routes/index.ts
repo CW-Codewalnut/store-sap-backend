@@ -44,7 +44,7 @@ const routesMiddleware = (app: Application) => {
   app.get('/users/:id', checkAuthenticated, UserController.findById);
   app.patch('/users/:id', checkAuthenticated, UserController.update);
   app.get(
-    '/users/change-account-status/:id',
+    '/users/change-account-status/:userId',
     checkAuthenticated,
     UserController.changeAccountStatus,
   );
