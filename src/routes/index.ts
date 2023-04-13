@@ -20,6 +20,7 @@ import UserPlantController from '../controllers/userPlant.controller';
 
 import { checkAuthenticated, verifyRouteAccess } from '../middleware/auth';
 import CashJournalController from '../controllers/cashJournal.controller';
+import PlantClosingDenominationController from '../controllers/plantClosingDenomination.controller';
 
 const routesMiddleware = (app: Application) => {
   // Auth api
@@ -207,6 +208,12 @@ const routesMiddleware = (app: Application) => {
     '/cash-journal/:plantId',
     checkAuthenticated,
     CashJournalController.getCashJournalByPlantId,
+  );
+
+  app.post(
+    '/close-day',
+    checkAuthenticated,
+    PlantClosingDenominationController.storeDenomination,
   );
 };
 

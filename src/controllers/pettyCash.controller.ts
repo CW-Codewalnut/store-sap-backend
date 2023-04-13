@@ -520,6 +520,26 @@ const exportPettyCash = async (
     const { toDate } = req.body;
     const startDate = convertFromDate(fromDate);
     const endDate = convertToDate(toDate);
+
+    const checkSavedStatus = await PettyCash.findOne({
+      where: {
+        [Op.and]: [
+          { documentStatus: { [Op.eq]: 'Saved' } },
+          { plantId: { [Op.eq]: req.session.activePlantId } },
+        ],
+      },
+    });
+
+    if(checkSavedStatus) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.DOCUMENT_EXPORT_ERROR,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
     const pettyCashes = await PettyCash.findAll({
       include: [
         {
