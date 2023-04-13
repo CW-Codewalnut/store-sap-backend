@@ -306,7 +306,7 @@ const sendEmail = async (
     const mailOptions = {
       from: `Store SAP App <${config.mailFrom}>`,
       to: 'umesh@codewalnut.com',
-      cc: ['umesh@codewalnut.com', 'lovepreet@codewalnut.com'],
+      cc: ['umesh@codewalnut.com', 'lovepreet@codewalnut.com', 'reshika@codewalnut.com'],
       subject: `Set your password for ${employeeCode}`,
       html: `<html>
       <body><h4>Dear ${employeeData?.employeeName},</h4><br>
