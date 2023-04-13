@@ -14,6 +14,14 @@ module.exports = {
           key: 'id',
         },
       },
+      cashJournalId: {
+        allowNull: false,
+        type: Sequelize.STRING(16),
+        references: {
+          model: 'cash_journals',
+          key: 'id',
+        },
+      },
       closingBalanceAmount: {
         allowNull: false,
         type: Sequelize.DECIMAL(21, 2),

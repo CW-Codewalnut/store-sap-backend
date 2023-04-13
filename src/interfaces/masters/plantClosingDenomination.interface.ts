@@ -3,6 +3,7 @@ import { InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 export interface PlantClosingDenominationAttributes {
   id?: string;
   plantId: string;
+  cashJournalId: string;
   closingBalanceAmount: number;
   denominationTotalAmount: number;
   qty1INR: number;

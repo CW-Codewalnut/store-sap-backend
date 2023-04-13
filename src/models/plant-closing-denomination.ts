@@ -14,6 +14,10 @@ const PlantClosingDenomination = sequelize.define<PlantClosingDenominationModel>
     allowNull: false,
     type: DataTypes.STRING(16),
   },
+  cashJournalId: {
+    allowNull: false,
+    type: DataTypes.STRING(16),
+  },
   closingBalanceAmount: {
     allowNull: false,
     type: DataTypes.DECIMAL(21, 2),

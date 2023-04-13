@@ -11,6 +11,7 @@ const storeDenomination = async (
 ) => {
   try {
     const { plantId, 
+            cashJournalId,
             closingBalanceAmount, 
             qty1INR,
             qty2INR,
@@ -24,7 +25,7 @@ const storeDenomination = async (
             qty2000INR
     } = req.body;
 
-    if(!req.body || !plantId || !closingBalanceAmount) {
+    if(!req.body || !plantId || !cashJournalId || !closingBalanceAmount) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -60,6 +61,7 @@ const storeDenomination = async (
 
     const denominationData: PlantClosingDenominationAttributes = {
       plantId,
+      cashJournalId,
       closingBalanceAmount,
       denominationTotalAmount,
       qty1INR,
