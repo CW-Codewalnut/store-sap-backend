@@ -24,14 +24,33 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let pettyCashBody = req.body;
 
-    if (!pettyCashBody || !pettyCashBody.amount) {
+    if (!pettyCashBody 
+        || !pettyCashBody.amount 
+        || !req.body.cashJournalId
+        || !req.body.fromDate
+        || !req.body.toDate
+        || !pettyCashBody.pettyCashType) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.EMPTY_CONTENT,
+        MESSAGE.BAD_REQUEST,
         null,
       );
       return res.status(CODE[400]).send(response);
+    }
+
+    if(pettyCashBody.pettyCashType === 'Payment') {
+      const closingBalance = await getClosingBalance(req, next);
+
+      if(closingBalance && closingBalance < pettyCashBody.amount) {
+        const response = responseFormatter(
+          CODE[400],
+          SUCCESS.FALSE,
+          MESSAGE.AMOUNT_LESS_THAN_CLOSING_BAL,
+          null,
+        );
+        return res.status(CODE[400]).send(response);
+      }
     }
 
     // Check for valid tax code
@@ -64,13 +83,13 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     pettyCashBody.updatedBy = req.user.id;
     pettyCashBody.plantId = req.session.activePlantId;
 
-    const pettyCashResult = await PettyCash.create(pettyCashBody);
+    // const pettyCashResult = await PettyCash.create(pettyCashBody);
 
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.DOCUMENT_SAVED,
-      pettyCashResult,
+      null,
     );
     res.status(CODE[200]).send(response);
   } catch (err) {
@@ -898,6 +917,35 @@ const transactionReverse = async (
     next(err);
   }
 };
+
+const getClosingBalance = async(req: Request, next: NextFunction) => {
+  try {
+    const cashJournalId = req.body.cashJournalId;
+    const fromDate = req.body.fromDate;
+    const toDate = req.body.toDate;
+
+    if(req.session.activePlantId) {
+      const openingBalance = (await getOpeningBalance(req.session.activePlantId, cashJournalId, fromDate)) || 0;
+      const totalCashReceipts = (await getTotalCashReceipts(
+        req.session.activePlantId,
+        cashJournalId,
+        fromDate,
+        toDate,
+      )) || 0;
+      const totalCashPayments = (await getTotalCashPayments(
+        req.session.activePlantId,
+        cashJournalId,
+        fromDate,
+        toDate,
+      )) || 0;
+      return +new BigNumber(
+        openingBalance + totalCashReceipts - totalCashPayments,
+      ).abs();
+    }
+  } catch(err) {
+    next(err);
+  }
+}
 
 export default {
   create,
