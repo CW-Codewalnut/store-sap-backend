@@ -83,13 +83,13 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     pettyCashBody.updatedBy = req.user.id;
     pettyCashBody.plantId = req.session.activePlantId;
 
-    // const pettyCashResult = await PettyCash.create(pettyCashBody);
+    const pettyCashResult = await PettyCash.create(pettyCashBody);
 
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.DOCUMENT_SAVED,
-      null,
+      pettyCashResult,
     );
     res.status(CODE[200]).send(response);
   } catch (err) {
