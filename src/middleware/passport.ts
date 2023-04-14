@@ -1,9 +1,9 @@
 import passport from 'passport';
 import md5 from 'md5';
 import { Strategy as LocalStrategy } from 'passport-local';
+import { Op } from 'sequelize';
 import User from '../models/user';
 import MESSAGE from '../config/message.json';
-import { Op } from 'sequelize';
 
 const authenticateUser = async (
   employeeCode: string,
@@ -11,14 +11,14 @@ const authenticateUser = async (
   done: Function,
 ) => {
   try {
-    const user = await User.findOne({ 
-      where: { 
-          [Op.and]: [
-              { employeeCode: employeeCode },
-              { accountStatus: true },
-              { password: { [Op.not]: null } } 
-          ]
-      } 
+    const user = await User.findOne({
+      where: {
+        [Op.and]: [
+          { employeeCode },
+          { accountStatus: true },
+          { password: { [Op.not]: null } },
+        ],
+      },
     });
 
     if (user === null) {
@@ -59,7 +59,7 @@ const passportMiddleware = () => {
 
   passport.deserializeUser(async (userId: string, done: Function) => {
     try {
-      const user = await User.findOne({where: {id: userId}});
+      const user = await User.findOne({ where: { id: userId } });
       done(null, user);
     } catch (err) {
       done(err);

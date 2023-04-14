@@ -295,7 +295,7 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
         if (value !== '1000') {
           throw new Error(MESSAGE.CONTROLLING_AREA_VALUE);
         }
-      }
+      },
     },
   },
   assets: {

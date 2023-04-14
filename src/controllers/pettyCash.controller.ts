@@ -28,12 +28,14 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     pettyCashBody.netAmount = +req.body.netAmount;
     pettyCashBody.taxBaseAmount = +req.body.taxBaseAmount;
 
-    if (!pettyCashBody 
-        || !pettyCashBody.amount 
-        || !req.body.cashJournalId
-        || !req.body.fromDate
-        || !req.body.toDate
-        || !pettyCashBody.pettyCashType) {
+    if (
+      !pettyCashBody
+      || !pettyCashBody.amount
+      || !req.body.cashJournalId
+      || !req.body.fromDate
+      || !req.body.toDate
+      || !pettyCashBody.pettyCashType
+    ) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -43,9 +45,12 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(CODE[400]).send(response);
     }
 
-    if(pettyCashBody.pettyCashType === 'Payment') {
+    if (pettyCashBody.pettyCashType === 'Payment') {
       const closingBalance = await getClosingBalance(req, next);
-      if(closingBalance !== undefined && closingBalance <= pettyCashBody.amount) {
+      if (
+        closingBalance !== undefined
+        && closingBalance <= pettyCashBody.amount
+      ) {
         const response = responseFormatter(
           CODE[400],
           SUCCESS.FALSE,
@@ -533,7 +538,7 @@ const exportPettyCash = async (
       },
     });
 
-    if(checkSavedStatus) {
+    if (checkSavedStatus) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -699,7 +704,11 @@ const getBalanceCalculation = async (
     }
 
     if (req.session.activePlantId) {
-      const openingBalance = (await getOpeningBalance(req.session.activePlantId, cashJournalId, fromDate)) || 0;
+      const openingBalance = (await getOpeningBalance(
+        req.session.activePlantId,
+        cashJournalId,
+        fromDate,
+      )) || 0;
       const totalCashReceipts = (await getTotalCashReceipts(
         req.session.activePlantId,
         cashJournalId,
@@ -744,7 +753,11 @@ const getBalanceCalculation = async (
   }
 };
 
-const getOpeningBalance = async (plantId: string, cashJournalId: string, fromDate: string) => {
+const getOpeningBalance = async (
+  plantId: string,
+  cashJournalId: string,
+  fromDate: string,
+) => {
   const startDate = convertFromDate(fromDate);
   let totalCashPayment = await PettyCash.sum('amount', {
     where: {
@@ -916,10 +929,13 @@ const transactionReverse = async (
         taxBaseAmount: +new BigNumber(+amount).negated(),
         ...restPettyCashData,
       };
-      
+
       const pettyCashData = await PettyCash.create(pettyCash);
 
-      await PettyCash.update({documentStatus: 'Updated Reversed'}, {where: {id: transactionId}});
+      await PettyCash.update(
+        { documentStatus: 'Updated Reversed' },
+        { where: { id: transactionId } },
+      );
 
       const response = responseFormatter(
         CODE[201],
@@ -941,14 +957,18 @@ const transactionReverse = async (
   }
 };
 
-const getClosingBalance = async(req: Request, next: NextFunction) => {
+const getClosingBalance = async (req: Request, next: NextFunction) => {
   try {
-    const cashJournalId = req.body.cashJournalId;
-    const fromDate = req.body.fromDate;
-    const toDate = req.body.toDate;
+    const { cashJournalId } = req.body;
+    const { fromDate } = req.body;
+    const { toDate } = req.body;
 
-    if(req.session.activePlantId) {
-      const openingBalance = (await getOpeningBalance(req.session.activePlantId, cashJournalId, fromDate)) || 0;
+    if (req.session.activePlantId) {
+      const openingBalance = (await getOpeningBalance(
+        req.session.activePlantId,
+        cashJournalId,
+        fromDate,
+      )) || 0;
       const totalCashReceipts = (await getTotalCashReceipts(
         req.session.activePlantId,
         cashJournalId,
@@ -965,10 +985,10 @@ const getClosingBalance = async(req: Request, next: NextFunction) => {
         openingBalance + totalCashReceipts - totalCashPayments,
       ).abs();
     }
-  } catch(err) {
+  } catch (err) {
     next(err);
   }
-}
+};
 
 export default {
   create,

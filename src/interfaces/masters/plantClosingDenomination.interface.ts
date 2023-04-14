@@ -24,8 +24,9 @@ export interface PlantClosingDenominationAttributes {
 
 interface PlantClosingDenominationModel
   extends Model<
-    InferAttributes<PlantClosingDenominationModel>,
-    InferCreationAttributes<PlantClosingDenominationModel>
-  >, PlantClosingDenominationAttributes {}
+      InferAttributes<PlantClosingDenominationModel>,
+      InferCreationAttributes<PlantClosingDenominationModel>
+    >,
+    PlantClosingDenominationAttributes {}
 
 export default PlantClosingDenominationModel;

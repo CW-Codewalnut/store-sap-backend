@@ -306,7 +306,11 @@ const sendEmail = async (
     const mailOptions = {
       from: `Store SAP App <${config.mailFrom}>`,
       to: 'umesh@codewalnut.com',
-      cc: ['umesh@codewalnut.com', 'lovepreet@codewalnut.com', 'reshika@codewalnut.com'],
+      cc: [
+        'umesh@codewalnut.com',
+        'lovepreet@codewalnut.com',
+        'reshika@codewalnut.com',
+      ],
       subject: `Set your password for ${employeeCode}`,
       html: `<html>
       <body><h4>Dear ${employeeData?.employeeName},</h4><br>
@@ -482,9 +486,9 @@ const changeAccountStatus = async (
   try {
     const { userId } = req.params;
 
-    const userData = await User.findOne({where: {id: userId}});
+    const userData = await User.findOne({ where: { id: userId } });
 
-    if(userData && !userData.password && !userData.accountStatus) {
+    if (userData && !userData.password && !userData.accountStatus) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -505,7 +509,7 @@ const changeAccountStatus = async (
     });
 
     // Destroy all session of the user
-    await Session.destroy({ where: { userId: userId } });
+    await Session.destroy({ where: { userId } });
 
     const updatedUserData = await User.findOne({
       include: [
@@ -679,14 +683,14 @@ const verifyAndSendPasswordResetLink = async (
 const setUserPasswordLinkReGenerate = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const { userId } = req.params;
 
-    const user = await User.findOne({where: {id: userId}}); 
+    const user = await User.findOne({ where: { id: userId } });
 
-    if(!user) {
+    if (!user) {
       const response = responseFormatter(
         CODE[404],
         SUCCESS.FALSE,
@@ -705,10 +709,10 @@ const setUserPasswordLinkReGenerate = async (
       null,
     );
     return res.status(CODE[200]).send(response);
-  } catch(err) {
+  } catch (err) {
     next(err);
   }
-}
+};
 
 export default {
   auth,
@@ -720,5 +724,5 @@ export default {
   changeAccountStatus,
   setUserPassword,
   verifyAndSendPasswordResetLink,
-  setUserPasswordLinkReGenerate
+  setUserPasswordLinkReGenerate,
 };

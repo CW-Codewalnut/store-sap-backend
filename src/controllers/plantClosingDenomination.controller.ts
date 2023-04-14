@@ -10,22 +10,23 @@ const storeDenomination = async (
   next: NextFunction,
 ) => {
   try {
-    const { plantId, 
-            cashJournalId,
-            closingBalanceAmount, 
-            qty1INR,
-            qty2INR,
-            qty5INR,
-            qty10INR,
-            qty20INR,
-            qty50INR,
-            qty100INR,
-            qty200INR,
-            qty500INR,
-            qty2000INR
+    const {
+      plantId,
+      cashJournalId,
+      closingBalanceAmount,
+      qty1INR,
+      qty2INR,
+      qty5INR,
+      qty10INR,
+      qty20INR,
+      qty50INR,
+      qty100INR,
+      qty200INR,
+      qty500INR,
+      qty2000INR,
     } = req.body;
 
-    if(!req.body || !plantId || !cashJournalId || !closingBalanceAmount) {
+    if (!req.body || !plantId || !cashJournalId || !closingBalanceAmount) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -35,21 +36,18 @@ const storeDenomination = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const denominationTotalAmount = (
-    qty1INR * 1 +
-    qty2INR * 2 +
-    qty5INR * 5 +
-    qty10INR * 10 +
-    qty20INR * 20 +
-    qty50INR * 50 +
-    qty100INR * 100 +
-    qty200INR * 200 +
-    qty500INR * 500 +
-    qty2000INR * 2000
-    )
+    const denominationTotalAmount = qty1INR * 1
+      + qty2INR * 2
+      + qty5INR * 5
+      + qty10INR * 10
+      + qty20INR * 20
+      + qty50INR * 50
+      + qty100INR * 100
+      + qty200INR * 200
+      + qty500INR * 500
+      + qty2000INR * 2000;
 
-
-    if(denominationTotalAmount !== closingBalanceAmount) {
+    if (denominationTotalAmount !== closingBalanceAmount) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -76,7 +74,7 @@ const storeDenomination = async (
       qty2000INR,
       createdBy: req.user.id,
       updatedBy: req.user.id,
-    }
+    };
 
     await PlantClosingDenomination.create(denominationData);
 

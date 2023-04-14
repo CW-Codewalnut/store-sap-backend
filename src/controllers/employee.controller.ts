@@ -90,13 +90,11 @@ const findAll = async (req: Request, res: Response, next: NextFunction) => {
       query.push(condition);
     }
 
-    const users = await User.findAll({attributes: ['employeeCode'], raw: true});
+    const users = await User.findAll({ attributes: ['employeeCode'], raw: true });
 
-    if( Array.isArray(users)
-        && users.length
-      ) {
-       const usersEmployeeCodes=  users.map(user => user.employeeCode);
-       query.push({employeeCode: {[Op.notIn]: usersEmployeeCodes}})
+    if (Array.isArray(users) && users.length) {
+      const usersEmployeeCodes = users.map((user) => user.employeeCode);
+      query.push({ employeeCode: { [Op.notIn]: usersEmployeeCodes } });
     }
 
     const employees = await Employee.findAll({

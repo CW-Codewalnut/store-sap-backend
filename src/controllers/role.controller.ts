@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import groupBy from 'lodash.groupby';
-import { Op } from 'sequelize';
+import sequelize, { Op } from 'sequelize';
 import Role from '../models/role';
 import Permission from '../models/permission';
 import RolePermission from '../models/role-permission';
@@ -9,7 +9,6 @@ import User from '../models/user';
 import MESSAGE from '../config/message.json';
 import RolePermissionModel from '../interfaces/masters/rolePermission.interface';
 import Employee from '../models/employee';
-import sequelize from 'sequelize';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -244,7 +243,7 @@ const updateRolePermissions = async (
         attributes: [
           [sequelize.col('employee.employeeName'), 'name'],
           'employeeCode',
-          'email'
+          'email',
         ],
         where: { id: req.user.id },
       });
