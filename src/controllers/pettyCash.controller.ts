@@ -45,16 +45,41 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(CODE[400]).send(response);
     }
 
+    /* if(req.session.userId) {
+      const isDayClosed = await checkDayWasClosed();
+      if(isDayClosed) {
+
+      } else {
+        // throw error
+      }
+    } else {
+      // continue
+    } */
+
+
     if (pettyCashBody.pettyCashType === 'Payment') {
       const closingBalance = await getClosingBalance(req, next);
+      const totalSavedAmount = await getTotalSavedAmount(pettyCashBody, req, next);
+       
+      const overallSavedAmount = pettyCashBody.amount + totalSavedAmount;
       if (
         closingBalance !== undefined
-        && closingBalance <= pettyCashBody.amount
+        && closingBalance < pettyCashBody.amount
+        && totalSavedAmount === 0
       ) {
         const response = responseFormatter(
           CODE[400],
           SUCCESS.FALSE,
-          MESSAGE.AMOUNT_LESS_THAN_CLOSING_BAL,
+          MESSAGE.AMOUNT_EXCEEDING_CLOSING_BAL,
+          null,
+        );
+        return res.status(CODE[400]).send(response);
+      } else if(closingBalance !== undefined
+        && closingBalance < overallSavedAmount) {
+        const response = responseFormatter(
+          CODE[400],
+          SUCCESS.FALSE,
+          MESSAGE.TOTAL_SAVED_AMOUNT_EXCEEDING_CLOSING_BAL,
           null,
         );
         return res.status(CODE[400]).send(response);
@@ -105,6 +130,36 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+/* const checkDayWasClosed = async(): Promise<boolean> => {
+  return false;
+} */
+
+const getTotalSavedAmount = async (pettyCashBody: any, req: Request, next: NextFunction) => {
+  try {
+    const totalSavedAmount = await PettyCash.sum('amount', {
+      where: {
+        [Op.and]: [
+          {
+            pettyCashType: {
+              [Op.eq]: 'Payment',
+            },
+          },
+          {
+            plantId: req.session.activePlantId,
+          },
+          {
+            cashJournalId: pettyCashBody.cashJournalId,
+          },
+          { documentStatus: { [Op.eq]: 'Saved' } },
+        ],
+      },
+    });
+
+    return totalSavedAmount || 0;
+  } catch(err) {
+    next(err);
+  }
+}
 /**
  * To check tax code must be V0
  */
@@ -981,7 +1036,7 @@ const getClosingBalance = async (req: Request, next: NextFunction) => {
         fromDate,
         toDate,
       )) || 0;
-      return +new BigNumber(
+      return  +new BigNumber(
         openingBalance + totalCashReceipts - totalCashPayments,
       ).abs();
     }
