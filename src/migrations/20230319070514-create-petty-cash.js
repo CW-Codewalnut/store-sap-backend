@@ -41,19 +41,19 @@ module.exports = {
       },
       amount: {
         allowNull: false,
-        type: Sequelize.BIGINT,
+        type: Sequelize.DECIMAL(21, 2),
       },
       netAmount: {
         allowNull: false,
-        type: Sequelize.BIGINT,
+        type: Sequelize.DECIMAL(21, 2),
       },
       taxRate: {
         allowNull: false,
-        type: Sequelize.BIGINT,
+        type: Sequelize.DECIMAL(21, 2),
       },
       taxBaseAmount: {
         allowNull: false,
-        type: Sequelize.BIGINT,
+        type: Sequelize.DECIMAL(21, 2),
       },
       bankAccountId: {
         type: Sequelize.STRING(16),

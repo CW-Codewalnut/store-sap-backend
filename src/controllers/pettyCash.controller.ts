@@ -19,20 +19,46 @@ import HouseBank from '../models/house-bank';
 import { dateFormat, convertFromDate, convertToDate } from '../utils/helper';
 import MESSAGE from '../config/message.json';
 import Preference from '../models/preferences';
-import PettyCashModel from '../interfaces/masters/pettyCash.interface';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let pettyCashBody = req.body;
 
-    if (!pettyCashBody || !pettyCashBody.amount) {
+    pettyCashBody.amount = +req.body.amount;
+    pettyCashBody.netAmount = +req.body.netAmount;
+    pettyCashBody.taxBaseAmount = +req.body.taxBaseAmount;
+
+    if (
+      !pettyCashBody
+      || !pettyCashBody.amount
+      || !req.body.cashJournalId
+      || !req.body.fromDate
+      || !req.body.toDate
+      || !pettyCashBody.pettyCashType
+    ) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.EMPTY_CONTENT,
+        MESSAGE.BAD_REQUEST,
         null,
       );
       return res.status(CODE[400]).send(response);
+    }
+
+    if (pettyCashBody.pettyCashType === 'Payment') {
+      const closingBalance = await getClosingBalance(req, next);
+      if (
+        closingBalance !== undefined
+        && closingBalance <= pettyCashBody.amount
+      ) {
+        const response = responseFormatter(
+          CODE[400],
+          SUCCESS.FALSE,
+          MESSAGE.AMOUNT_LESS_THAN_CLOSING_BAL,
+          null,
+        );
+        return res.status(CODE[400]).send(response);
+      }
     }
 
     // Check for valid tax code
@@ -140,8 +166,7 @@ const getPettyCashData = (
     const { search } = req.query;
     const offset = page * pageSize - pageSize;
     const limit = pageSize;
-    const { fromDate } = req.body;
-    const { toDate } = req.body;
+    const { fromDate, toDate, cashJournalId } = req.body;
     const query = [];
 
     if (fromDate && toDate) {
@@ -162,6 +187,7 @@ const getPettyCashData = (
 
     query.push({ pettyCashType });
     query.push({ plantId: req.session.activePlantId });
+    query.push({ cashJournalId });
 
     return PettyCash.findAndCountAll({
       include: [
@@ -220,6 +246,22 @@ const findPaymentsWithPaginate = async (
   next: NextFunction,
 ) => {
   try {
+    if (
+      !req.body
+      || !req.query
+      || !req.query.page
+      || !req.query.pageSize
+      || !req.body.cashJournalId
+    ) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      res.status(400).send(response);
+    }
+
     const cashPayment = await getPettyCashData(req, next, 'Payment');
 
     const response = responseFormatter(
@@ -240,6 +282,22 @@ const findReceiptsWithPaginate = async (
   next: NextFunction,
 ) => {
   try {
+    if (
+      !req.body
+      || !req.query
+      || !req.query.page
+      || !req.query.pageSize
+      || !req.body.cashJournalId
+    ) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      res.status(400).send(response);
+    }
+
     const cashReceipt = await getPettyCashData(req, next, 'Receipt');
 
     const response = responseFormatter(
@@ -470,6 +528,26 @@ const exportPettyCash = async (
     const { toDate } = req.body;
     const startDate = convertFromDate(fromDate);
     const endDate = convertToDate(toDate);
+
+    const checkSavedStatus = await PettyCash.findOne({
+      where: {
+        [Op.and]: [
+          { documentStatus: { [Op.eq]: 'Saved' } },
+          { plantId: { [Op.eq]: req.session.activePlantId } },
+        ],
+      },
+    });
+
+    if (checkSavedStatus) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.DOCUMENT_EXPORT_ERROR,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
     const pettyCashes = await PettyCash.findAll({
       include: [
         {
@@ -614,7 +692,7 @@ const getBalanceCalculation = async (
   next: NextFunction,
 ) => {
   try {
-    const { fromDate, toDate } = req.body;
+    const { fromDate, toDate, cashJournalId } = req.body;
     if (!req.body || !fromDate || !toDate) {
       const response = responseFormatter(
         CODE[400],
@@ -626,14 +704,20 @@ const getBalanceCalculation = async (
     }
 
     if (req.session.activePlantId) {
-      const openingBalance = (await getOpeningBalance(req.session.activePlantId, fromDate)) || 0;
+      const openingBalance = (await getOpeningBalance(
+        req.session.activePlantId,
+        cashJournalId,
+        fromDate,
+      )) || 0;
       const totalCashReceipts = (await getTotalCashReceipts(
         req.session.activePlantId,
+        cashJournalId,
         fromDate,
         toDate,
       )) || 0;
       const totalCashPayments = (await getTotalCashPayments(
         req.session.activePlantId,
+        cashJournalId,
         fromDate,
         toDate,
       )) || 0;
@@ -669,7 +753,11 @@ const getBalanceCalculation = async (
   }
 };
 
-const getOpeningBalance = async (plantId: string, fromDate: string) => {
+const getOpeningBalance = async (
+  plantId: string,
+  cashJournalId: string,
+  fromDate: string,
+) => {
   const startDate = convertFromDate(fromDate);
   let totalCashPayment = await PettyCash.sum('amount', {
     where: {
@@ -681,6 +769,9 @@ const getOpeningBalance = async (plantId: string, fromDate: string) => {
         },
         {
           plantId,
+        },
+        {
+          cashJournalId,
         },
         {
           pettyCashType: {
@@ -730,15 +821,17 @@ const getOpeningBalance = async (plantId: string, fromDate: string) => {
 
 const getTotalCashPayments = (
   plantId: string,
+  cashJournalId: string,
   fromDate: string,
   toDate: string,
-) => getSumAmount(plantId, fromDate, toDate, 'Payment');
+) => getSumAmount(plantId, cashJournalId, fromDate, toDate, 'Payment');
 
 const getTotalCashReceipts = (
   plantId: string,
+  cashJournalId: string,
   fromDate: string,
   toDate: string,
-) => getSumAmount(plantId, fromDate, toDate, 'Receipt');
+) => getSumAmount(plantId, cashJournalId, fromDate, toDate, 'Receipt');
 
 /**
  *
@@ -750,6 +843,7 @@ const getTotalCashReceipts = (
  */
 const getSumAmount = (
   plantId: string,
+  cashJournalId: string,
   fromDate: string,
   toDate: string,
   pettyCashType: string,
@@ -773,6 +867,9 @@ const getSumAmount = (
           plantId,
         },
         {
+          cashJournalId,
+        },
+        {
           documentStatus: {
             [Op.ne]: 'Saved',
           },
@@ -790,22 +887,14 @@ const transactionReverse = async (
   try {
     const { transactionId } = req.params;
 
-    if (!transactionId) {
-      const response = responseFormatter(
-        CODE[400],
-        SUCCESS.FALSE,
-        MESSAGE.EMPTY_CONTENT,
-        null,
-      );
-      return res.status(CODE[400]).send(response);
-    }
-
     const {
       id,
       createdBy,
       updatedBy,
       documentStatus,
       amount,
+      netAmount,
+      taxBaseAmount,
       reverseTransactionId,
       ...restPettyCashData
     }: any = await PettyCash.findOne({ where: { id: transactionId }, raw: true });
@@ -819,8 +908,7 @@ const transactionReverse = async (
       );
       return res.status(CODE[400]).send(response);
     }
-
-    if (restPettyCashData.documentStatus !== 'Updated') {
+    if (documentStatus !== 'Updated') {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -837,9 +925,18 @@ const transactionReverse = async (
         updatedBy: req.user.id,
         documentStatus: 'Updated Reversed',
         amount: +new BigNumber(+amount).negated(),
+        netAmount: +new BigNumber(+amount).negated(),
+        taxBaseAmount: +new BigNumber(+amount).negated(),
         ...restPettyCashData,
       };
+
       const pettyCashData = await PettyCash.create(pettyCash);
+
+      await PettyCash.update(
+        { documentStatus: 'Updated Reversed' },
+        { where: { id: transactionId } },
+      );
+
       const response = responseFormatter(
         CODE[201],
         SUCCESS.TRUE,
@@ -855,6 +952,39 @@ const transactionReverse = async (
       null,
     );
     return res.status(CODE[400]).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getClosingBalance = async (req: Request, next: NextFunction) => {
+  try {
+    const { cashJournalId } = req.body;
+    const { fromDate } = req.body;
+    const { toDate } = req.body;
+
+    if (req.session.activePlantId) {
+      const openingBalance = (await getOpeningBalance(
+        req.session.activePlantId,
+        cashJournalId,
+        fromDate,
+      )) || 0;
+      const totalCashReceipts = (await getTotalCashReceipts(
+        req.session.activePlantId,
+        cashJournalId,
+        fromDate,
+        toDate,
+      )) || 0;
+      const totalCashPayments = (await getTotalCashPayments(
+        req.session.activePlantId,
+        cashJournalId,
+        fromDate,
+        toDate,
+      )) || 0;
+      return +new BigNumber(
+        openingBalance + totalCashReceipts - totalCashPayments,
+      ).abs();
+    }
   } catch (err) {
     next(err);
   }

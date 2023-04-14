@@ -22,7 +22,7 @@ import Employee from '../models/employee';
 import Plant from '../models/plant';
 import PasswordValidateToken from '../models/password-validate-token';
 import { DecodedTokenData } from '../interfaces/masters/user.interface';
-import PasswordValidateTokenModel from '../interfaces/masters/passwordValidateToken.interface';
+import Session from '../models/session';
 
 const configs = require('../config/config');
 
@@ -242,6 +242,10 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
         {
           model: Role,
         },
+        {
+          model: Plant,
+          through: { attributes: [] },
+        },
       ],
       where: { id: user.id },
     });
@@ -302,7 +306,11 @@ const sendEmail = async (
     const mailOptions = {
       from: `Store SAP App <${config.mailFrom}>`,
       to: 'umesh@codewalnut.com',
-      cc: ['umesh@codewalnut.com', 'lovepreet@codewalnut.com'],
+      cc: [
+        'umesh@codewalnut.com',
+        'lovepreet@codewalnut.com',
+        'reshika@codewalnut.com',
+      ],
       subject: `Set your password for ${employeeCode}`,
       html: `<html>
       <body><h4>Dear ${employeeData?.employeeName},</h4><br>
@@ -376,6 +384,10 @@ const findById = async (req: Request, res: Response, next: NextFunction) => {
         {
           model: Role,
         },
+        {
+          model: Plant,
+          through: { attributes: [] },
+        },
       ],
       where: { id },
     });
@@ -447,6 +459,10 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
         {
           model: Role,
         },
+        {
+          model: Plant,
+          through: { attributes: [] },
+        },
       ],
       where: { id: req.params.id },
     });
@@ -468,41 +484,55 @@ const changeAccountStatus = async (
   next: NextFunction,
 ) => {
   try {
-    const { id } = req.params;
+    const { userId } = req.params;
 
-    if (!id) {
+    const userData = await User.findOne({ where: { id: userId } });
+
+    if (userData && !userData.password && !userData.accountStatus) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.BAD_REQUEST,
+        MESSAGE.USER_ACTIVATION_NOT_ALLOWED,
         null,
       );
       return res.status(CODE[400]).send(response);
     }
 
-    const userData = await User.findByPk(id);
-
-    const userUpdateData = {
-      // accountStatus: userData.accountStatus === 'Active' ? 'Inactive' : 'Active',
+    const userUpdateData: any = {
+      accountStatus: !userData?.accountStatus,
       updatedBy: req.user.id,
       updatedAt: new Date(),
     };
 
-    await User.update(
-      {},
-      {
-        where: { id },
-      },
-    );
+    await User.update(userUpdateData, {
+      where: { id: userId },
+    });
 
     // Destroy all session of the user
-    // destroyUserSession();
+    await Session.destroy({ where: { userId } });
+
+    const updatedUserData = await User.findOne({
+      include: [
+        {
+          model: Role,
+        },
+        {
+          model: Plant,
+          through: { attributes: [] },
+        },
+      ],
+      where: { id: userId },
+    });
+
+    const message = userData?.accountStatus
+      ? MESSAGE.USER_ACCOUNT_INACTIVE
+      : MESSAGE.USER_ACCOUNT_ACTIVE;
 
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      MESSAGE.USER_UPDATED,
-      userData,
+      message,
+      updatedUserData,
     );
     return res.status(CODE[200]).send(response);
   } catch (err) {
@@ -626,12 +656,56 @@ const verifyAndSendPasswordResetLink = async (
       return res.status(CODE[400]).send(response);
     }
 
+    if (user && !user.accountStatus) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.USER_ACCOUNT_INACTIVE_FORGET_PASSWORD,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
     await sendPasswordLink(user.id, user.employeeCode, 'reset');
 
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.PASSWORD_RESET_LINK,
+      null,
+    );
+    return res.status(CODE[200]).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const setUserPasswordLinkReGenerate = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findOne({ where: { id: userId } });
+
+    if (!user) {
+      const response = responseFormatter(
+        CODE[404],
+        SUCCESS.FALSE,
+        MESSAGE.USER_NOT_FOUND,
+        null,
+      );
+      return res.status(CODE[404]).send(response);
+    }
+
+    await sendPasswordLink(user.id, user.employeeCode, 'set');
+
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      MESSAGE.PASSWORD_SET_LINK,
       null,
     );
     return res.status(CODE[200]).send(response);
@@ -650,4 +724,5 @@ export default {
   changeAccountStatus,
   setUserPassword,
   verifyAndSendPasswordResetLink,
+  setUserPasswordLinkReGenerate,
 };

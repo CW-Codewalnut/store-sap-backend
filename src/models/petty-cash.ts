@@ -288,12 +288,13 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
     },
   },
   controllingArea: {
-    allowNull: true,
+    allowNull: false,
     type: DataTypes.STRING(10),
     validate: {
-      len: {
-        args: [1, 10],
-        msg: MESSAGE.CONTROLLING_AREA_LENGTH,
+      customValidator(value: string) {
+        if (value !== '1000') {
+          throw new Error(MESSAGE.CONTROLLING_AREA_VALUE);
+        }
       },
     },
   },
@@ -383,16 +384,16 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
   },
   cashJournalId: {
     type: DataTypes.STRING(16),
-    allowNull: true,
-    /* validate: {
+    allowNull: false,
+    validate: {
       notNull: {
-        msg: MESSAGE.CASH_JOURNAL_REQUIRED
+        msg: MESSAGE.CASH_JOURNAL_REQUIRED,
       },
       is: {
         args: /^[A-Za-z0-9_-]{16}$/,
         msg: MESSAGE.CASH_JOURNAL_INVALID,
-      }
-    }, */
+      },
+    },
   },
   createdBy: {
     allowNull: true,

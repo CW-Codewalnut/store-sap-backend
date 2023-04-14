@@ -14,6 +14,11 @@ module.exports = {
         defaultValue: false,
       },
     );
+    await queryInterface.addColumn('business_transactions', 'isExpenses', {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    });
   },
 
   async down(queryInterface) {
@@ -25,5 +30,6 @@ module.exports = {
       'business_transactions',
       'customerMandatory',
     );
+    await queryInterface.removeColumn('business_transactions', 'isExpenses');
   },
 };

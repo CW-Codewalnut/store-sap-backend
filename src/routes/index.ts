@@ -19,6 +19,8 @@ import PettyCashController from '../controllers/pettyCash.controller';
 import UserPlantController from '../controllers/userPlant.controller';
 
 import { checkAuthenticated, verifyRouteAccess } from '../middleware/auth';
+import CashJournalController from '../controllers/cashJournal.controller';
+import PlantClosingDenominationController from '../controllers/plantClosingDenomination.controller';
 
 const routesMiddleware = (app: Application) => {
   // Auth api
@@ -43,9 +45,15 @@ const routesMiddleware = (app: Application) => {
   app.get('/users/:id', checkAuthenticated, UserController.findById);
   app.patch('/users/:id', checkAuthenticated, UserController.update);
   app.get(
-    '/users/change-account-status/:id',
+    '/users/change-account-status/:userId',
     checkAuthenticated,
     UserController.changeAccountStatus,
+  );
+
+  app.get(
+    '/user/password-link-regenerate/:userId',
+    checkAuthenticated,
+    UserController.setUserPasswordLinkReGenerate,
   );
 
   app.get('/roles', checkAuthenticated, RoleController.findAll);
@@ -198,6 +206,18 @@ const routesMiddleware = (app: Application) => {
     '/petty-cash/transaction-reverse/:transactionId',
     checkAuthenticated,
     PettyCashController.transactionReverse,
+  );
+
+  app.get(
+    '/cash-journal/:plantId',
+    checkAuthenticated,
+    CashJournalController.getCashJournalByPlantId,
+  );
+
+  app.post(
+    '/close-day',
+    checkAuthenticated,
+    PlantClosingDenominationController.storeDenomination,
   );
 };
 
