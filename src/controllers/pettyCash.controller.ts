@@ -24,6 +24,10 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let pettyCashBody = req.body;
 
+    pettyCashBody.amount = +req.body.amount;
+    pettyCashBody.netAmount = +req.body.netAmount;
+    pettyCashBody.taxBaseAmount = +req.body.taxBaseAmount;
+
     if (!pettyCashBody 
         || !pettyCashBody.amount 
         || !req.body.cashJournalId
@@ -41,8 +45,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
 
     if(pettyCashBody.pettyCashType === 'Payment') {
       const closingBalance = await getClosingBalance(req, next);
-
-      if(closingBalance && closingBalance < pettyCashBody.amount) {
+      if(closingBalance !== undefined && closingBalance <= pettyCashBody.amount) {
         const response = responseFormatter(
           CODE[400],
           SUCCESS.FALSE,
