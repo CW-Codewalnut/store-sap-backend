@@ -22,9 +22,9 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(CODE[400]).send(response);
     }
 
-    const roleIsExist = await Role.findOne({ where: { name: req.body.name } });
+    const doesRoleExist = await Role.findOne({ where: { name: req.body.name } });
 
-    if (roleIsExist) {
+    if (doesRoleExist) {
       const response = responseFormatter(
         CODE[422],
         SUCCESS.FALSE,

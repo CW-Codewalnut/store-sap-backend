@@ -579,7 +579,7 @@ const setUserPassword = async (
       config.jwtSecret,
     )) as DecodedTokenData;
 
-    if (passwordValidateData.isUsed === true) {
+    if (passwordValidateData.isUsed) {
       const response = responseFormatter(
         CODE[500],
         SUCCESS.FALSE,
@@ -589,7 +589,7 @@ const setUserPassword = async (
       return res.status(CODE[500]).send(response);
     }
 
-    const usr_num = await User.update(
+    const updatedUser = await User.update(
       {
         password: md5(password.trim()),
         accountStatus: true,
@@ -598,7 +598,7 @@ const setUserPassword = async (
       { where: { id: tokenData.userId } },
     );
 
-    if (usr_num[0] === 1) {
+    if (updatedUser[0] === 1) {
       await PasswordValidateToken.update(
         { isUsed: true },
         { where: { id: passwordValidateTokenId } },
