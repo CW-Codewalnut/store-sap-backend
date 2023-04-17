@@ -8,6 +8,7 @@ interface SessionModel
   sid: string;
   userId: string;
   activePlantId: string;
+  isAllowedNewTransaction: boolean;
   expires: string;
   data: string;
 }

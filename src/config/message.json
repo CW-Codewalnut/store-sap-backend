@@ -48,6 +48,7 @@
 	"LOGGED_OUT": "Logged out securely",
 	"NET_AMOUNT_NUMERIC": "Net amount must be numeric",
 	"NET_AMOUNT_REQUIRED": "Net amount is required",
+	"NEW_TRANSACTION_NOT_ALLOWED": "New transaction not allowed. First update pending transaction",
 	"NO_MATCH_FOUND": "No match found",
 	"ORDER_NO_LENGTH": "Order no must be under 1-10 characters",
 	"PASSWORD_EXPIRED_LINK": "The link you followed has been expired",

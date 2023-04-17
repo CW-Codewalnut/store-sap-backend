@@ -15,6 +15,11 @@ const Session = sequelize.define<SessionModel>('Session', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  isAllowedNewTransaction: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
+  },
   expires: {
     type: DataTypes.DATE,
     allowNull: true,

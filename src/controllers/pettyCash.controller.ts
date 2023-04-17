@@ -19,6 +19,8 @@ import HouseBank from '../models/house-bank';
 import { dateFormat, convertFromDate, convertToDate } from '../utils/helper';
 import MESSAGE from '../config/message.json';
 import Preference from '../models/preferences';
+import PlantClosingDenomination from '../models/plant-closing-denomination';
+import sequelize from 'sequelize';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -44,17 +46,22 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       );
       return res.status(CODE[400]).send(response);
     }
-
-    /* if(req.session.userId) {
-      const isDayClosed = await checkDayWasClosed();
-      if(isDayClosed) {
-
+   
+    if(!req.session.isAllowedNewTransaction) {
+      const foundSavedTransaction =  await checkNoSavedDocument(pettyCashBody, req, next);
+      if(foundSavedTransaction) {
+        req.session.isAllowedNewTransaction = false;
+        const response = responseFormatter(
+          CODE[400],
+          SUCCESS.FALSE,
+          MESSAGE.NEW_TRANSACTION_NOT_ALLOWED,
+          null,
+        );
+        return res.status(CODE[400]).send(response);
       } else {
-        // throw error
+        req.session.isAllowedNewTransaction = true;
       }
-    } else {
-      // continue
-    } */
+    }
 
 
     if (pettyCashBody.pettyCashType === 'Payment') {
@@ -130,29 +137,23 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-/* const checkDayWasClosed = async(): Promise<boolean> => {
-  return false;
-} */
-
 const getTotalSavedAmount = async (pettyCashBody: any, req: Request, next: NextFunction) => {
   try {
     const totalSavedAmount = await PettyCash.sum('amount', {
-      where: {
-        [Op.and]: [
-          {
-            pettyCashType: {
-              [Op.eq]: 'Payment',
-            },
+      where: {[Op.and]: [
+        {
+          pettyCashType: {
+            [Op.eq]: 'Payment',
           },
-          {
-            plantId: req.session.activePlantId,
-          },
-          {
-            cashJournalId: pettyCashBody.cashJournalId,
-          },
-          { documentStatus: { [Op.eq]: 'Saved' } },
-        ],
-      },
+        },
+        {
+          plantId: req.session.activePlantId,
+        },
+        {
+          cashJournalId: pettyCashBody.cashJournalId,
+        },
+        { documentStatus: { [Op.eq]: 'Saved' } }
+      ]},
     });
 
     return totalSavedAmount || 0;
@@ -160,6 +161,74 @@ const getTotalSavedAmount = async (pettyCashBody: any, req: Request, next: NextF
     next(err);
   }
 }
+
+const checkNoSavedDocument = async(pettyCashBody: any, req: Request, next: NextFunction): Promise<boolean> => {
+  try {
+    let isSavedDocExist = false;
+
+    const lastClosing: any = await PlantClosingDenomination.findOne({
+      where: {
+        [Op.and]: [
+          {plantId: req.session.activePlantId},
+          {cashJournalId: pettyCashBody.cashJournalId},
+        ]
+      },
+      order: [['createdAt', 'DESC']],
+      raw: true
+    });   
+
+    if(lastClosing) {
+      const createdAtString = lastClosing?.createdAt.toLocaleString();
+      const createdAt = dateFormat(createdAtString, '-');
+  
+      // Check document status 'Saved' is exist in petty cash table for same cash journal
+      const doesSavedDocumentExist = await checkDocumentStatusSavedExist(pettyCashBody, createdAt, req, next);
+      if(doesSavedDocumentExist) {
+        isSavedDocExist = true;
+      } else {
+        isSavedDocExist = false;
+      }
+    } else {
+      isSavedDocExist = false;
+    }
+    return isSavedDocExist;
+  } catch(err) {
+    throw err;
+  }
+}
+
+const checkDocumentStatusSavedExist = (pettyCashBody: any, createdAt: string, req: Request, next: NextFunction) => {
+  try {
+    return PettyCash.findOne({
+      where: {
+        [Op.and]: [
+          sequelize.where(
+            sequelize.fn(
+              "FORMAT",
+              sequelize.col("createdAt"),
+              "dd-MM-yyyy"
+            ),
+            {
+              [Op.lte]: createdAt,
+            }
+          ),
+          {
+            plantId: req.session.activePlantId,
+          },
+          {
+            cashJournalId: pettyCashBody.cashJournalId,
+          },
+          {
+            documentStatus: 'Saved'
+          }
+        ]},
+      raw: true
+    })
+  } catch(err) {
+    next(err)
+  }
+}
+
 /**
  * To check tax code must be V0
  */
@@ -667,8 +736,8 @@ const exportPettyCash = async (
       text: transaction.text ? transaction.text : '',
       venderNo: transaction.vendor ? transaction.vendor.venderNo : '',
       customerNo: transaction.customer ? transaction.customer.customerNo : '',
-      postingDate: dateFormat(transaction.postingDate),
-      documentDate: dateFormat(transaction.documentDate),
+      postingDate: dateFormat(transaction.postingDate, '.'),
+      documentDate: dateFormat(transaction.documentDate, '.'),
       costCentre: transaction.cost_centre
         ? transaction.cost_centre.costCentre
         : '',

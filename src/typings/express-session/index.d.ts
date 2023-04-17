@@ -14,6 +14,7 @@ declare module 'express-session' {
   interface SessionData {
     userId: string;
     activePlantId: string;
+    isAllowedNewTransaction: boolean;
     cookie: Cookie;
   }
 }
