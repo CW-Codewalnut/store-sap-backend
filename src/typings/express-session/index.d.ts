@@ -8,7 +8,7 @@ type Cookie = {
   domain?: string;
   path?: string;
   sameSite?: boolean | 'lax' | 'strict' | 'none';
-}
+};
 
 declare module 'express-session' {
   interface SessionData {
