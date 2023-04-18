@@ -341,17 +341,23 @@ const findWithPaginate = async (
 
     if (search) {
       condition = {
-        [Op.or]: {
-          email: { [Op.like]: `%${search}%` },
-        },
+        [Op.or]: [
+          {employeeCode: { [Op.like]: `%${search}%` }},
+          {email: { [Op.like]: `%${search}%` }},
+        ],
       };
     }
 
     const users = await User.findAndCountAll({
+      attributes: ['id', 'employeeCode', 'email', 'accountStatus', 'createdAt'],
       distinct: true,
       include: [
         {
           model: Role,
+        },
+        {
+          model: Employee,
+          attributes: [['employeeName', 'name']]
         },
         {
           model: Plant,
