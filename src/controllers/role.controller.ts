@@ -9,14 +9,19 @@ import User from '../models/user';
 import MESSAGE from '../config/message.json';
 import RolePermissionModel from '../interfaces/masters/rolePermission.interface';
 import Employee from '../models/employee';
+import { nanoid } from 'nanoid';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (!req.body || !req.body.name || !req.body.description) {
+    if (   !req.body 
+        || !req.body.name 
+        || !req.body.description 
+        || !Array.isArray(req.body.permissionIds)
+        || !req.body.permissionIds.length) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.EMPTY_CONTENT,
+        MESSAGE.BAD_REQUEST,
         null,
       );
       return res.status(CODE[400]).send(response);
@@ -38,6 +43,22 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     req.body.updatedBy = req.user.id;
     const role = await Role.create(req.body);
     const { id } = role;
+
+    const rolePermissions = [];
+
+    for (const permissionId of req.body.permissionIds) {
+        const rolePermissionData: any = {
+          id: nanoid(16),
+          roleId: id,
+          permissionId: permissionId,
+          createdBy: req.user.id,
+          updatedBy: req.user.id,
+        };
+        rolePermissions.push(rolePermissionData);
+    }
+    
+    await RolePermission.bulkCreate(rolePermissions);
+
     const roleData = await Role.findByPk(id);
     const response = responseFormatter(
       CODE[201],
@@ -173,11 +194,14 @@ const updateRolePermissions = async (
   next: NextFunction,
 ) => {
   try {
-    if (!req.body && !req.params) {
+    if (!req.body 
+        || !req.params
+        || !Array.isArray(req.body.permissionIds)
+        || !req.body.permissionIds.length) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.EMPTY_CONTENT,
+        MESSAGE.BAD_REQUEST,
         null,
       );
       return res.status(CODE[400]).send(response);

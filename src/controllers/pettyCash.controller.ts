@@ -182,7 +182,10 @@ const checkNoSavedDocument = async (
 ): Promise<boolean> => {
   try {
     let isSavedDocExist = false;
-
+    // 1st time it will not get denomination but might be there is saved document
+    // Ensure denomination tallied before create new document
+    // Ensure there is not saved document for following day while creating new document
+    
     const lastClosing: any = await PlantClosingDenomination.findOne({
       where: {
         [Op.and]: [
