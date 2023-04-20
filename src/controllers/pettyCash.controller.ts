@@ -609,7 +609,7 @@ const updateDocumentStatus = async (
   next: NextFunction,
 ) => {
   try {
-    const { transactionIds, documentStatus } = req.body;
+    const { transactionIds, documentStatus, denominationId } = req.body;
     if (!Array.isArray(transactionIds) || !transactionIds.length) {
       const response = responseFormatter(
         CODE[400],
@@ -620,19 +620,52 @@ const updateDocumentStatus = async (
       return res.status(CODE[400]).send(response);
     }
 
-    transactionIds.forEach(async (transactionId: string) => {
-      await PettyCash.update({ documentStatus }, { where: { id: transactionId } });
-    });
+    const _totalUpdateAmount = await PettyCash.sum('amount', {
+      where: {
+        id: {
+          [Op.in]: transactionIds
+        }
+    }});
 
-    const documentSlug = transactionIds.length > 1 ? 'Documents are' : 'Document is';
+    const pettyCashData = await PettyCash.findOne({attributes: ["pettyCashType"], where: {id: transactionIds[0]}})
 
-    const response = responseFormatter(
-      CODE[200],
-      SUCCESS.TRUE,
-      `${documentSlug} ${MESSAGE.DOCUMENT_LOCKED}`,
-      null,
-    );
-    res.status(CODE[200]).send(response);
+    const totalUpdateAmount = _totalUpdateAmount ?? 0;
+    const closingBalanceAmount = await getClosingBalance(req, next);
+    const denominationData = await PlantClosingDenomination.findOne({where: {id: denominationId}});
+    let finalClosingBalance;
+
+    if(closingBalanceAmount) {
+      if(pettyCashData && pettyCashData.pettyCashType === 'Payment') {
+        finalClosingBalance = closingBalanceAmount - totalUpdateAmount;
+      } else {
+        finalClosingBalance = closingBalanceAmount + totalUpdateAmount;
+      }
+    }
+    
+    if(denominationData && finalClosingBalance === denominationData.denominationTotalAmount) {
+      transactionIds.forEach(async (transactionId: string) => {
+        await PettyCash.update({ documentStatus }, { where: { id: transactionId } });
+      });
+  
+      const documentSlug = transactionIds.length > 1 ? 'Documents are' : 'Document is';
+  
+      const response = responseFormatter(
+        CODE[200],
+        SUCCESS.TRUE,
+        `${documentSlug} ${MESSAGE.DOCUMENT_LOCKED}`,
+        null,
+      );
+      res.status(CODE[200]).send(response);
+    } else {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.DOCUMENT_LOCKED,
+        null,
+      );
+      res.status(CODE[400]).send(response);
+    }
+    
   } catch (err) {
     next(err);
   }
