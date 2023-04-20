@@ -61,8 +61,9 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
           null,
         );
         return res.status(CODE[400]).send(response);
+      } else {
+        req.session.isAllowedNewTransaction = true;
       }
-      req.session.isAllowedNewTransaction = true;
     }
 
     if (pettyCashBody.pettyCashType === 'Payment') {
@@ -175,46 +176,69 @@ const getTotalSavedAmount = async (
   }
 };
 
+/**
+ * This function addresses the following use cases when a new day begins:
+ * 1. Ensure that none of the previous day's transaction documents have a "Saved" status.
+ * 2. Confirm that the closing balance of the last transaction day is equal to the total denomination amount.
+ * @param pettyCashBody 
+ * @param req 
+ * @param next 
+ * @returns 
+ */
 const checkNoSavedDocument = async (
   pettyCashBody: any,
   req: Request,
   next: NextFunction,
 ): Promise<boolean> => {
   try {
-    let isSavedDocExist = false;
-    // 1st time it will not get denomination but might be there is saved document
-    // Ensure denomination tallied before create new document
-    // Ensure there is not saved document for following day while creating new document
-    
-    const lastClosing: any = await PlantClosingDenomination.findOne({
-      where: {
-        [Op.and]: [
-          { plantId: req.session.activePlantId },
-          { cashJournalId: pettyCashBody.cashJournalId },
-        ],
-      },
-      order: [['createdAt', 'DESC']],
-      raw: true,
-    });
+    let isSavedDocExist = true;
 
-    if (lastClosing) {
-      const createdAtString = lastClosing?.createdAt.toLocaleString();
-      const createdAt = dateFormat(createdAtString, '-');
-
-      // Check document status 'Saved' is exist in petty cash table for same cash journal
-      const doesSavedDocumentExist = await checkDocumentStatusSavedExist(
-        pettyCashBody,
-        createdAt,
-        req,
-        next,
-      );
-      if (doesSavedDocumentExist) {
-        isSavedDocExist = true;
+    const todayDateString = new Date().toLocaleString();
+    const today = dateFormat(todayDateString, '-');
+    const doesSavedDocumentExist = await checkDocumentStatusSavedExist(
+      true,
+      pettyCashBody,
+      today,
+      req,
+      next,
+    );
+    // If document have 'Saved' status
+    if (doesSavedDocumentExist) {
+      isSavedDocExist = true;
+    } else {
+      // Check for the closing day and cash denomination 
+      const lastClosing: any = await PlantClosingDenomination.findOne({
+        where: {
+          [Op.and]: [
+            { plantId: req.session.activePlantId },
+            { cashJournalId: pettyCashBody.cashJournalId },
+          ],
+        },
+        order: [['createdAt', 'DESC']],
+        raw: true,
+      });
+  
+      if (lastClosing) {
+        const createdAtString = lastClosing?.createdAt.toLocaleString();
+        const createdAt = dateFormat(createdAtString, '-');
+  
+        // Check document status 'Saved' is exist in petty cash table for same cash journal
+        const doesSavedDocumentExist = await checkDocumentStatusSavedExist(
+          false,
+          pettyCashBody,
+          createdAt,
+          req,
+          next,
+        );
+        if (doesSavedDocumentExist) {
+          isSavedDocExist = false;
+        } else {
+          isSavedDocExist = true;
+        }
       } else {
+        // If there is no 'Saved' document status and no cash denomination tallied
         isSavedDocExist = false;
       }
-    } else {
-      isSavedDocExist = false;
     }
     return isSavedDocExist;
   } catch (err) {
@@ -223,31 +247,42 @@ const checkNoSavedDocument = async (
 };
 
 const checkDocumentStatusSavedExist = (
+  savedDocumentCheck: boolean,
   pettyCashBody: any,
-  createdAt: string,
+  date: string,
   req: Request,
   next: NextFunction,
 ) => {
   try {
+    const query = [];
+
+    if(savedDocumentCheck) {
+      query.push(
+        sequelize.where(
+          sequelize.fn('FORMAT', sequelize.col('createdAt'), 'dd-MM-yyyy'),
+          {
+            [Op.lte]: date,
+          },
+        )
+      );
+      query.push({documentStatus: 'Saved'})
+    } else {
+      query.push(
+        sequelize.where(
+          sequelize.fn('FORMAT', sequelize.col('createdAt'), 'dd-MM-yyyy'),
+          {
+            [Op.eq]: date,
+          },
+        )
+      );
+    }
+
+    query.push({plantId: req.session.activePlantId});
+    query.push({cashJournalId: pettyCashBody.cashJournalId});
+
     return PettyCash.findOne({
       where: {
-        [Op.and]: [
-          sequelize.where(
-            sequelize.fn('FORMAT', sequelize.col('createdAt'), 'dd-MM-yyyy'),
-            {
-              [Op.lte]: createdAt,
-            },
-          ),
-          {
-            plantId: req.session.activePlantId,
-          },
-          {
-            cashJournalId: pettyCashBody.cashJournalId,
-          },
-          {
-            documentStatus: 'Saved',
-          },
-        ],
+        [Op.and]: query,
       },
       raw: true,
     });

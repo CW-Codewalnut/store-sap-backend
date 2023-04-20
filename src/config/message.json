@@ -24,6 +24,7 @@
 	"DATA_NOT_FOUND": "Data not found",
 	"DAY_CLOSED": "Day closed successfully",
 	"DENOMINATION_NOT_MATCH": "Denomination sum doesn't match closing balance",
+	"DENOMINATION_UPDATED": "Denomination updated successfully",
 	"DOCUMENT_DELETED": "successfully deleted",
 	"DOCUMENT_EXPORT_ERROR": "ERROR: Update or Delete 'Saved' documents before export",
 	"DOCUMENT_LOCKED": "locked in app successfully",

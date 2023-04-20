@@ -2,16 +2,16 @@ import { NextFunction, Request, Response } from 'express';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import MESSAGE from '../config/message.json';
 import PlantClosingDenomination from '../models/plant-closing-denomination';
-import { PlantClosingDenominationAttributes } from '../interfaces/masters/plantClosingDenomination.interface';
+import { Op } from 'sequelize';
 
-const storeDenomination = async (
+const createOrUpdateDenomination = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
     const {
-      plantId,
+      id,
       cashJournalId,
       closingBalanceAmount,
       qty1INR,
@@ -26,7 +26,7 @@ const storeDenomination = async (
       qty2000INR,
     } = req.body;
 
-    if (!req.body || !plantId || !cashJournalId || !closingBalanceAmount) {
+    if (!req.body || !cashJournalId || !closingBalanceAmount) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -47,18 +47,9 @@ const storeDenomination = async (
       + qty500INR * 500
       + qty2000INR * 2000;
 
-    if (denominationTotalAmount !== closingBalanceAmount) {
-      const response = responseFormatter(
-        CODE[400],
-        SUCCESS.FALSE,
-        MESSAGE.DENOMINATION_NOT_MATCH,
-        null,
-      );
-      return res.status(CODE[400]).send(response);
-    }
-
-    const denominationData: PlantClosingDenominationAttributes = {
-      plantId,
+    const denominationData: any = {
+      id: id,
+      plantId: req.session.activePlantId,
       cashJournalId,
       closingBalanceAmount,
       denominationTotalAmount,
@@ -76,18 +67,68 @@ const storeDenomination = async (
       updatedBy: req.user.id,
     };
 
-    await PlantClosingDenomination.create(denominationData);
+    const [instance,] = await PlantClosingDenomination.upsert(denominationData);
 
     const response = responseFormatter(
-      CODE[201],
+      CODE[200],
       SUCCESS.TRUE,
-      MESSAGE.DAY_CLOSED,
-      null,
+      MESSAGE.DENOMINATION_UPDATED,
+      instance,
     );
-    res.status(CODE[201]).send(response);
+    res.status(CODE[200]).send(response);
   } catch (err) {
     next(err);
   }
 };
 
-export default { storeDenomination };
+const getDenomination = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { cashJournalId } = req.params;
+
+    let cashDenomination;
+
+    cashDenomination = await PlantClosingDenomination.findOne({
+      where: {
+          [Op.and]: [
+            {plantId: req.session.activePlantId},
+            {cashJournalId: cashJournalId}
+          ]
+        },
+      raw: true
+    })
+
+    if(!cashDenomination) {
+      cashDenomination = {
+        id: null,
+        closingBalanceAmount: 0,
+        denominationTotalAmount: 0,
+        qty1INR: 0,
+        qty2INR: 0,
+        qty5INR: 0,
+        qty10INR: 0,
+        qty20INR: 0,
+        qty50INR: 0,
+        qty100INR: 0,
+        qty200INR: 0,
+        qty500INR: 0,
+        qty2000INR: 0
+      }
+    }
+
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      MESSAGE.FETCHED,
+      cashDenomination
+    );
+    res.status(CODE[200]).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export default { createOrUpdateDenomination, getDenomination };

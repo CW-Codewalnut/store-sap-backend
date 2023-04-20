@@ -215,9 +215,15 @@ const routesMiddleware = (app: Application) => {
   );
 
   app.post(
-    '/close-day',
+    '/cash-denomination',
     checkAuthenticated,
-    PlantClosingDenominationController.storeDenomination,
+    PlantClosingDenominationController.createOrUpdateDenomination,
+  );
+
+  app.get(
+    '/cash-denomination/:cashJournalId',
+    checkAuthenticated,
+    PlantClosingDenominationController.getDenomination,
   );
 };
 
