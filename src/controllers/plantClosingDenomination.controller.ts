@@ -104,7 +104,6 @@ const getDenomination = async (
     if(!cashDenomination) {
       cashDenomination = {
         id: null,
-        closingBalanceAmount: 0,
         denominationTotalAmount: 0,
         qty1INR: 0,
         qty2INR: 0,
