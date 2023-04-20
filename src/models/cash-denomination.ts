@@ -1,10 +1,10 @@
 import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
-import PlantClosingDenominationModel from '../interfaces/masters/plantClosingDenomination.interface';
+import CashDenominationModel from '../interfaces/masters/cashDenomination.interface';
 
-const PlantClosingDenomination = sequelize.define<PlantClosingDenominationModel>(
-  'plant_closing_denomination',
+const CashDenomination = sequelize.define<CashDenominationModel>(
+  'cash_denomination',
   {
     id: {
       type: DataTypes.STRING(16),
@@ -19,10 +19,6 @@ const PlantClosingDenomination = sequelize.define<PlantClosingDenominationModel>
     cashJournalId: {
       allowNull: false,
       type: DataTypes.STRING(16),
-    },
-    closingBalanceAmount: {
-      allowNull: false,
-      type: DataTypes.DECIMAL(21, 2),
     },
     denominationTotalAmount: {
       allowNull: false,
@@ -97,4 +93,4 @@ const PlantClosingDenomination = sequelize.define<PlantClosingDenominationModel>
   },
 );
 
-export default PlantClosingDenomination;
+export default CashDenomination;

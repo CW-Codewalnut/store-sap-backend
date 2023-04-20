@@ -19,7 +19,7 @@ import HouseBank from '../models/house-bank';
 import { dateFormat, convertFromDate, convertToDate } from '../utils/helper';
 import MESSAGE from '../config/message.json';
 import Preference from '../models/preferences';
-import PlantClosingDenomination from '../models/plant-closing-denomination';
+import CashDenomination from '../models/cash-denomination';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -177,9 +177,6 @@ const getTotalSavedAmount = async (
 };
 
 /**
- * This function addresses the following use cases when a new day begins:
- * 1. Ensure that none of the previous day's transaction documents have a "Saved" status.
- * 2. Confirm that the closing balance of the last transaction day is equal to the total denomination amount.
  * @param pettyCashBody 
  * @param req 
  * @param next 
@@ -192,11 +189,9 @@ const checkNoSavedDocument = async (
 ): Promise<boolean> => {
   try {
     let isSavedDocExist = true;
-
     const todayDateString = new Date().toLocaleString();
     const today = dateFormat(todayDateString, '-');
     const doesSavedDocumentExist = await checkDocumentStatusSavedExist(
-      true,
       pettyCashBody,
       today,
       req,
@@ -206,39 +201,7 @@ const checkNoSavedDocument = async (
     if (doesSavedDocumentExist) {
       isSavedDocExist = true;
     } else {
-      // Check for the closing day and cash denomination 
-      const lastClosing: any = await PlantClosingDenomination.findOne({
-        where: {
-          [Op.and]: [
-            { plantId: req.session.activePlantId },
-            { cashJournalId: pettyCashBody.cashJournalId },
-          ],
-        },
-        order: [['createdAt', 'DESC']],
-        raw: true,
-      });
-  
-      if (lastClosing) {
-        const createdAtString = lastClosing?.createdAt.toLocaleString();
-        const createdAt = dateFormat(createdAtString, '-');
-  
-        // Check document status 'Saved' is exist in petty cash table for same cash journal
-        const doesSavedDocumentExist = await checkDocumentStatusSavedExist(
-          false,
-          pettyCashBody,
-          createdAt,
-          req,
-          next,
-        );
-        if (doesSavedDocumentExist) {
-          isSavedDocExist = false;
-        } else {
-          isSavedDocExist = true;
-        }
-      } else {
-        // If there is no 'Saved' document status and no cash denomination tallied
-        isSavedDocExist = false;
-      }
+      isSavedDocExist = false;
     }
     return isSavedDocExist;
   } catch (err) {
@@ -247,7 +210,6 @@ const checkNoSavedDocument = async (
 };
 
 const checkDocumentStatusSavedExist = (
-  savedDocumentCheck: boolean,
   pettyCashBody: any,
   date: string,
   req: Request,
@@ -256,27 +218,15 @@ const checkDocumentStatusSavedExist = (
   try {
     const query = [];
 
-    if(savedDocumentCheck) {
-      query.push(
-        sequelize.where(
-          sequelize.fn('FORMAT', sequelize.col('createdAt'), 'dd-MM-yyyy'),
-          {
-            [Op.lte]: date,
-          },
-        )
-      );
-      query.push({documentStatus: 'Saved'})
-    } else {
-      query.push(
-        sequelize.where(
-          sequelize.fn('FORMAT', sequelize.col('createdAt'), 'dd-MM-yyyy'),
-          {
-            [Op.eq]: date,
-          },
-        )
-      );
-    }
-
+    query.push(
+      sequelize.where(
+        sequelize.fn('FORMAT', sequelize.col('createdAt'), 'dd-MM-yyyy'),
+        {
+          [Op.lt]: date,
+        },
+      )
+    );
+    query.push({documentStatus: 'Saved'})
     query.push({plantId: req.session.activePlantId});
     query.push({cashJournalId: pettyCashBody.cashJournalId});
 
@@ -631,20 +581,59 @@ const updateDocumentStatus = async (
 
     const totalUpdateAmount = _totalUpdateAmount ?? 0;
     const closingBalanceAmount = await getClosingBalance(req, next);
-    const denominationData = await PlantClosingDenomination.findOne({where: {id: denominationId}});
+    const denominationData = await CashDenomination.findOne({where: {id: denominationId}});
     let finalClosingBalance;
 
-    if(closingBalanceAmount) {
+    if(closingBalanceAmount != null ||  closingBalanceAmount != undefined) {
       if(pettyCashData && pettyCashData.pettyCashType === 'Payment') {
         finalClosingBalance = closingBalanceAmount - totalUpdateAmount;
       } else {
         finalClosingBalance = closingBalanceAmount + totalUpdateAmount;
       }
     }
+
+
+    // const previousDayTransactionIds = 
+    const todayDateString = new Date().toLocaleString();
+    const today = dateFormat(todayDateString, '-');
+
+    const previousDateSavedTransactions = await PettyCash.findAll({
+      attributes: ["id"],
+      where: {
+        [Op.and]: [
+          {
+            id: {
+              [Op.in]: transactionIds
+            }
+          },
+          sequelize.where(
+            sequelize.fn('FORMAT', sequelize.col('createdAt'), 'dd-MM-yyyy'),
+            {
+              [Op.lt]: today,
+            },
+          ),
+          {documentStatus: 'Saved'}
+        ]
+      },
+      raw: true
+    });
     
-    if(denominationData && finalClosingBalance === denominationData.denominationTotalAmount) {
+    const previousDayTransactionIds = previousDateSavedTransactions.map(transaction => transaction.id);
+
+     if(denominationData && finalClosingBalance === denominationData.denominationTotalAmount) {
       transactionIds.forEach(async (transactionId: string) => {
-        await PettyCash.update({ documentStatus }, { where: { id: transactionId } });
+        let updateData = {};
+        if(previousDayTransactionIds.includes(transactionId)) {
+          updateData = {
+            documentStatus: documentStatus,
+            postingDate: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+        } else {
+          updateData = {documentStatus: documentStatus}
+        }
+        await PettyCash.update(updateData, { where: { id: transactionId } });
       });
   
       const documentSlug = transactionIds.length > 1 ? 'Documents are' : 'Document is';
@@ -660,7 +649,7 @@ const updateDocumentStatus = async (
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.DOCUMENT_LOCKED,
+        MESSAGE.DENOMINATION_NOT_MATCH,
         null,
       );
       res.status(CODE[400]).send(response);

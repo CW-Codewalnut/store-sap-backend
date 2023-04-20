@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import MESSAGE from '../config/message.json';
-import PlantClosingDenomination from '../models/plant-closing-denomination';
+import CashDenomination from '../models/cash-denomination';
 import { Op } from 'sequelize';
 
 const createOrUpdateDenomination = async (
@@ -13,7 +13,6 @@ const createOrUpdateDenomination = async (
     const {
       id,
       cashJournalId,
-      closingBalanceAmount,
       qty1INR,
       qty2INR,
       qty5INR,
@@ -26,7 +25,7 @@ const createOrUpdateDenomination = async (
       qty2000INR,
     } = req.body;
 
-    if (!req.body || !cashJournalId || !closingBalanceAmount) {
+    if (!req.body || !cashJournalId) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -51,7 +50,6 @@ const createOrUpdateDenomination = async (
       id: id,
       plantId: req.session.activePlantId,
       cashJournalId,
-      closingBalanceAmount,
       denominationTotalAmount,
       qty1INR,
       qty2INR,
@@ -67,7 +65,7 @@ const createOrUpdateDenomination = async (
       updatedBy: req.user.id,
     };
 
-    const [instance,] = await PlantClosingDenomination.upsert(denominationData);
+    const [instance,] = await CashDenomination.upsert(denominationData);
 
     const response = responseFormatter(
       CODE[200],
@@ -91,7 +89,7 @@ const getDenomination = async (
 
     let cashDenomination;
 
-    cashDenomination = await PlantClosingDenomination.findOne({
+    cashDenomination = await CashDenomination.findOne({
       where: {
           [Op.and]: [
             {plantId: req.session.activePlantId},

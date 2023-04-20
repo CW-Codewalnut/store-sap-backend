@@ -1,10 +1,9 @@
 import { InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 
-export interface PlantClosingDenominationAttributes {
+export interface CashDenominationAttributes {
   id?: string;
   plantId: string;
   cashJournalId: string;
-  closingBalanceAmount: number;
   denominationTotalAmount: number;
   qty1INR: number;
   qty2INR: number;
@@ -22,11 +21,11 @@ export interface PlantClosingDenominationAttributes {
   updatedAt?: Date;
 }
 
-interface PlantClosingDenominationModel
+interface CashDenominationModel
   extends Model<
-      InferAttributes<PlantClosingDenominationModel>,
-      InferCreationAttributes<PlantClosingDenominationModel>
+      InferAttributes<CashDenominationModel>,
+      InferCreationAttributes<CashDenominationModel>
     >,
-    PlantClosingDenominationAttributes {}
+    CashDenominationAttributes {}
 
-export default PlantClosingDenominationModel;
+export default CashDenominationModel;
