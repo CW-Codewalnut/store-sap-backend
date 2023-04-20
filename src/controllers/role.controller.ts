@@ -296,6 +296,29 @@ const updateRolePermissions = async (
   }
 };
 
+
+const getAllPermissions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+      const permissions = await Permission.findAll();
+      const groupedPermission = groupBy(permissions, 'groupName');
+
+      const response = responseFormatter(
+        CODE[200],
+        SUCCESS.TRUE,
+        MESSAGE.FETCHED,
+        groupedPermission,
+      );
+    
+      return res.status(CODE[200]).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export default {
   create,
   findAll,
@@ -303,4 +326,5 @@ export default {
   update,
   findRolePermissions,
   updateRolePermissions,
+  getAllPermissions
 };

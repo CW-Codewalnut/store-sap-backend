@@ -73,6 +73,12 @@ const routesMiddleware = (app: Application) => {
   );
 
   app.get(
+    '/permissions',
+    checkAuthenticated,
+    RoleController.getAllPermissions,
+  );
+
+  app.get(
     '/user/plants',
     checkAuthenticated,
     PlantController.getPlantsByUserId,
