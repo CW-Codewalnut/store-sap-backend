@@ -23,272 +23,239 @@ import CashDenomination from '../models/cash-denomination';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    let pettyCashBody = req.body;
+    const {
+      body: {
+        amount,
+        cashJournalId,
+        fromDate,
+        toDate,
+        pettyCashType,
+        taxCodeId,
+        taxRate,
+        netAmount,
+        taxBaseAmount,
+      },
+      session,
+      user,
+    } = req;
 
-    pettyCashBody.amount = +req.body.amount;
-    pettyCashBody.netAmount = +req.body.netAmount;
-    pettyCashBody.taxBaseAmount = +req.body.taxBaseAmount;
-
-    if (
-      !pettyCashBody
-      || !pettyCashBody.amount
-      || !req.body.cashJournalId
-      || !req.body.fromDate
-      || !req.body.toDate
-      || !pettyCashBody.pettyCashType
-    ) {
+    if (!amount || !netAmount || !taxBaseAmount || 
+        !cashJournalId || !fromDate || !toDate || 
+        !pettyCashType || !taxCodeId || !session.activePlantId ||
+        taxRate === null || taxRate === undefined) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
         MESSAGE.BAD_REQUEST,
         null,
       );
-      return res.status(CODE[400]).send(response);
+      return res.status(400).send(response);
     }
 
-    if (!req.session.isAllowedNewTransaction) {
-      const foundSavedTransaction = await checkNoSavedDocument(
-        pettyCashBody,
-        req,
-        next,
-      );
+    let pettyCashBody = {
+      ...req.body,
+      amount: +amount,
+      netAmount: +netAmount,
+      taxBaseAmount: +taxBaseAmount,
+      taxRate: +taxRate,
+    };
+
+    if (!session.isAllowedNewTransaction) {
+      const today = dateFormat(new Date().toLocaleString(), '-');
+      const foundSavedTransaction = await checkDocumentStatusSavedExist(cashJournalId, today, req);
+
       if (foundSavedTransaction) {
-        req.session.isAllowedNewTransaction = false;
+        session.isAllowedNewTransaction = false;
         const response = responseFormatter(
           CODE[400],
           SUCCESS.FALSE,
           MESSAGE.NEW_TRANSACTION_NOT_ALLOWED,
           null,
         );
-        return res.status(CODE[400]).send(response);
-      } else {
-        req.session.isAllowedNewTransaction = true;
+        return res.status(400).send(response);
       }
+
+      session.isAllowedNewTransaction = true;
     }
 
-    if (pettyCashBody.pettyCashType === 'Payment') {
+    if (pettyCashType === 'Payment') {
       const closingBalance = await getClosingBalance(req, next);
-      const totalSavedAmount = await getTotalSavedAmount(
-        pettyCashBody,
-        req,
-        next,
-      );
+      const totalSavedAmount = await getTotalSavedAmount(cashJournalId, session);
 
-      const overallSavedAmount = pettyCashBody.amount + totalSavedAmount;
-      if (
-        closingBalance !== undefined
-        && closingBalance < pettyCashBody.amount
-        && totalSavedAmount === 0
-      ) {
+      if (closingBalance !== undefined && closingBalance < amount + totalSavedAmount) {
         const response = responseFormatter(
           CODE[400],
           SUCCESS.FALSE,
           MESSAGE.AMOUNT_EXCEEDING_CLOSING_BAL,
           null,
         );
-        return res.status(CODE[400]).send(response);
-      } if (
-        closingBalance !== undefined
-        && closingBalance < overallSavedAmount
-      ) {
-        const response = responseFormatter(
-          CODE[400],
-          SUCCESS.FALSE,
-          MESSAGE.TOTAL_SAVED_AMOUNT_EXCEEDING_CLOSING_BAL,
-          null,
-        );
-        return res.status(CODE[400]).send(response);
+        return res.status(400).send(response);
       }
     }
 
-    // Check for valid tax code
-    const isValidTaxCode = await checkTaxCode(pettyCashBody);
-    if (!isValidTaxCode) {
+    if (!(await checkTaxCode(taxCodeId, taxRate))) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
         MESSAGE.TAX_CODE_INVALID,
         null,
       );
-      return res.status(CODE[400]).send(response);
+      return res.status(400).send(response);
     }
 
-    // Check valid amount
-    const isValidAmount = await checkValidAmount(+pettyCashBody.amount);
-
-    if (!isValidAmount) {
+    if (!(await checkValidAmount(amount))) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
         MESSAGE.PETTY_CASH_LIMIT,
         null,
       );
-      return res.status(CODE[400]).send(response);
+      return res.status(400).send(response);
     }
 
     pettyCashBody = convertDatesIntoIso(pettyCashBody);
-    pettyCashBody.createdBy = req.user.id;
-    pettyCashBody.updatedBy = req.user.id;
-    pettyCashBody.plantId = req.session.activePlantId;
 
-    const pettyCashResult = await PettyCash.create(pettyCashBody);
+    const createdPettyCash = await PettyCash.create({
+      ...pettyCashBody,
+      createdBy: user.id,
+      updatedBy: user.id,
+      plantId: session.activePlantId,
+    });
 
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.DOCUMENT_SAVED,
-      pettyCashResult,
+      createdPettyCash,
     );
-    res.status(CODE[200]).send(response);
+    res.status(200).send(response);
   } catch (err) {
     next(err);
   }
 };
 
+/**
+ * It calculates the total amount of Saved transactions and returns the resulting sum.
+ * @param pettyCashBody 
+ * @param req 
+ * @returns 
+ */
 const getTotalSavedAmount = async (
-  pettyCashBody: any,
-  req: Request,
-  next: NextFunction,
-) => {
+  cashJournalId: string,
+  session: any
+): Promise<number> => {
   try {
+    const { activePlantId } = session;
+
     const totalSavedAmount = await PettyCash.sum('amount', {
       where: {
         [Op.and]: [
-          {
-            pettyCashType: {
-              [Op.eq]: 'Payment',
-            },
-          },
-          {
-            plantId: req.session.activePlantId,
-          },
-          {
-            cashJournalId: pettyCashBody.cashJournalId,
-          },
+          { pettyCashType: { [Op.eq]: 'Payment' } },
+          { plantId: activePlantId },
+          { cashJournalId },
           { documentStatus: { [Op.eq]: 'Saved' } },
         ],
       },
     });
 
-    return totalSavedAmount || 0;
-  } catch (err) {
-    next(err);
-  }
-};
-
-/**
- * @param pettyCashBody 
- * @param req 
- * @param next 
- * @returns 
- */
-const checkNoSavedDocument = async (
-  pettyCashBody: any,
-  req: Request,
-  next: NextFunction,
-): Promise<boolean> => {
-  try {
-    let isSavedDocExist = true;
-    const todayDateString = new Date().toLocaleString();
-    const today = dateFormat(todayDateString, '-');
-    const doesSavedDocumentExist = await checkDocumentStatusSavedExist(
-      pettyCashBody,
-      today,
-      req,
-      next,
-    );
-    // If document have 'Saved' status
-    if (doesSavedDocumentExist) {
-      isSavedDocExist = true;
-    } else {
-      isSavedDocExist = false;
-    }
-    return isSavedDocExist;
+    return totalSavedAmount ?? 0;
   } catch (err) {
     throw err;
   }
 };
 
-const checkDocumentStatusSavedExist = (
-  pettyCashBody: any,
-  date: string,
+/**
+ * It returns true if a saved transaction from the previous day is found; otherwise, it returns false.
+ * @param cashJournalId 
+ * @param today 
+ * @param req 
+ * @returns 
+ */
+const checkDocumentStatusSavedExist = async (
+  cashJournalId: string,
+  today: string,
   req: Request,
-  next: NextFunction,
-) => {
+): Promise<boolean> => {
   try {
-    const query = [];
+    const { activePlantId } = req.session;
 
-    query.push(
+    const query = [
       sequelize.where(
         sequelize.fn('FORMAT', sequelize.col('createdAt'), 'dd-MM-yyyy'),
         {
-          [Op.lt]: date,
+          [Op.lt]: today,
         },
-      )
-    );
-    query.push({documentStatus: 'Saved'})
-    query.push({plantId: req.session.activePlantId});
-    query.push({cashJournalId: pettyCashBody.cashJournalId});
+      ),
+      { documentStatus: 'Saved' },
+      { plantId: activePlantId },
+      { cashJournalId },
+    ];
 
-    return PettyCash.findOne({
+    const doesSavedDocumentExist = await PettyCash.findOne({
       where: {
         [Op.and]: query,
       },
       raw: true,
     });
+
+    return !!doesSavedDocumentExist;
   } catch (err) {
-    next(err);
+    throw err;
   }
 };
 
 /**
- * To check tax code must be V0
+ * This function checks that the tax code must be 'V0'.
+ * @param taxCodeId 
+ * @param taxRate 
+ * @returns 
  */
-const checkTaxCode = async (pettyCashBody: any): Promise<boolean> => {
-  if (pettyCashBody.taxCodeId) {
+const checkTaxCode = async (taxCodeId: string, taxRate: number): Promise<boolean> => {
+  try {
     const isTaxCodeExist = await TaxCode.findOne({
-      where: { id: pettyCashBody.taxCodeId, taxCode: 'V0' },
+      where: { id: taxCodeId, taxCode: 'V0' },
     });
 
-    if (!isTaxCodeExist) {
-      return false;
-    }
-
-    if (+pettyCashBody.taxRate !== 0) {
-      return false;
-    }
-    return true;
+    return !!isTaxCodeExist && taxRate === 0;
+  } catch(err) {
+    throw err;
   }
-  return false;
 };
 
 /**
- * Amount should be valid
+ * This function returns false if the provided amount exceeds the specified limit; otherwise, it returns true.
+ * @param amount 
+ * @returns 
  */
 const checkValidAmount = async (amount: number): Promise<boolean> => {
-  const isValidAmount = await Preference.findOne({
-    where: {
-      [Op.and]: [{ name: 'pettyCashStoreLimit' }, { value: { [Op.gte]: amount } }],
-    },
-    raw: true,
-  });
+  try {
+    const isValidAmount = await Preference.findOne({
+      where: {
+        [Op.and]: [{ name: 'pettyCashStoreLimit' }, { value: { [Op.gte]: amount } }],
+      },
+      raw: true,
+    });
 
-  if (!isValidAmount) {
-    return false;
+    return isValidAmount ? true : false;
+  } catch(err) {
+    throw err;
   }
-
-  return true;
 };
 
+/**
+ * This function converts date values into ISO-formatted date strings.
+ * @param pettyCashBody 
+ * @returns 
+ */
 const convertDatesIntoIso = (pettyCashBody: any): Promise<any> => {
-  pettyCashBody.postingDate = new Date(pettyCashBody.postingDate).toISOString();
-  pettyCashBody.documentDate = new Date(
-    pettyCashBody.documentDate,
-  ).toISOString();
-  pettyCashBody.referenceDate = pettyCashBody.referenceDate
-    ? new Date(pettyCashBody.referenceDate).toISOString()
-    : null;
-  return pettyCashBody;
+  const { postingDate, documentDate, referenceDate } = pettyCashBody;
+
+  return {
+    ...pettyCashBody,
+    postingDate: new Date(postingDate).toISOString(),
+    documentDate: new Date(documentDate).toISOString(),
+    referenceDate: referenceDate ? new Date(referenceDate).toISOString() : null,
+  };
 };
 
 const getPettyCashData = (
@@ -487,7 +454,7 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
       res.status(CODE[200]).send(response);
     } else {
       // Check for valid tax code
-      const isValidTaxCode = await checkTaxCode(pettyCashBody);
+      const isValidTaxCode = await checkTaxCode(pettyCashBody.taxCodeId, +pettyCashBody.taxRate);
       if (!isValidTaxCode) {
         const response = responseFormatter(
           CODE[400],
