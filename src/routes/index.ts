@@ -72,11 +72,7 @@ const routesMiddleware = (app: Application) => {
     RoleController.updateRolePermissions,
   );
 
-  app.get(
-    '/permissions',
-    checkAuthenticated,
-    RoleController.getAllPermissions,
-  );
+  app.get('/permissions', checkAuthenticated, RoleController.getAllPermissions);
 
   app.get(
     '/user/plants',

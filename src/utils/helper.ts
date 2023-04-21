@@ -29,6 +29,13 @@ const convertToDate = (_date: string) => {
   return `${year}-${month}-${day} 23:59:59.999 +05:30`;
 };
 
+const isNumber = (value: any): boolean => typeof value === 'number';
+
 export {
-  validateEmail, getIdArrays, dateFormat, convertFromDate, convertToDate,
+  validateEmail,
+  getIdArrays,
+  dateFormat,
+  convertFromDate,
+  convertToDate,
+  isNumber,
 };

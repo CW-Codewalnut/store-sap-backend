@@ -78,6 +78,7 @@
 	"ROLE_UPDATED": "Role updated successfully",
 	"SEGMENT_INVALID": "Invalid segment",
 	"SEGMENT_REQUIRED": "Segment is required",
+	"SELECT_PLANT": "Error: Select plant before proceeding",
 	"SOMETHING_WENT_WRONG": "Something went wrong",
 	"SUB_NUMBER_LENGTH": "Sub number must be under 1-10 characters",
 	"SUCCESS": "Success",

@@ -342,8 +342,8 @@ const findWithPaginate = async (
     if (search) {
       condition = {
         [Op.or]: [
-          {employeeCode: { [Op.like]: `%${search}%` }},
-          {email: { [Op.like]: `%${search}%` }},
+          { employeeCode: { [Op.like]: `%${search}%` } },
+          { email: { [Op.like]: `%${search}%` } },
         ],
       };
     }
@@ -357,7 +357,7 @@ const findWithPaginate = async (
         },
         {
           model: Employee,
-          attributes: [['employeeName', 'name']]
+          attributes: [['employeeName', 'name']],
         },
         {
           model: Plant,

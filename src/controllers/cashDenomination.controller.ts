@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
+import { Op } from 'sequelize';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import MESSAGE from '../config/message.json';
 import CashDenomination from '../models/cash-denomination';
-import { Op } from 'sequelize';
 
 const createOrUpdateDenomination = async (
   req: Request,
@@ -47,7 +47,7 @@ const createOrUpdateDenomination = async (
       + qty2000INR * 2000;
 
     const denominationData: any = {
-      id: id,
+      id,
       plantId: req.session.activePlantId,
       cashJournalId,
       denominationTotalAmount,
@@ -65,7 +65,7 @@ const createOrUpdateDenomination = async (
       updatedBy: req.user.id,
     };
 
-    const [instance,] = await CashDenomination.upsert(denominationData);
+    const [instance] = await CashDenomination.upsert(denominationData);
 
     const response = responseFormatter(
       CODE[200],
@@ -91,15 +91,15 @@ const getDenomination = async (
 
     cashDenomination = await CashDenomination.findOne({
       where: {
-          [Op.and]: [
-            {plantId: req.session.activePlantId},
-            {cashJournalId: cashJournalId}
-          ]
-        },
-      raw: true
-    })
+        [Op.and]: [
+          { plantId: req.session.activePlantId },
+          { cashJournalId },
+        ],
+      },
+      raw: true,
+    });
 
-    if(!cashDenomination) {
+    if (!cashDenomination) {
       cashDenomination = {
         id: null,
         denominationTotalAmount: 0,
@@ -112,15 +112,15 @@ const getDenomination = async (
         qty100INR: 0,
         qty200INR: 0,
         qty500INR: 0,
-        qty2000INR: 0
-      }
+        qty2000INR: 0,
+      };
     }
 
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.FETCHED,
-      cashDenomination
+      cashDenomination,
     );
     res.status(CODE[200]).send(response);
   } catch (err) {
