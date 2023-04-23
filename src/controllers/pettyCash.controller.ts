@@ -592,6 +592,18 @@ const updateDocumentStatus = async (
       cashJournalId,
       fromDate,
       toDate,
+      cashDenomination: {
+        qty1INR,
+        qty2INR,
+        qty5INR,
+        qty10INR,
+        qty20INR,
+        qty50INR,
+        qty100INR,
+        qty200INR,
+        qty500INR,
+        qty2000INR,
+      }
     } = req.body;
 
     if (
@@ -601,6 +613,7 @@ const updateDocumentStatus = async (
         cashJournalId,
         fromDate,
         toDate,
+        req.body.cashDenomination
       )
     ) {
       const response = responseFormatter(
@@ -612,6 +625,41 @@ const updateDocumentStatus = async (
       return res.status(CODE[400]).send(response);
     }
 
+    const denominationTotalAmount = qty1INR * 1
+    + qty2INR * 2
+    + qty5INR * 5
+    + qty10INR * 10
+    + qty20INR * 20
+    + qty50INR * 50
+    + qty100INR * 100
+    + qty200INR * 200
+    + qty500INR * 500
+    + qty2000INR * 2000;
+
+    let denominationBody: any = {
+      plantId: req.session.activePlantId,
+      cashJournalId,
+      denominationTotalAmount,
+      qty1INR,
+      qty2INR,
+      qty5INR,
+      qty10INR,
+      qty20INR,
+      qty50INR,
+      qty100INR,
+      qty200INR,
+      qty500INR,
+      qty2000INR,
+      createdBy: req.user.id,
+      updatedBy: req.user.id,
+    };
+
+    Object.assign(
+      denominationBody,
+      denominationId ? { id: denominationId } : null
+    );
+
+    await CashDenomination.upsert(denominationBody);
     const totalUpdateAmount = await getTotalUpdateAmount(transactionIds);
     const closingBalanceAmount = await getClosingBalance(req);
     const denominationData = await CashDenomination.findOne({
@@ -667,6 +715,7 @@ const validateRequestBody = (
   cashJournalId: string,
   fromDate: any,
   toDate: any,
+  cashDenomination: any
 ) => (
   Array.isArray(transactionIds)
     && transactionIds.length
@@ -674,6 +723,7 @@ const validateRequestBody = (
     && cashJournalId
     && fromDate
     && toDate
+    && cashDenomination
 );
 
 /**
