@@ -33,21 +33,6 @@ const GlAccount = sequelize.define<GlAccountModel>('gl_account', {
       key: 'id',
     },
   },
-  venderGl: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false,
-    defaultValue: false,
-  },
-  customerGl: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false,
-    defaultValue: false,
-  },
-  houseBankMandatory: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false,
-    defaultValue: false,
-  },
   createdBy: {
     allowNull: true,
     type: DataTypes.STRING(16),

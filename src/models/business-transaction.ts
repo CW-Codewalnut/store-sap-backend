@@ -32,20 +32,20 @@ const BusinessTransaction = sequelize.define<BusinessTransactionModel>(
       type: DataTypes.STRING(16),
       allowNull: false,
     },
-    vendorMandatory: {
-      type: DataTypes.BOOLEAN,
+    vendorField: {
+      type: DataTypes.ENUM('Required', 'Disabled', 'Optional'),
       allowNull: false,
-      defaultValue: false,
+      defaultValue: 'Optional',
     },
-    customerMandatory: {
-      type: DataTypes.BOOLEAN,
+    customerField: {
+      type: DataTypes.ENUM('Required', 'Disabled', 'Optional'),
       allowNull: false,
-      defaultValue: false,
+      defaultValue: 'Optional',
     },
-    isExpenses: {
-      type: DataTypes.BOOLEAN,
+    houseBankField: {
+      type: DataTypes.ENUM('Required', 'Disabled', 'Optional'),
       allowNull: false,
-      defaultValue: false,
+      defaultValue: 'Optional',
     },
     createdBy: {
       allowNull: true,
