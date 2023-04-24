@@ -69,7 +69,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     }
 
     if (!session.isAllowedNewTransaction) {
-      const today = dateFormat(new Date().toLocaleString(), '-');
+      const today = dateFormat(new Date(), '-');
       const foundSavedTransaction = await checkDocumentStatusSavedExist(
         cashJournalId,
         today,
@@ -670,7 +670,7 @@ const updateDocumentStatus = async (
       transactionIds,
     );
 
-    const today = dateFormat(new Date().toLocaleString(), '-');
+    const today = dateFormat(new Date(), '-');
     const previousDayTransactionIds = await getPreviousDayTransactionIds(
       transactionIds,
       today,
