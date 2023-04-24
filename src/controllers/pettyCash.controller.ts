@@ -659,7 +659,9 @@ const updateDocumentStatus = async (
       denominationId ? { id: denominationId } : null,
     );
 
-    const [instance] = await CashDenomination.upsert(denominationBody);
+    const [cashDenominationData] = await CashDenomination.upsert(
+      denominationBody,
+    );
     const totalUpdateAmount = await getTotalUpdateAmount(transactionIds);
     const closingBalanceAmount = await getClosingBalance(req);
     const finalClosingBalance = await calculateFinalClosingBalance(
@@ -674,7 +676,10 @@ const updateDocumentStatus = async (
       today,
     );
 
-    if (instance && finalClosingBalance === instance.denominationTotalAmount) {
+    if (
+      cashDenominationData
+      && finalClosingBalance === cashDenominationData.denominationTotalAmount
+    ) {
       updateTransactions(
         transactionIds,
         previousDayTransactionIds,
