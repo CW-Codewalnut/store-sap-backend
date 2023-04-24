@@ -603,7 +603,7 @@ const updateDocumentStatus = async (
         qty200INR,
         qty500INR,
         qty2000INR,
-      }
+      },
     } = req.body;
 
     if (
@@ -613,7 +613,7 @@ const updateDocumentStatus = async (
         cashJournalId,
         fromDate,
         toDate,
-        req.body.cashDenomination
+        req.body.cashDenomination,
       )
     ) {
       const response = responseFormatter(
@@ -626,17 +626,17 @@ const updateDocumentStatus = async (
     }
 
     const denominationTotalAmount = qty1INR * 1
-    + qty2INR * 2
-    + qty5INR * 5
-    + qty10INR * 10
-    + qty20INR * 20
-    + qty50INR * 50
-    + qty100INR * 100
-    + qty200INR * 200
-    + qty500INR * 500
-    + qty2000INR * 2000;
+      + qty2INR * 2
+      + qty5INR * 5
+      + qty10INR * 10
+      + qty20INR * 20
+      + qty50INR * 50
+      + qty100INR * 100
+      + qty200INR * 200
+      + qty500INR * 500
+      + qty2000INR * 2000;
 
-    let denominationBody: any = {
+    const denominationBody: any = {
       plantId: req.session.activePlantId,
       cashJournalId,
       denominationTotalAmount,
@@ -656,15 +656,12 @@ const updateDocumentStatus = async (
 
     Object.assign(
       denominationBody,
-      denominationId ? { id: denominationId } : null
+      denominationId ? { id: denominationId } : null,
     );
 
-    await CashDenomination.upsert(denominationBody);
+    const [instance] = await CashDenomination.upsert(denominationBody);
     const totalUpdateAmount = await getTotalUpdateAmount(transactionIds);
     const closingBalanceAmount = await getClosingBalance(req);
-    const denominationData = await CashDenomination.findOne({
-      where: { id: denominationId },
-    });
     const finalClosingBalance = await calculateFinalClosingBalance(
       closingBalanceAmount,
       totalUpdateAmount,
@@ -677,10 +674,7 @@ const updateDocumentStatus = async (
       today,
     );
 
-    if (
-      denominationData
-      && finalClosingBalance === denominationData.denominationTotalAmount
-    ) {
+    if (instance && finalClosingBalance === instance.denominationTotalAmount) {
       updateTransactions(
         transactionIds,
         previousDayTransactionIds,
@@ -715,16 +709,14 @@ const validateRequestBody = (
   cashJournalId: string,
   fromDate: any,
   toDate: any,
-  cashDenomination: any
-) => (
-  Array.isArray(transactionIds)
-    && transactionIds.length
-    && documentStatus
-    && cashJournalId
-    && fromDate
-    && toDate
-    && cashDenomination
-);
+  cashDenomination: any,
+) => Array.isArray(transactionIds)
+  && transactionIds.length
+  && documentStatus
+  && cashJournalId
+  && fromDate
+  && toDate
+  && cashDenomination;
 
 /**
  * This function computes the total amount for a set of transaction IDs provided as input

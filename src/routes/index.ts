@@ -216,12 +216,6 @@ const routesMiddleware = (app: Application) => {
     CashJournalController.getCashJournalByPlantId,
   );
 
-  app.post(
-    '/cash-denomination',
-    checkAuthenticated,
-    CashDenominationController.createOrUpdateDenomination,
-  );
-
   app.get(
     '/cash-denomination/:cashJournalId',
     checkAuthenticated,
