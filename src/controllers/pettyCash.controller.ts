@@ -650,9 +650,9 @@ const updateDocumentStatus = async (
       res.status(CODE[400]).send(response);
     }
   } catch (err) {
-    next(err);
+    throw err;
   }
-};
+}
 
 function saveCashDenomination(req: Request) {
   try {
