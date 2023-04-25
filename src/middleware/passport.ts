@@ -1,18 +1,29 @@
 import passport from 'passport';
 import md5 from 'md5';
 import { Strategy as LocalStrategy } from 'passport-local';
+import { Op } from 'sequelize';
 import User from '../models/user';
+import MESSAGE from '../config/message.json';
 
 const authenticateUser = async (
-  email: string,
+  employeeCode: string,
   password: string,
   done: Function,
 ) => {
   try {
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({
+      where: {
+        [Op.and]: [
+          { employeeCode },
+          { accountStatus: true },
+          { password: { [Op.not]: null } },
+        ],
+      },
+    });
+
     if (user === null) {
       return done(null, false, {
-        message: 'Invalid credentials!',
+        message: MESSAGE.INVALID_CREDENTIAL,
       });
     }
 
@@ -21,7 +32,7 @@ const authenticateUser = async (
 
     if (passDb !== passUser) {
       return done(null, false, {
-        message: 'Invalid credentials!',
+        message: MESSAGE.INVALID_CREDENTIAL,
       });
     }
 
@@ -33,7 +44,7 @@ const authenticateUser = async (
 
 const strategy = new LocalStrategy(
   {
-    usernameField: 'email',
+    usernameField: 'employeeCode',
     passwordField: 'password',
   },
   authenticateUser,
@@ -48,7 +59,7 @@ const passportMiddleware = () => {
 
   passport.deserializeUser(async (userId: string, done: Function) => {
     try {
-      const user = await User.findByPk(userId);
+      const user = await User.findOne({ where: { id: userId } });
       done(null, user);
     } catch (err) {
       done(err);

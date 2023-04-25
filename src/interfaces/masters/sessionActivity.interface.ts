@@ -5,17 +5,17 @@ interface SessionActivityModel
     InferAttributes<SessionActivityModel>,
     InferCreationAttributes<SessionActivityModel>
   > {
-  id: string;
+  id?: string;
   sessionId: string;
-  userId: number;
-  loginTime: Date;
-  logoutTime: Date;
+  userId: string;
+  loginTime?: Date;
+  logoutTime?: Date;
   isExpired: boolean;
   device: string;
   ip: string;
   lat: string;
   long: string;
-  updatedAt: Date;
+  updatedAt?: Date;
 }
 
 export default SessionActivityModel;

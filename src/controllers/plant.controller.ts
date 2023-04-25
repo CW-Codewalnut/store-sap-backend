@@ -16,7 +16,7 @@ const findAll = async (req: Request, res: Response, next: NextFunction) => {
       plants,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -46,7 +46,7 @@ const getPlantsByUserId = async (
       userPlants,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };

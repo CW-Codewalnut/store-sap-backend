@@ -15,7 +15,7 @@ const findAll = async (req: Request, res: Response, next: NextFunction) => {
       vendors,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -68,7 +68,7 @@ const findWithPaginate = async (
       vendors,
     );
     res.status(200).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };

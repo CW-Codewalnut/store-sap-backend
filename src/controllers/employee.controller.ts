@@ -4,6 +4,7 @@ import Employee from '../models/employee';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import Plant from '../models/plant';
 import MESSAGE from '../config/message.json';
+import User from '../models/user';
 
 const getEmployeesByPlantId = async (
   req: Request,
@@ -22,7 +23,7 @@ const getEmployeesByPlantId = async (
       employees,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -69,9 +70,48 @@ const findWithPaginate = async (
       employees,
     );
     res.status(200).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
 
-export default { getEmployeesByPlantId, findWithPaginate };
+const findAll = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { search } = req.query;
+    const query = [];
+
+    if (search) {
+      const condition = {
+        [Op.or]: {
+          employeeCode: { [Op.like]: `%${search}%` },
+          employeeName: { [Op.like]: `%${search}%` },
+        },
+      };
+      query.push(condition);
+    }
+
+    const users = await User.findAll({ attributes: ['employeeCode'], raw: true });
+
+    if (Array.isArray(users) && users.length) {
+      const usersEmployeeCodes = users.map((user) => user.employeeCode);
+      query.push({ employeeCode: { [Op.notIn]: usersEmployeeCodes } });
+    }
+
+    const employees = await Employee.findAll({
+      where: { [Op.and]: query },
+      order: [['employeeName', 'ASC']],
+    });
+
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      MESSAGE.FETCHED,
+      employees,
+    );
+    res.status(200).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export default { getEmployeesByPlantId, findWithPaginate, findAll };

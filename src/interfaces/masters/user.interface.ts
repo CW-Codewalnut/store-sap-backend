@@ -6,10 +6,11 @@ interface UserModel
     InferCreationAttributes<UserModel>
   > {
   id: string;
-  name: string;
+  employeeCode: string;
   email: string;
-  password: string;
+  password: string | any;
   roleId: number;
+  accountStatus: boolean;
   createdBy: string;
   updatedBy: string;
   createdAt: Date;
@@ -17,4 +18,9 @@ interface UserModel
   deletedAt: Date;
 }
 
+interface DecodedTokenData {
+  userId: string;
+}
+
 export default UserModel;
+export { DecodedTokenData };

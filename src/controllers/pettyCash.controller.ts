@@ -19,20 +19,46 @@ import HouseBank from '../models/house-bank';
 import { dateFormat, convertFromDate, convertToDate } from '../utils/helper';
 import MESSAGE from '../config/message.json';
 import Preference from '../models/preferences';
-import PettyCashModel from '../interfaces/masters/pettyCash.interface';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let pettyCashBody = req.body;
 
-    if (!pettyCashBody || !pettyCashBody.amount) {
+    pettyCashBody.amount = +req.body.amount;
+    pettyCashBody.netAmount = +req.body.netAmount;
+    pettyCashBody.taxBaseAmount = +req.body.taxBaseAmount;
+
+    if (
+      !pettyCashBody
+      || !pettyCashBody.amount
+      || !req.body.cashJournalId
+      || !req.body.fromDate
+      || !req.body.toDate
+      || !pettyCashBody.pettyCashType
+    ) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.EMPTY_CONTENT,
+        MESSAGE.BAD_REQUEST,
         null,
       );
       return res.status(CODE[400]).send(response);
+    }
+
+    if (pettyCashBody.pettyCashType === 'Payment') {
+      const closingBalance = await getClosingBalance(req, next);
+      if (
+        closingBalance !== undefined
+        && closingBalance <= pettyCashBody.amount
+      ) {
+        const response = responseFormatter(
+          CODE[400],
+          SUCCESS.FALSE,
+          MESSAGE.AMOUNT_LESS_THAN_CLOSING_BAL,
+          null,
+        );
+        return res.status(CODE[400]).send(response);
+      }
     }
 
     // Check for valid tax code
@@ -41,7 +67,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.INVALID_TAX_CODE,
+        MESSAGE.TAX_CODE_INVALID,
         null,
       );
       return res.status(CODE[400]).send(response);
@@ -74,7 +100,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       pettyCashResult,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -140,8 +166,7 @@ const getPettyCashData = (
     const { search } = req.query;
     const offset = page * pageSize - pageSize;
     const limit = pageSize;
-    const { fromDate } = req.body;
-    const { toDate } = req.body;
+    const { fromDate, toDate, cashJournalId } = req.body;
     const query = [];
 
     if (fromDate && toDate) {
@@ -162,6 +187,7 @@ const getPettyCashData = (
 
     query.push({ pettyCashType });
     query.push({ plantId: req.session.activePlantId });
+    query.push({ cashJournalId });
 
     return PettyCash.findAndCountAll({
       include: [
@@ -209,7 +235,7 @@ const getPettyCashData = (
       offset,
       limit,
     });
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -220,6 +246,22 @@ const findPaymentsWithPaginate = async (
   next: NextFunction,
 ) => {
   try {
+    if (
+      !req.body
+      || !req.query
+      || !req.query.page
+      || !req.query.pageSize
+      || !req.body.cashJournalId
+    ) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      res.status(400).send(response);
+    }
+
     const cashPayment = await getPettyCashData(req, next, 'Payment');
 
     const response = responseFormatter(
@@ -229,7 +271,7 @@ const findPaymentsWithPaginate = async (
       cashPayment,
     );
     res.status(200).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -240,6 +282,22 @@ const findReceiptsWithPaginate = async (
   next: NextFunction,
 ) => {
   try {
+    if (
+      !req.body
+      || !req.query
+      || !req.query.page
+      || !req.query.pageSize
+      || !req.body.cashJournalId
+    ) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      res.status(400).send(response);
+    }
+
     const cashReceipt = await getPettyCashData(req, next, 'Receipt');
 
     const response = responseFormatter(
@@ -249,7 +307,7 @@ const findReceiptsWithPaginate = async (
       cashReceipt,
     );
     res.status(200).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -265,78 +323,91 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { transactionId } = req.params;
     let pettyCashBody = req.body;
+    const allowedKeys = ['assignment', 'text', 'refDocNo']
+    const isAllowedKeysExist = objectIncludesKeys(pettyCashBody, allowedKeys);
 
-    if (!transactionId || !pettyCashBody) {
+    if (!transactionId || !pettyCashBody || !isAllowedKeysExist) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.EMPTY_CONTENT,
+        MESSAGE.BAD_REQUEST,
         null,
       );
       return res.status(CODE[400]).send(response);
     }
 
-    // Only 'Saved' status should be allow to update
-    const transactionData = await PettyCash.findOne({
-      where: { id: transactionId, documentStatus: 'Saved' },
-    });
+    const transactionData = await PettyCash.findByPk(transactionId);
 
-    if (!transactionData) {
-      const response = responseFormatter(
-        CODE[400],
-        SUCCESS.FALSE,
-        MESSAGE.UPDATE_NOT_ALLOWED,
-        null,
-      );
-      return res.status(CODE[400]).send(response);
+    if (transactionData && transactionData.documentStatus === 'Updated') {
+      const allowedUpdatedData = {
+        assignment: pettyCashBody.assignment,
+        text: pettyCashBody.text,
+        refDocNo: pettyCashBody.refDocNo,
+        updatedBy: req.user.id,
+        updateAt: new Date(),
+      };
+
+      const response = await updatePettyCash(allowedUpdatedData, transactionId);
+      res.status(CODE[200]).send(response);
+    } else {
+      // Check for valid tax code
+      const isValidTaxCode = await checkTaxCode(pettyCashBody);
+      if (!isValidTaxCode) {
+        const response = responseFormatter(
+          CODE[400],
+          SUCCESS.FALSE,
+          MESSAGE.TAX_CODE_INVALID,
+          null,
+        );
+        return res.status(CODE[400]).send(response);
+      }
+
+      // Check valid amount
+      const isValidAmount = await checkValidAmount(+pettyCashBody.amount);
+
+      if (!isValidAmount) {
+        const response = responseFormatter(
+          CODE[400],
+          SUCCESS.FALSE,
+          MESSAGE.PETTY_CASH_LIMIT,
+          null,
+        );
+        return res.status(CODE[400]).send(response);
+      }
+
+      pettyCashBody = convertDatesIntoIso(pettyCashBody);
+
+      pettyCashBody.updateAt = new Date();
+      pettyCashBody.updatedBy = req.user.id;
+
+      const response = await updatePettyCash(pettyCashBody, transactionId);
+      res.status(CODE[200]).send(response);
     }
-
-    // Check for valid tax code
-    const isValidTaxCode = await checkTaxCode(pettyCashBody);
-    if (!isValidTaxCode) {
-      const response = responseFormatter(
-        CODE[400],
-        SUCCESS.FALSE,
-        MESSAGE.INVALID_TAX_CODE,
-        null,
-      );
-      return res.status(CODE[400]).send(response);
-    }
-
-    // Check valid amount
-    const isValidAmount = await checkValidAmount(+pettyCashBody.amount);
-
-    if (!isValidAmount) {
-      const response = responseFormatter(
-        CODE[400],
-        SUCCESS.FALSE,
-        MESSAGE.PETTY_CASH_LIMIT,
-        null,
-      );
-      return res.status(CODE[400]).send(response);
-    }
-
-    pettyCashBody = convertDatesIntoIso(pettyCashBody);
-
-    pettyCashBody.updateAt = new Date();
-    pettyCashBody.updatedBy = req.user.id;
-
-    await PettyCash.update(pettyCashBody, { where: { id: transactionId } });
-
-    const pettyCashResult = await PettyCash.findOne({
-      where: { id: transactionId },
-    });
-
-    const response = responseFormatter(
-      CODE[200],
-      SUCCESS.TRUE,
-      MESSAGE.DOCUMENT_UPDATED,
-      pettyCashResult,
-    );
-    res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
+};
+
+const objectIncludesKeys = (pettyCashData: any, allowedKeys: Array<string>) => {
+  const pettyCashKeys = Object.keys(pettyCashData);
+  return allowedKeys.every((allowedKey) => pettyCashKeys.includes(allowedKey));
+};
+
+const updatePettyCash = async (pettyCashData: any, transactionId: string) => {
+  await PettyCash.update(pettyCashData, {
+    where: { id: transactionId },
+  });
+
+  const pettyCashResult = await PettyCash.findOne({
+    where: { id: transactionId },
+  });
+
+  return responseFormatter(
+    CODE[200],
+    SUCCESS.TRUE,
+    MESSAGE.DOCUMENT_UPDATED,
+    pettyCashResult,
+  );
 };
 
 /**
@@ -376,7 +447,7 @@ const updateDocumentStatus = async (
       null,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -442,7 +513,7 @@ const deleteTransactions = async (
       null,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -457,6 +528,26 @@ const exportPettyCash = async (
     const { toDate } = req.body;
     const startDate = convertFromDate(fromDate);
     const endDate = convertToDate(toDate);
+
+    const checkSavedStatus = await PettyCash.findOne({
+      where: {
+        [Op.and]: [
+          { documentStatus: { [Op.eq]: 'Saved' } },
+          { plantId: { [Op.eq]: req.session.activePlantId } },
+        ],
+      },
+    });
+
+    if (checkSavedStatus) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.DOCUMENT_EXPORT_ERROR,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
     const pettyCashes = await PettyCash.findAll({
       include: [
         {
@@ -583,7 +674,7 @@ const exportPettyCash = async (
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
     res.send(buffer);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -601,7 +692,7 @@ const getBalanceCalculation = async (
   next: NextFunction,
 ) => {
   try {
-    const { fromDate, toDate } = req.body;
+    const { fromDate, toDate, cashJournalId } = req.body;
     if (!req.body || !fromDate || !toDate) {
       const response = responseFormatter(
         CODE[400],
@@ -613,14 +704,20 @@ const getBalanceCalculation = async (
     }
 
     if (req.session.activePlantId) {
-      const openingBalance = (await getOpeningBalance(req.session.activePlantId, fromDate)) || 0;
+      const openingBalance = (await getOpeningBalance(
+        req.session.activePlantId,
+        cashJournalId,
+        fromDate,
+      )) || 0;
       const totalCashReceipts = (await getTotalCashReceipts(
         req.session.activePlantId,
+        cashJournalId,
         fromDate,
         toDate,
       )) || 0;
       const totalCashPayments = (await getTotalCashPayments(
         req.session.activePlantId,
+        cashJournalId,
         fromDate,
         toDate,
       )) || 0;
@@ -629,10 +726,10 @@ const getBalanceCalculation = async (
       ).abs();
 
       const balanceCalculations = {
-        openingBalance,
-        totalCashReceipts,
-        totalCashPayments,
-        closingBalance,
+        openingBalance: new BigNumber(openingBalance).abs().toFixed(2),
+        totalCashReceipts: new BigNumber(totalCashReceipts).toFixed(2),
+        totalCashPayments: new BigNumber(totalCashPayments).abs().toFixed(2),
+        closingBalance: new BigNumber(closingBalance).toFixed(2),
       };
 
       const response = responseFormatter(
@@ -651,12 +748,16 @@ const getBalanceCalculation = async (
       );
       res.status(200).send(response);
     }
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
 
-const getOpeningBalance = async (plantId: string, fromDate: string) => {
+const getOpeningBalance = async (
+  plantId: string,
+  cashJournalId: string,
+  fromDate: string,
+) => {
   const startDate = convertFromDate(fromDate);
   let totalCashPayment = await PettyCash.sum('amount', {
     where: {
@@ -670,8 +771,16 @@ const getOpeningBalance = async (plantId: string, fromDate: string) => {
           plantId,
         },
         {
+          cashJournalId,
+        },
+        {
           pettyCashType: {
             [Op.eq]: 'Payment',
+          },
+        },
+        {
+          documentStatus: {
+            [Op.ne]: 'Saved',
           },
         },
       ],
@@ -683,7 +792,7 @@ const getOpeningBalance = async (plantId: string, fromDate: string) => {
       [Op.and]: [
         {
           createdAt: {
-            [Op.gt]: startDate,
+            [Op.lt]: startDate,
           },
         },
         {
@@ -694,6 +803,11 @@ const getOpeningBalance = async (plantId: string, fromDate: string) => {
             [Op.eq]: 'Receipt',
           },
         },
+        {
+          documentStatus: {
+            [Op.ne]: 'Saved',
+          },
+        },
       ],
     },
   });
@@ -701,24 +815,23 @@ const getOpeningBalance = async (plantId: string, fromDate: string) => {
   totalCashReceipt = totalCashReceipt || 0;
   totalCashPayment = totalCashPayment || 0;
 
-  const openingBalance = +new BigNumber(
-    totalCashReceipt - totalCashPayment,
-  ).abs();
-
+  const openingBalance = +new BigNumber(totalCashReceipt - totalCashPayment);
   return openingBalance;
 };
 
 const getTotalCashPayments = (
   plantId: string,
+  cashJournalId: string,
   fromDate: string,
   toDate: string,
-) => getSumAmount(plantId, fromDate, toDate, 'Payment');
+) => getSumAmount(plantId, cashJournalId, fromDate, toDate, 'Payment');
 
 const getTotalCashReceipts = (
   plantId: string,
+  cashJournalId: string,
   fromDate: string,
   toDate: string,
-) => getSumAmount(plantId, fromDate, toDate, 'Receipt');
+) => getSumAmount(plantId, cashJournalId, fromDate, toDate, 'Receipt');
 
 /**
  *
@@ -730,6 +843,7 @@ const getTotalCashReceipts = (
  */
 const getSumAmount = (
   plantId: string,
+  cashJournalId: string,
   fromDate: string,
   toDate: string,
   pettyCashType: string,
@@ -752,6 +866,14 @@ const getSumAmount = (
         {
           plantId,
         },
+        {
+          cashJournalId,
+        },
+        {
+          documentStatus: {
+            [Op.ne]: 'Saved',
+          },
+        },
       ],
     },
   });
@@ -765,22 +887,14 @@ const transactionReverse = async (
   try {
     const { transactionId } = req.params;
 
-    if (!transactionId) {
-      const response = responseFormatter(
-        CODE[400],
-        SUCCESS.FALSE,
-        MESSAGE.EMPTY_CONTENT,
-        null,
-      );
-      return res.status(CODE[400]).send(response);
-    }
-
     const {
       id,
       createdBy,
       updatedBy,
       documentStatus,
       amount,
+      netAmount,
+      taxBaseAmount,
       reverseTransactionId,
       ...restPettyCashData
     }: any = await PettyCash.findOne({ where: { id: transactionId }, raw: true });
@@ -794,8 +908,7 @@ const transactionReverse = async (
       );
       return res.status(CODE[400]).send(response);
     }
-
-    if (restPettyCashData.documentStatus !== 'Updated') {
+    if (documentStatus !== 'Updated') {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -812,9 +925,18 @@ const transactionReverse = async (
         updatedBy: req.user.id,
         documentStatus: 'Updated Reversed',
         amount: +new BigNumber(+amount).negated(),
+        netAmount: +new BigNumber(+amount).negated(),
+        taxBaseAmount: +new BigNumber(+amount).negated(),
         ...restPettyCashData,
       };
+
       const pettyCashData = await PettyCash.create(pettyCash);
+
+      await PettyCash.update(
+        { documentStatus: 'Updated Reversed' },
+        { where: { id: transactionId } },
+      );
+
       const response = responseFormatter(
         CODE[201],
         SUCCESS.TRUE,
@@ -830,6 +952,39 @@ const transactionReverse = async (
       null,
     );
     return res.status(CODE[400]).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getClosingBalance = async (req: Request, next: NextFunction) => {
+  try {
+    const { cashJournalId } = req.body;
+    const { fromDate } = req.body;
+    const { toDate } = req.body;
+
+    if (req.session.activePlantId) {
+      const openingBalance = (await getOpeningBalance(
+        req.session.activePlantId,
+        cashJournalId,
+        fromDate,
+      )) || 0;
+      const totalCashReceipts = (await getTotalCashReceipts(
+        req.session.activePlantId,
+        cashJournalId,
+        fromDate,
+        toDate,
+      )) || 0;
+      const totalCashPayments = (await getTotalCashPayments(
+        req.session.activePlantId,
+        cashJournalId,
+        fromDate,
+        toDate,
+      )) || 0;
+      return +new BigNumber(
+        openingBalance + totalCashReceipts - totalCashPayments,
+      ).abs();
+    }
   } catch (err) {
     next(err);
   }

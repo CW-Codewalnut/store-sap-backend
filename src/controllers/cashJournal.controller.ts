@@ -1,16 +1,24 @@
 import { NextFunction, Request, Response } from 'express';
-import PaymentTerm from '../models/payment-term';
+import { Op } from 'sequelize';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import MESSAGE from '../config/message.json';
+import CashJournal from '../models/cash-journal';
 
-const findAll = async (req: Request, res: Response, next: NextFunction) => {
+const getCashJournalByPlantId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    const paymentTerms = await PaymentTerm.findAll();
+    const { plantId } = req.params;
+    const CashJournals = await CashJournal.findAll({
+      where: { plantId },
+    });
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.FETCHED,
-      paymentTerms,
+      CashJournals,
     );
     res.status(CODE[200]).send(response);
   } catch (err) {
@@ -18,4 +26,4 @@ const findAll = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export default { findAll };
+export default { getCashJournalByPlantId };

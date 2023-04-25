@@ -1,24 +1,33 @@
 import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
-import ModuleModel from '../interfaces/masters/module.interface';
+import CashJournalModel from '../interfaces/masters/cashJournal.interface';
 
-const Module = sequelize.define<ModuleModel>('module', {
+const CashJournal = sequelize.define<CashJournalModel>('cash_journal', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  name: {
+  cashJournalNo: {
     allowNull: false,
     unique: true,
-    type: DataTypes.STRING,
+    type: DataTypes.BIGINT,
   },
-  slug: {
+  name: {
+    type: DataTypes.STRING(100),
     allowNull: false,
     unique: true,
-    type: DataTypes.STRING,
+  },
+  currency: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+    unique: false,
+  },
+  plantId: {
+    type: DataTypes.STRING(16),
+    allowNull: false,
   },
   createdBy: {
     allowNull: true,
@@ -38,4 +47,4 @@ const Module = sequelize.define<ModuleModel>('module', {
   },
 });
 
-export default Module;
+export default CashJournal;

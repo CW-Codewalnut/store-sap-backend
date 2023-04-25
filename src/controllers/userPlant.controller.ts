@@ -45,7 +45,7 @@ const updateUserActivePlant = async (
       null,
     );
     return res.status(CODE[400]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };

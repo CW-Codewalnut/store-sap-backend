@@ -19,12 +19,19 @@ import PettyCashController from '../controllers/pettyCash.controller';
 import UserPlantController from '../controllers/userPlant.controller';
 
 import { checkAuthenticated, verifyRouteAccess } from '../middleware/auth';
+import CashJournalController from '../controllers/cashJournal.controller';
+import PlantClosingDenominationController from '../controllers/plantClosingDenomination.controller';
 
 const routesMiddleware = (app: Application) => {
   // Auth api
   app.post('/auth', UserController.auth);
   app.get('/route/verify', verifyRouteAccess);
   app.get('/logout', checkAuthenticated, UserController.logout);
+  app.post('/user/set-password', UserController.setUserPassword);
+  app.post(
+    '/employee/verify-employee-code',
+    UserController.verifyAndSendPasswordResetLink,
+  );
 
   // Masters api
   app.get(
@@ -37,6 +44,17 @@ const routesMiddleware = (app: Application) => {
 
   app.get('/users/:id', checkAuthenticated, UserController.findById);
   app.patch('/users/:id', checkAuthenticated, UserController.update);
+  app.get(
+    '/users/change-account-status/:userId',
+    checkAuthenticated,
+    UserController.changeAccountStatus,
+  );
+
+  app.get(
+    '/user/password-link-regenerate/:userId',
+    checkAuthenticated,
+    UserController.setUserPasswordLinkReGenerate,
+  );
 
   app.get('/roles', checkAuthenticated, RoleController.findAll);
   app.post('/role', checkAuthenticated, RoleController.create);
@@ -108,10 +126,10 @@ const routesMiddleware = (app: Application) => {
     EmployeeController.getEmployeesByPlantId,
   );
 
-  app.get(
-    '/gl-accounts/:businessTransactionId',
+  app.post(
+    '/gl-accounts',
     checkAuthenticated,
-    GlAccountController.getGlAccountsByBusinessTransactionId,
+    GlAccountController.getGlAccounts,
   );
 
   app.get('/tax-codes', checkAuthenticated, TaxCodeController.findAll);
@@ -129,6 +147,8 @@ const routesMiddleware = (app: Application) => {
     checkAuthenticated,
     EmployeeController.findWithPaginate,
   );
+
+  app.get('/employees', checkAuthenticated, EmployeeController.findAll);
 
   app.get(
     '/vendors/paginate',
@@ -186,6 +206,18 @@ const routesMiddleware = (app: Application) => {
     '/petty-cash/transaction-reverse/:transactionId',
     checkAuthenticated,
     PettyCashController.transactionReverse,
+  );
+
+  app.get(
+    '/cash-journal/:plantId',
+    checkAuthenticated,
+    CashJournalController.getCashJournalByPlantId,
+  );
+
+  app.post(
+    '/close-day',
+    checkAuthenticated,
+    PlantClosingDenominationController.storeDenomination,
   );
 };
 

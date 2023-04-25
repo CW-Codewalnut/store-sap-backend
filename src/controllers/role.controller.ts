@@ -1,12 +1,14 @@
 import { NextFunction, Request, Response } from 'express';
 import groupBy from 'lodash.groupby';
-import { Op } from 'sequelize';
+import sequelize, { Op } from 'sequelize';
 import Role from '../models/role';
 import Permission from '../models/permission';
 import RolePermission from '../models/role-permission';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import User from '../models/user';
 import MESSAGE from '../config/message.json';
+import RolePermissionModel from '../interfaces/masters/rolePermission.interface';
+import Employee from '../models/employee';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -19,6 +21,19 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       );
       return res.status(CODE[400]).send(response);
     }
+
+    const doesRoleExist = await Role.findOne({ where: { name: req.body.name } });
+
+    if (doesRoleExist) {
+      const response = responseFormatter(
+        CODE[422],
+        SUCCESS.FALSE,
+        MESSAGE.ROLE_UNIQUE,
+        null,
+      );
+      return res.status(CODE[422]).send(response);
+    }
+
     req.body.createdBy = req.user.id;
     req.body.updatedBy = req.user.id;
     const role = await Role.create(req.body);
@@ -52,7 +67,7 @@ const findAll = async (req: Request, res: Response, next: NextFunction) => {
       data,
     );
     res.status(200).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -130,7 +145,7 @@ const findRolePermissions = async (
     const groupedPermission = groupBy(permissions, 'groupName');
     const keys = Object.keys(groupedPermission);
     const permissionIds = rolePermissions.map(
-      (rolePermission: any) => rolePermission.permissionId,
+      (rolePermission: RolePermissionModel) => rolePermission.permissionId,
     );
     const newData = {
       rolePermissions,
@@ -147,7 +162,7 @@ const findRolePermissions = async (
       newData,
     );
     res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
@@ -220,8 +235,16 @@ const updateRolePermissions = async (
             model: Role,
             attributes: ['name'],
           },
+          {
+            model: Employee,
+            attributes: [],
+          },
         ],
-        attributes: ['name', 'email'],
+        attributes: [
+          [sequelize.col('employee.employeeName'), 'name'],
+          'employeeCode',
+          'email',
+        ],
         where: { id: req.user.id },
       });
 
@@ -244,7 +267,7 @@ const updateRolePermissions = async (
       );
     }
     return res.status(CODE[200]).send(response);
-  } catch (err: any) {
+  } catch (err) {
     next(err);
   }
 };
