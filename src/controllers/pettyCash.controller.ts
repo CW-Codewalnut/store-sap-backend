@@ -757,25 +757,41 @@ const calculateFinalClosingBalance = async (
   totalUpdateAmount: number,
   transactionIds: Array<string>,
 ) => {
-  const pettyCashData = await PettyCash.findOne({
-    attributes: ['pettyCashType'],
-    where: { id: transactionIds[0] },
-  });
-  let finalClosingBalance;
+  try {
+    const pettyCashData = await PettyCash.findOne({
+      attributes: ['pettyCashType', 'documentStatus'],
+      where: { id: transactionIds[0] },
+      raw: true,
+    });
+    let finalClosingBalance;
 
-  if (closingBalanceAmount != null || closingBalanceAmount != undefined) {
-    if (pettyCashData && pettyCashData.pettyCashType === 'Payment') {
-      finalClosingBalance = +new BigNumber(closingBalanceAmount).minus(
-        totalUpdateAmount,
-      );
-    } else {
-      finalClosingBalance = +new BigNumber(closingBalanceAmount).plus(
-        totalUpdateAmount,
-      );
+    if (pettyCashData) {
+      if (closingBalanceAmount != null || closingBalanceAmount != undefined) {
+        if (pettyCashData.pettyCashType === 'Payment') {
+          if (pettyCashData.documentStatus === 'Saved') {
+            finalClosingBalance = +new BigNumber(closingBalanceAmount).minus(
+              totalUpdateAmount,
+            );
+          } else if (pettyCashData.documentStatus === 'Updated') {
+            finalClosingBalance = +new BigNumber(closingBalanceAmount).plus(
+              totalUpdateAmount,
+            );
+          }
+        } else if (pettyCashData.documentStatus === 'Saved') {
+          finalClosingBalance = +new BigNumber(closingBalanceAmount).plus(
+            totalUpdateAmount,
+          );
+        } else if (pettyCashData.documentStatus === 'Updated') {
+          finalClosingBalance = +new BigNumber(closingBalanceAmount).minus(
+            totalUpdateAmount,
+          );
+        }
+      }
     }
+    return finalClosingBalance;
+  } catch (err) {
+    throw err;
   }
-
-  return finalClosingBalance;
 };
 
 /**
@@ -1315,6 +1331,32 @@ const transactionReverse = async (
     }
 
     const [cashDenominationData] = await saveCashDenomination(req);
+    const totalUpdateAmount = await getTotalUpdateAmount(transactionIds);
+    const closingBalanceAmount = await getClosingBalance(req);
+
+    const finalClosingBalance = await calculateFinalClosingBalance(
+      closingBalanceAmount,
+      totalUpdateAmount,
+      transactionIds,
+    );
+
+    console.log(
+      'closingBalanceAmount=> ',
+      finalClosingBalance,
+      cashDenominationData.denominationTotalAmount,
+    );
+    if (
+      cashDenominationData
+      && finalClosingBalance !== cashDenominationData.denominationTotalAmount
+    ) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.DENOMINATION_NOT_MATCH,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
 
     const updatedTransactionIds = [];
 
