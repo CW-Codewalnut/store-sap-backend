@@ -1205,6 +1205,9 @@ const getOpeningBalance = async (
           plantId,
         },
         {
+          cashJournalId,
+        },
+        {
           pettyCashType: {
             [Op.eq]: 'Receipt',
           },
