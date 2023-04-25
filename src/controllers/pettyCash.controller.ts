@@ -586,24 +586,7 @@ const updateDocumentStatus = async (
 ) => {
   try {
     const {
-      transactionIds,
-      documentStatus,
-      denominationId,
-      cashJournalId,
-      fromDate,
-      toDate,
-      cashDenomination: {
-        qty1INR,
-        qty2INR,
-        qty5INR,
-        qty10INR,
-        qty20INR,
-        qty50INR,
-        qty100INR,
-        qty200INR,
-        qty500INR,
-        qty2000INR,
-      },
+      transactionIds, documentStatus, cashJournalId, fromDate, toDate,
     } = req.body;
 
     if (
@@ -625,43 +608,7 @@ const updateDocumentStatus = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const denominationTotalAmount = qty1INR * 1
-      + qty2INR * 2
-      + qty5INR * 5
-      + qty10INR * 10
-      + qty20INR * 20
-      + qty50INR * 50
-      + qty100INR * 100
-      + qty200INR * 200
-      + qty500INR * 500
-      + qty2000INR * 2000;
-
-    const denominationBody: any = {
-      plantId: req.session.activePlantId,
-      cashJournalId,
-      denominationTotalAmount,
-      qty1INR,
-      qty2INR,
-      qty5INR,
-      qty10INR,
-      qty20INR,
-      qty50INR,
-      qty100INR,
-      qty200INR,
-      qty500INR,
-      qty2000INR,
-      createdBy: req.user.id,
-      updatedBy: req.user.id,
-    };
-
-    Object.assign(
-      denominationBody,
-      denominationId ? { id: denominationId } : null,
-    );
-
-    const [cashDenominationData] = await CashDenomination.upsert(
-      denominationBody,
-    );
+    const [cashDenominationData] = await saveCashDenomination(req);
     const totalUpdateAmount = await getTotalUpdateAmount(transactionIds);
     const closingBalanceAmount = await getClosingBalance(req);
     const finalClosingBalance = await calculateFinalClosingBalance(
@@ -706,6 +653,63 @@ const updateDocumentStatus = async (
     next(err);
   }
 };
+
+function saveCashDenomination(req: Request) {
+  try {
+    const {
+      denominationId,
+      cashJournalId,
+      cashDenomination: {
+        qty1INR,
+        qty2INR,
+        qty5INR,
+        qty10INR,
+        qty20INR,
+        qty50INR,
+        qty100INR,
+        qty200INR,
+        qty500INR,
+        qty2000INR,
+      },
+    } = req.body;
+
+    const denominationTotalAmount = qty1INR * 1
+      + qty2INR * 2
+      + qty5INR * 5
+      + qty10INR * 10
+      + qty20INR * 20
+      + qty50INR * 50
+      + qty100INR * 100
+      + qty200INR * 200
+      + qty500INR * 500
+      + qty2000INR * 2000;
+
+    const denominationBody: any = {
+      plantId: req.session.activePlantId,
+      cashJournalId,
+      denominationTotalAmount,
+      qty1INR,
+      qty2INR,
+      qty5INR,
+      qty10INR,
+      qty20INR,
+      qty50INR,
+      qty100INR,
+      qty200INR,
+      qty500INR,
+      qty2000INR,
+      createdBy: req.user.id,
+      updatedBy: req.user.id,
+    };
+
+    if (denominationId) {
+      Object.assign(denominationBody, { id: denominationId });
+    }
+    return CashDenomination.upsert(denominationBody);
+  } catch (err) {
+    throw err;
+  }
+}
 
 const validateRequestBody = (
   transactionIds: string,
@@ -1273,21 +1277,20 @@ const transactionReverse = async (
   next: NextFunction,
 ) => {
   try {
-    const { transactionId } = req.params;
-
     const {
-      id,
-      createdBy,
-      updatedBy,
-      documentStatus,
-      amount,
-      netAmount,
-      taxBaseAmount,
-      reverseTransactionId,
-      ...restPettyCashData
-    }: any = await PettyCash.findOne({ where: { id: transactionId }, raw: true });
+      transactionIds, documentStatus, cashJournalId, fromDate, toDate,
+    } = req.body;
 
-    if (restPettyCashData.plantId !== req.session.activePlantId) {
+    if (
+      !validateRequestBody(
+        transactionIds,
+        documentStatus,
+        cashJournalId,
+        fromDate,
+        toDate,
+        req.body.cashDenomination,
+      )
+    ) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -1296,17 +1299,38 @@ const transactionReverse = async (
       );
       return res.status(CODE[400]).send(response);
     }
-    if (documentStatus !== 'Updated') {
+
+    const updatedTransactionsCount = await getUpdateTransactionCount(
+      transactionIds,
+    );
+
+    if (updatedTransactionsCount !== transactionIds.length) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.REVERSE_NOT_ALLOWED,
+        MESSAGE.TRANSACTION_REVERSED_CONTAINS,
         null,
       );
       return res.status(CODE[400]).send(response);
     }
 
-    if (restPettyCashData) {
+    const [cashDenominationData] = await saveCashDenomination(req);
+
+    const updatedTransactionIds = [];
+
+    for (const transactionId of transactionIds) {
+      const {
+        id,
+        createdBy,
+        updatedBy,
+        documentStatus,
+        amount,
+        netAmount,
+        taxBaseAmount,
+        reverseTransactionId,
+        ...restPettyCashData
+      }: any = await PettyCash.findOne({ where: { id: transactionId }, raw: true });
+
       const pettyCash = {
         reverseTransactionId: id,
         createdBy: req.user.id,
@@ -1318,25 +1342,29 @@ const transactionReverse = async (
         ...restPettyCashData,
       };
 
-      const pettyCashData = await PettyCash.create(pettyCash);
+      const transactionData = await PettyCash.create(pettyCash);
 
       await PettyCash.update(
         { documentStatus: 'Updated Reversed' },
         { where: { id: transactionId } },
       );
 
+      updatedTransactionIds.push(transactionData.id);
+    }
+
+    if (updatedTransactionIds.length === transactionIds.length) {
       const response = responseFormatter(
-        CODE[201],
+        CODE[200],
         SUCCESS.TRUE,
         MESSAGE.TRANSACTION_REVERSED,
-        pettyCashData,
+        null,
       );
-      return res.status(CODE[201]).send(response);
+      return res.status(CODE[200]).send(response);
     }
     const response = responseFormatter(
       CODE[400],
-      SUCCESS.FALSE,
-      MESSAGE.DATA_NOT_FOUND,
+      SUCCESS.TRUE,
+      MESSAGE.TRANSACTION_MAY_PARTIALLY_REVERSED,
       null,
     );
     return res.status(CODE[400]).send(response);
@@ -1345,6 +1373,22 @@ const transactionReverse = async (
   }
 };
 
+const getUpdateTransactionCount = (
+  transactionIds: Array<string>,
+): Promise<number> => {
+  try {
+    return PettyCash.count({
+      where: {
+        [Op.and]: [
+          { id: { [Op.in]: transactionIds } },
+          { documentStatus: 'Updated' },
+        ],
+      },
+    });
+  } catch (err) {
+    throw err;
+  }
+};
 /**
  * It returns the closing balance for a specified date range.
  * @param req
