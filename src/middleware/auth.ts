@@ -10,6 +10,7 @@ const checkAuthenticated = (
   res: Response,
   next: NextFunction,
 ) => {
+  console.log('test1=> ', req.isAuthenticated());
   if (req.isAuthenticated()) {
     return next();
   }

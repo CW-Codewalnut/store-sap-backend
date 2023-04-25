@@ -1,6 +1,6 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('plant_closing_denominations', {
+    await queryInterface.createTable('cash_denominations', {
       id: {
         allowNull: false,
         primaryKey: true,
@@ -21,10 +21,6 @@ module.exports = {
           model: 'cash_journals',
           key: 'id',
         },
-      },
-      closingBalanceAmount: {
-        allowNull: false,
-        type: Sequelize.DECIMAL(21, 2),
       },
       denominationTotalAmount: {
         allowNull: false,
@@ -99,6 +95,6 @@ module.exports = {
     });
   },
   async down(queryInterface) {
-    await queryInterface.dropTable('plant_closing_denominations');
+    await queryInterface.dropTable('cash_denominations');
   },
 };

@@ -20,7 +20,7 @@ import UserPlantController from '../controllers/userPlant.controller';
 
 import { checkAuthenticated, verifyRouteAccess } from '../middleware/auth';
 import CashJournalController from '../controllers/cashJournal.controller';
-import PlantClosingDenominationController from '../controllers/plantClosingDenomination.controller';
+import CashDenominationController from '../controllers/cashDenomination.controller';
 
 const routesMiddleware = (app: Application) => {
   // Auth api
@@ -71,6 +71,8 @@ const routesMiddleware = (app: Application) => {
     checkAuthenticated,
     RoleController.updateRolePermissions,
   );
+
+  app.get('/permissions', checkAuthenticated, RoleController.getAllPermissions);
 
   app.get(
     '/user/plants',
@@ -214,10 +216,10 @@ const routesMiddleware = (app: Application) => {
     CashJournalController.getCashJournalByPlantId,
   );
 
-  app.post(
-    '/close-day',
+  app.get(
+    '/cash-denomination/:cashJournalId',
     checkAuthenticated,
-    PlantClosingDenominationController.storeDenomination,
+    CashDenominationController.getDenomination,
   );
 };
 
