@@ -686,11 +686,10 @@ const updateDocumentStatus = async (
         documentStatus,
       );
 
-      const documentSlug = transactionIds.length > 1 ? 'Documents are' : 'Document is';
       const response = responseFormatter(
         CODE[200],
         SUCCESS.TRUE,
-        `${documentSlug} ${MESSAGE.DOCUMENT_LOCKED}`,
+        MESSAGE.DOCUMENT_LOCKED,
         null,
       );
       res.status(CODE[200]).send(response);
