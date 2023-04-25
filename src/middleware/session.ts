@@ -37,6 +37,8 @@ const sessionMiddleware = (app: Application) => {
     extendDefaultFields,
   });
 
+  sequelizeStore.sync();
+
   const cookieOptions: CookieOptions = {
     maxAge: 1000 * 60 * 60 * 24,
     httpOnly: true,
@@ -45,7 +47,7 @@ const sessionMiddleware = (app: Application) => {
   const sessionConfig: SessionOptions = {
     secret: config.sessionSecret,
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     store: sequelizeStore,
     cookie: cookieOptions,
   };

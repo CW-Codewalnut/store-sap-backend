@@ -652,7 +652,7 @@ const updateDocumentStatus = async (
   } catch (err) {
     throw err;
   }
-}
+};
 
 function saveCashDenomination(req: Request) {
   try {
@@ -1340,11 +1340,6 @@ const transactionReverse = async (
       transactionIds,
     );
 
-    console.log(
-      'closingBalanceAmount=> ',
-      finalClosingBalance,
-      cashDenominationData.denominationTotalAmount,
-    );
     if (
       cashDenominationData
       && finalClosingBalance !== cashDenominationData.denominationTotalAmount
