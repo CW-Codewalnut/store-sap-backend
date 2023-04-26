@@ -391,11 +391,21 @@ const findPaymentsWithPaginate = async (
 
     const cashPayment = await getPettyCashData(req, next, 'Payment');
 
+    const today = dateFormat(new Date(), '-');
+    const foundSavedTransaction = await checkDocumentStatusSavedExist(
+      req.body.cashJournalId,
+      today,
+      req,
+    );
+
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.FETCHED,
-      cashPayment,
+      {
+        ...cashPayment,
+        foundPrevDaySavedTransaction: foundSavedTransaction,
+      },
     );
     res.status(200).send(response);
   } catch (err) {
@@ -427,11 +437,21 @@ const findReceiptsWithPaginate = async (
 
     const cashReceipt = await getPettyCashData(req, next, 'Receipt');
 
+    const today = dateFormat(new Date(), '-');
+    const foundSavedTransaction = await checkDocumentStatusSavedExist(
+      req.body.cashJournalId,
+      today,
+      req,
+    );
+
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.FETCHED,
-      cashReceipt,
+      {
+        ...cashReceipt,
+        foundPrevDaySavedTransaction: foundSavedTransaction,
+      },
     );
     res.status(200).send(response);
   } catch (err) {
@@ -608,7 +628,7 @@ const updateDocumentStatus = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const [cashDenominationData] = await saveCashDenomination(req);
+    const cashDenominationBody = calculateCashDenomination(req);
     const totalUpdateAmount = await getTotalUpdateAmount(transactionIds);
     const closingBalanceAmount = await getClosingBalance(req);
     const finalClosingBalance = await calculateFinalClosingBalance(
@@ -624,8 +644,8 @@ const updateDocumentStatus = async (
     );
 
     if (
-      cashDenominationData
-      && finalClosingBalance === cashDenominationData.denominationTotalAmount
+      cashDenominationBody
+      && finalClosingBalance === cashDenominationBody.denominationTotalAmount
     ) {
       updateTransactions(
         transactionIds,
@@ -633,11 +653,15 @@ const updateDocumentStatus = async (
         documentStatus,
       );
 
+      const [cashDenominationData] = await CashDenomination.upsert(
+        cashDenominationBody,
+      );
+
       const response = responseFormatter(
         CODE[200],
         SUCCESS.TRUE,
         MESSAGE.DOCUMENT_LOCKED,
-        null,
+        cashDenominationData,
       );
       res.status(CODE[200]).send(response);
     } else {
@@ -654,7 +678,7 @@ const updateDocumentStatus = async (
   }
 };
 
-function saveCashDenomination(req: Request) {
+const calculateCashDenomination = (req: Request) => {
   try {
     const {
       denominationId,
@@ -705,11 +729,11 @@ function saveCashDenomination(req: Request) {
     if (denominationId) {
       Object.assign(denominationBody, { id: denominationId });
     }
-    return CashDenomination.upsert(denominationBody);
+    return denominationBody;
   } catch (err) {
     throw err;
   }
-}
+};
 
 const validateRequestBody = (
   transactionIds: string,
@@ -839,22 +863,26 @@ const updateTransactions = async (
   previousDayTransactionIds: Array<string>,
   documentStatus: string,
 ) => {
-  transactionIds.forEach(async (transactionId) => {
-    let updateData = {};
+  try {
+    transactionIds.forEach(async (transactionId) => {
+      let updateData = {};
 
-    if (previousDayTransactionIds.includes(transactionId)) {
-      updateData = {
-        documentStatus,
-        postingDate: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-    } else {
-      updateData = { documentStatus };
-    }
+      if (previousDayTransactionIds.includes(transactionId)) {
+        updateData = {
+          documentStatus,
+          postingDate: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      } else {
+        updateData = { documentStatus };
+      }
 
-    await PettyCash.update(updateData, { where: { id: transactionId } });
-  });
+      await PettyCash.update(updateData, { where: { id: transactionId } });
+    });
+  } catch (err) {
+    throw err;
+  }
 };
 
 const deleteTransactions = async (
@@ -1333,7 +1361,7 @@ const transactionReverse = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const [cashDenominationData] = await saveCashDenomination(req);
+    const cashDenominationBody = calculateCashDenomination(req);
     const totalUpdateAmount = await getTotalUpdateAmount(transactionIds);
     const closingBalanceAmount = await getClosingBalance(req);
 
@@ -1344,8 +1372,8 @@ const transactionReverse = async (
     );
 
     if (
-      cashDenominationData
-      && finalClosingBalance !== cashDenominationData.denominationTotalAmount
+      cashDenominationBody
+      && finalClosingBalance !== cashDenominationBody.denominationTotalAmount
     ) {
       const response = responseFormatter(
         CODE[400],
@@ -1393,11 +1421,15 @@ const transactionReverse = async (
     }
 
     if (updatedTransactionIds.length === transactionIds.length) {
+      const [cashDenominationData] = await CashDenomination.upsert(
+        cashDenominationBody,
+      );
+
       const response = responseFormatter(
         CODE[200],
         SUCCESS.TRUE,
         MESSAGE.TRANSACTION_REVERSED,
-        null,
+        cashDenominationData,
       );
       return res.status(CODE[200]).send(response);
     }
