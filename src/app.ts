@@ -1,5 +1,5 @@
 import express, { Application } from 'express';
-// import helmet from 'helmet';
+import helmet from 'helmet';
 import http from 'http';
 import cors, { CorsOptions } from 'cors';
 import debug from 'debug';
@@ -26,7 +26,7 @@ global.baseDir = __dirname;
 /**
  * Helmet helps to secure express to setting a various header.
  */
-// app.use(helmet());
+app.use(helmet());
 
 const corsOptions: CorsOptions = {
   origin: ['http://localhost:3000', 'https://sap-dev.codewalnut.com', 'https://sap-pre-prod.codewalnut.com'],
