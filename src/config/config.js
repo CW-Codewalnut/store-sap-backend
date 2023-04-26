@@ -49,6 +49,7 @@ module.exports = {
     mailHost: process.env.UAT_MAIL_HOST,
     mailUser: process.env.UAT_MAIL_USER,
     mailPass: process.env.UAT_MAIL_PASS,
+    mailFrom: process.env.UAT_MAIL_FROM,
     appBaseUrl: process.env.UAT_APP_BASE_URL,
   },
   prod: {
@@ -65,6 +66,7 @@ module.exports = {
     mailHost: process.env.PROD_MAIL_HOST,
     mailUser: process.env.PROD_MAIL_USER,
     mailPass: process.env.PROD_MAIL_PASS,
+    mailFrom: process.env.PROD_MAIL_FROM,
     appBaseUrl: process.env.PROD_APP_BASE_URL,
   },
 };
