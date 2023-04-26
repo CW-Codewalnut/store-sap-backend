@@ -49,7 +49,7 @@
 	"LOGGED_OUT": "Logged out securely",
 	"NET_AMOUNT_NUMERIC": "Net amount must be numeric",
 	"NET_AMOUNT_REQUIRED": "Net amount is required",
-	"NEW_TRANSACTION_NOT_ALLOWED": "New transaction not allowed. Update previous day's transactions to create new transactions",
+	"NEW_TRANSACTION_NOT_ALLOWED": "New transaction not allowed. Update previous day transactions to create new transactions",
 	"NO_MATCH_FOUND": "No match found",
 	"ORDER_NO_LENGTH": "Order no. should be between 1-10 characters",
 	"PASSWORD_EXPIRED_LINK": "The link you followed has been expired",
