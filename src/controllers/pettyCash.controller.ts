@@ -70,13 +70,13 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
 
     if (!session.isAllowedNewTransaction) {
       const today = dateFormat(new Date(), '-');
-      const foundSavedTransaction = await checkDocumentStatusSavedExist(
+      const foundPrevDaySavedTransaction = await checkDocumentStatusSavedExist(
         cashJournalId,
         today,
         req,
       );
 
-      if (foundSavedTransaction) {
+      if (foundPrevDaySavedTransaction) {
         session.isAllowedNewTransaction = false;
         const response = responseFormatter(
           CODE[400],
@@ -212,14 +212,14 @@ const checkDocumentStatusSavedExist = async (
       { cashJournalId },
     ];
 
-    const doesSavedDocumentExist = await PettyCash.findOne({
+    const doesPrevDaySavedDocumentExist = await PettyCash.findOne({
       where: {
         [Op.and]: query,
       },
       raw: true,
     });
 
-    return !!doesSavedDocumentExist;
+    return !!doesPrevDaySavedDocumentExist;
   } catch (err) {
     throw err;
   }
@@ -392,7 +392,7 @@ const findPaymentsWithPaginate = async (
     const cashPayment = await getPettyCashData(req, next, 'Payment');
 
     const today = dateFormat(new Date(), '-');
-    const foundSavedTransaction = await checkDocumentStatusSavedExist(
+    const foundPrevDaySavedTransaction = await checkDocumentStatusSavedExist(
       req.body.cashJournalId,
       today,
       req,
@@ -404,7 +404,7 @@ const findPaymentsWithPaginate = async (
       MESSAGE.FETCHED,
       {
         ...cashPayment,
-        foundPrevDaySavedTransaction: foundSavedTransaction,
+        foundPrevDaySavedTransaction: foundPrevDaySavedTransaction,
       },
     );
     res.status(200).send(response);
@@ -438,7 +438,7 @@ const findReceiptsWithPaginate = async (
     const cashReceipt = await getPettyCashData(req, next, 'Receipt');
 
     const today = dateFormat(new Date(), '-');
-    const foundSavedTransaction = await checkDocumentStatusSavedExist(
+    const foundPrevDaySavedTransaction = await checkDocumentStatusSavedExist(
       req.body.cashJournalId,
       today,
       req,
@@ -450,7 +450,7 @@ const findReceiptsWithPaginate = async (
       MESSAGE.FETCHED,
       {
         ...cashReceipt,
-        foundPrevDaySavedTransaction: foundSavedTransaction,
+        foundPrevDaySavedTransaction: foundPrevDaySavedTransaction,
       },
     );
     res.status(200).send(response);
@@ -787,31 +787,24 @@ const calculateFinalClosingBalance = async (
       where: { id: transactionIds[0] },
       raw: true,
     });
-    let finalClosingBalance;
 
-    if (pettyCashData) {
-      if (closingBalanceAmount != null || closingBalanceAmount != undefined) {
-        if (pettyCashData.pettyCashType === 'Payment') {
-          if (pettyCashData.documentStatus === 'Saved') {
-            finalClosingBalance = +new BigNumber(closingBalanceAmount).minus(
-              totalUpdateAmount,
-            );
-          } else if (pettyCashData.documentStatus === 'Updated') {
-            finalClosingBalance = +new BigNumber(closingBalanceAmount).plus(
-              totalUpdateAmount,
-            );
-          }
-        } else if (pettyCashData.documentStatus === 'Saved') {
-          finalClosingBalance = +new BigNumber(closingBalanceAmount).plus(
-            totalUpdateAmount,
-          );
-        } else if (pettyCashData.documentStatus === 'Updated') {
-          finalClosingBalance = +new BigNumber(closingBalanceAmount).minus(
-            totalUpdateAmount,
-          );
-        }
-      }
+    let finalClosingBalance = 0;
+
+    if (!pettyCashData || closingBalanceAmount == null || closingBalanceAmount == undefined) {
+      return finalClosingBalance;
     }
+
+    const { pettyCashType, documentStatus } = pettyCashData;
+    const isPayment = pettyCashType === 'Payment';
+    const isSaved = documentStatus === 'Saved';
+    const isUpdated = documentStatus === 'Updated';
+
+    if (isPayment && isSaved || !isPayment && isUpdated) {
+      finalClosingBalance = +new BigNumber(closingBalanceAmount).minus(totalUpdateAmount);
+    } else if (isPayment && isUpdated || !isPayment && isSaved) {
+      finalClosingBalance = +new BigNumber(closingBalanceAmount).plus(totalUpdateAmount);
+    }
+    
     return finalClosingBalance;
   } catch (err) {
     throw err;
