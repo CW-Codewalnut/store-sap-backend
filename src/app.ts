@@ -23,7 +23,11 @@ const app: Application = express();
 global.baseDir = __dirname;
 
 const corsOptions: CorsOptions = {
-  origin: ['http://localhost:3000', 'https://sap-dev.codewalnut.com', 'https://sap-pre-prod.codewalnut.com'],
+  origin: [
+    'http://localhost:3000',
+    'https://sap-dev.codewalnut.com',
+    'https://sap-pre-prod.codewalnut.com',
+  ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   optionsSuccessStatus: 200,
   credentials: true,
