@@ -70,13 +70,13 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
 
     if (!session.isAllowedNewTransaction) {
       const today = dateFormat(new Date(), '-');
-      const foundSavedTransaction = await checkDocumentStatusSavedExist(
+      const foundPrevDaySavedTransaction = await checkDocumentStatusSavedExist(
         cashJournalId,
         today,
         req,
       );
 
-      if (foundSavedTransaction) {
+      if (foundPrevDaySavedTransaction) {
         session.isAllowedNewTransaction = false;
         const response = responseFormatter(
           CODE[400],
@@ -212,14 +212,14 @@ const checkDocumentStatusSavedExist = async (
       { cashJournalId },
     ];
 
-    const doesSavedDocumentExist = await PettyCash.findOne({
+    const doesPrevDaySavedDocumentExist = await PettyCash.findOne({
       where: {
         [Op.and]: query,
       },
       raw: true,
     });
 
-    return !!doesSavedDocumentExist;
+    return !!doesPrevDaySavedDocumentExist;
   } catch (err) {
     throw err;
   }
@@ -391,11 +391,21 @@ const findPaymentsWithPaginate = async (
 
     const cashPayment = await getPettyCashData(req, next, 'Payment');
 
+    const today = dateFormat(new Date(), '-');
+    const foundPrevDaySavedTransaction = await checkDocumentStatusSavedExist(
+      req.body.cashJournalId,
+      today,
+      req,
+    );
+
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.FETCHED,
-      cashPayment,
+      {
+        ...cashPayment,
+        foundPrevDaySavedTransaction: foundPrevDaySavedTransaction,
+      },
     );
     res.status(200).send(response);
   } catch (err) {
@@ -427,11 +437,21 @@ const findReceiptsWithPaginate = async (
 
     const cashReceipt = await getPettyCashData(req, next, 'Receipt');
 
+    const today = dateFormat(new Date(), '-');
+    const foundPrevDaySavedTransaction = await checkDocumentStatusSavedExist(
+      req.body.cashJournalId,
+      today,
+      req,
+    );
+
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.FETCHED,
-      cashReceipt,
+      {
+        ...cashReceipt,
+        foundPrevDaySavedTransaction: foundPrevDaySavedTransaction,
+      },
     );
     res.status(200).send(response);
   } catch (err) {
@@ -586,24 +606,7 @@ const updateDocumentStatus = async (
 ) => {
   try {
     const {
-      transactionIds,
-      documentStatus,
-      denominationId,
-      cashJournalId,
-      fromDate,
-      toDate,
-      cashDenomination: {
-        qty1INR,
-        qty2INR,
-        qty5INR,
-        qty10INR,
-        qty20INR,
-        qty50INR,
-        qty100INR,
-        qty200INR,
-        qty500INR,
-        qty2000INR,
-      },
+      transactionIds, documentStatus, cashJournalId, fromDate, toDate,
     } = req.body;
 
     if (
@@ -624,6 +627,75 @@ const updateDocumentStatus = async (
       );
       return res.status(CODE[400]).send(response);
     }
+
+    const cashDenominationBody = calculateCashDenomination(req);
+    const totalUpdateAmount = await getTotalUpdateAmount(transactionIds);
+    const closingBalanceAmount = await getClosingBalance(req);
+    const finalClosingBalance = await calculateFinalClosingBalance(
+      closingBalanceAmount,
+      totalUpdateAmount,
+      transactionIds,
+    );
+
+    const today = dateFormat(new Date(), '-');
+    const previousDayTransactionIds = await getPreviousDayTransactionIds(
+      transactionIds,
+      today,
+    );
+
+    if (
+      cashDenominationBody
+      && finalClosingBalance === cashDenominationBody.denominationTotalAmount
+    ) {
+      updateTransactions(
+        transactionIds,
+        previousDayTransactionIds,
+        documentStatus,
+      );
+
+      const [cashDenominationData] = await CashDenomination.upsert(
+        cashDenominationBody,
+      );
+
+      const response = responseFormatter(
+        CODE[200],
+        SUCCESS.TRUE,
+        MESSAGE.DOCUMENT_LOCKED,
+        cashDenominationData,
+      );
+      res.status(CODE[200]).send(response);
+    } else {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.DENOMINATION_NOT_MATCH,
+        null,
+      );
+      res.status(CODE[400]).send(response);
+    }
+  } catch (err) {
+    throw err;
+  }
+};
+
+const calculateCashDenomination = (req: Request) => {
+  try {
+    const {
+      denominationId,
+      cashJournalId,
+      cashDenomination: {
+        qty1INR,
+        qty2INR,
+        qty5INR,
+        qty10INR,
+        qty20INR,
+        qty50INR,
+        qty100INR,
+        qty200INR,
+        qty500INR,
+        qty2000INR,
+      },
+    } = req.body;
 
     const denominationTotalAmount = qty1INR * 1
       + qty2INR * 2
@@ -654,56 +726,12 @@ const updateDocumentStatus = async (
       updatedBy: req.user.id,
     };
 
-    Object.assign(
-      denominationBody,
-      denominationId ? { id: denominationId } : null,
-    );
-
-    const [cashDenominationData] = await CashDenomination.upsert(
-      denominationBody,
-    );
-    const totalUpdateAmount = await getTotalUpdateAmount(transactionIds);
-    const closingBalanceAmount = await getClosingBalance(req);
-    const finalClosingBalance = await calculateFinalClosingBalance(
-      closingBalanceAmount,
-      totalUpdateAmount,
-      transactionIds,
-    );
-
-    const today = dateFormat(new Date(), '-');
-    const previousDayTransactionIds = await getPreviousDayTransactionIds(
-      transactionIds,
-      today,
-    );
-
-    if (
-      cashDenominationData
-      && finalClosingBalance === cashDenominationData.denominationTotalAmount
-    ) {
-      updateTransactions(
-        transactionIds,
-        previousDayTransactionIds,
-        documentStatus,
-      );
-
-      const response = responseFormatter(
-        CODE[200],
-        SUCCESS.TRUE,
-        MESSAGE.DOCUMENT_LOCKED,
-        null,
-      );
-      res.status(CODE[200]).send(response);
-    } else {
-      const response = responseFormatter(
-        CODE[400],
-        SUCCESS.FALSE,
-        MESSAGE.DENOMINATION_NOT_MATCH,
-        null,
-      );
-      res.status(CODE[400]).send(response);
+    if (denominationId) {
+      Object.assign(denominationBody, { id: denominationId });
     }
+    return denominationBody;
   } catch (err) {
-    next(err);
+    throw err;
   }
 };
 
@@ -753,25 +781,34 @@ const calculateFinalClosingBalance = async (
   totalUpdateAmount: number,
   transactionIds: Array<string>,
 ) => {
-  const pettyCashData = await PettyCash.findOne({
-    attributes: ['pettyCashType'],
-    where: { id: transactionIds[0] },
-  });
-  let finalClosingBalance;
+  try {
+    const pettyCashData = await PettyCash.findOne({
+      attributes: ['pettyCashType', 'documentStatus'],
+      where: { id: transactionIds[0] },
+      raw: true,
+    });
 
-  if (closingBalanceAmount != null || closingBalanceAmount != undefined) {
-    if (pettyCashData && pettyCashData.pettyCashType === 'Payment') {
-      finalClosingBalance = +new BigNumber(closingBalanceAmount).minus(
-        totalUpdateAmount,
-      );
-    } else {
-      finalClosingBalance = +new BigNumber(closingBalanceAmount).plus(
-        totalUpdateAmount,
-      );
+    let finalClosingBalance = 0;
+
+    if (!pettyCashData || closingBalanceAmount == null || closingBalanceAmount == undefined) {
+      return finalClosingBalance;
     }
-  }
 
-  return finalClosingBalance;
+    const { pettyCashType, documentStatus } = pettyCashData;
+    const isPayment = pettyCashType === 'Payment';
+    const isSaved = documentStatus === 'Saved';
+    const isUpdated = documentStatus === 'Updated';
+
+    if (isPayment && isSaved || !isPayment && isUpdated) {
+      finalClosingBalance = +new BigNumber(closingBalanceAmount).minus(totalUpdateAmount);
+    } else if (isPayment && isUpdated || !isPayment && isSaved) {
+      finalClosingBalance = +new BigNumber(closingBalanceAmount).plus(totalUpdateAmount);
+    }
+    
+    return finalClosingBalance;
+  } catch (err) {
+    throw err;
+  }
 };
 
 /**
@@ -819,22 +856,26 @@ const updateTransactions = async (
   previousDayTransactionIds: Array<string>,
   documentStatus: string,
 ) => {
-  transactionIds.forEach(async (transactionId) => {
-    let updateData = {};
+  try {
+    transactionIds.forEach(async (transactionId) => {
+      let updateData = {};
 
-    if (previousDayTransactionIds.includes(transactionId)) {
-      updateData = {
-        documentStatus,
-        postingDate: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-    } else {
-      updateData = { documentStatus };
-    }
+      if (previousDayTransactionIds.includes(transactionId)) {
+        updateData = {
+          documentStatus,
+          postingDate: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      } else {
+        updateData = { documentStatus };
+      }
 
-    await PettyCash.update(updateData, { where: { id: transactionId } });
-  });
+      await PettyCash.update(updateData, { where: { id: transactionId } });
+    });
+  } catch (err) {
+    throw err;
+  }
 };
 
 const deleteTransactions = async (
@@ -1185,6 +1226,9 @@ const getOpeningBalance = async (
           plantId,
         },
         {
+          cashJournalId,
+        },
+        {
           pettyCashType: {
             [Op.eq]: 'Receipt',
           },
@@ -1273,21 +1317,20 @@ const transactionReverse = async (
   next: NextFunction,
 ) => {
   try {
-    const { transactionId } = req.params;
-
     const {
-      id,
-      createdBy,
-      updatedBy,
-      documentStatus,
-      amount,
-      netAmount,
-      taxBaseAmount,
-      reverseTransactionId,
-      ...restPettyCashData
-    }: any = await PettyCash.findOne({ where: { id: transactionId }, raw: true });
+      transactionIds, documentStatus, cashJournalId, fromDate, toDate,
+    } = req.body;
 
-    if (restPettyCashData.plantId !== req.session.activePlantId) {
+    if (
+      !validateRequestBody(
+        transactionIds,
+        documentStatus,
+        cashJournalId,
+        fromDate,
+        toDate,
+        req.body.cashDenomination,
+      )
+    ) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -1296,17 +1339,59 @@ const transactionReverse = async (
       );
       return res.status(CODE[400]).send(response);
     }
-    if (documentStatus !== 'Updated') {
+
+    const updatedTransactionsCount = await getUpdateTransactionCount(
+      transactionIds,
+    );
+
+    if (updatedTransactionsCount !== transactionIds.length) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.REVERSE_NOT_ALLOWED,
+        MESSAGE.TRANSACTION_REVERSED_CONTAINS,
         null,
       );
       return res.status(CODE[400]).send(response);
     }
 
-    if (restPettyCashData) {
+    const cashDenominationBody = calculateCashDenomination(req);
+    const totalUpdateAmount = await getTotalUpdateAmount(transactionIds);
+    const closingBalanceAmount = await getClosingBalance(req);
+
+    const finalClosingBalance = await calculateFinalClosingBalance(
+      closingBalanceAmount,
+      totalUpdateAmount,
+      transactionIds,
+    );
+
+    if (
+      cashDenominationBody
+      && finalClosingBalance !== cashDenominationBody.denominationTotalAmount
+    ) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.DENOMINATION_NOT_MATCH,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    const updatedTransactionIds = [];
+
+    for (const transactionId of transactionIds) {
+      const {
+        id,
+        createdBy,
+        updatedBy,
+        documentStatus,
+        amount,
+        netAmount,
+        taxBaseAmount,
+        reverseTransactionId,
+        ...restPettyCashData
+      }: any = await PettyCash.findOne({ where: { id: transactionId }, raw: true });
+
       const pettyCash = {
         reverseTransactionId: id,
         createdBy: req.user.id,
@@ -1318,25 +1403,33 @@ const transactionReverse = async (
         ...restPettyCashData,
       };
 
-      const pettyCashData = await PettyCash.create(pettyCash);
+      const transactionData = await PettyCash.create(pettyCash);
 
       await PettyCash.update(
         { documentStatus: 'Updated Reversed' },
         { where: { id: transactionId } },
       );
 
+      updatedTransactionIds.push(transactionData.id);
+    }
+
+    if (updatedTransactionIds.length === transactionIds.length) {
+      const [cashDenominationData] = await CashDenomination.upsert(
+        cashDenominationBody,
+      );
+
       const response = responseFormatter(
-        CODE[201],
+        CODE[200],
         SUCCESS.TRUE,
         MESSAGE.TRANSACTION_REVERSED,
-        pettyCashData,
+        cashDenominationData,
       );
-      return res.status(CODE[201]).send(response);
+      return res.status(CODE[200]).send(response);
     }
     const response = responseFormatter(
       CODE[400],
-      SUCCESS.FALSE,
-      MESSAGE.DATA_NOT_FOUND,
+      SUCCESS.TRUE,
+      MESSAGE.TRANSACTION_MAY_PARTIALLY_REVERSED,
       null,
     );
     return res.status(CODE[400]).send(response);
@@ -1345,6 +1438,22 @@ const transactionReverse = async (
   }
 };
 
+const getUpdateTransactionCount = (
+  transactionIds: Array<string>,
+): Promise<number> => {
+  try {
+    return PettyCash.count({
+      where: {
+        [Op.and]: [
+          { id: { [Op.in]: transactionIds } },
+          { documentStatus: 'Updated' },
+        ],
+      },
+    });
+  } catch (err) {
+    throw err;
+  }
+};
 /**
  * It returns the closing balance for a specified date range.
  * @param req

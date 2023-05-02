@@ -26,6 +26,7 @@ const updateUserActivePlant = async (
         userId,
         plantId,
       },
+      raw: true,
     });
 
     if (userPlant) {

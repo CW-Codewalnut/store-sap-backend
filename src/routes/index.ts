@@ -204,8 +204,8 @@ const routesMiddleware = (app: Application) => {
     UserPlantController.updateUserActivePlant,
   );
 
-  app.get(
-    '/petty-cash/transaction-reverse/:transactionId',
+  app.post(
+    '/petty-cash/transaction-reverse',
     checkAuthenticated,
     PettyCashController.transactionReverse,
   );
