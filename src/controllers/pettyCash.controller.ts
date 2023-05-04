@@ -23,7 +23,7 @@ import {
   isNumber,
 } from '../utils/helper';
 import MESSAGE from '../config/message.json';
-import Preference from '../models/preferences';
+import Preference from '../models/preference';
 import CashDenomination from '../models/cash-denomination';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
@@ -404,7 +404,7 @@ const findPaymentsWithPaginate = async (
       MESSAGE.FETCHED,
       {
         ...cashPayment,
-        foundPrevDaySavedTransaction: foundPrevDaySavedTransaction,
+        foundPrevDaySavedTransaction,
       },
     );
     res.status(200).send(response);
@@ -450,7 +450,7 @@ const findReceiptsWithPaginate = async (
       MESSAGE.FETCHED,
       {
         ...cashReceipt,
-        foundPrevDaySavedTransaction: foundPrevDaySavedTransaction,
+        foundPrevDaySavedTransaction,
       },
     );
     res.status(200).send(response);
@@ -790,7 +790,11 @@ const calculateFinalClosingBalance = async (
 
     let finalClosingBalance = 0;
 
-    if (!pettyCashData || closingBalanceAmount == null || closingBalanceAmount == undefined) {
+    if (
+      !pettyCashData
+      || closingBalanceAmount == null
+      || closingBalanceAmount == undefined
+    ) {
       return finalClosingBalance;
     }
 
@@ -799,12 +803,16 @@ const calculateFinalClosingBalance = async (
     const isSaved = documentStatus === 'Saved';
     const isUpdated = documentStatus === 'Updated';
 
-    if (isPayment && isSaved || !isPayment && isUpdated) {
-      finalClosingBalance = +new BigNumber(closingBalanceAmount).minus(totalUpdateAmount);
-    } else if (isPayment && isUpdated || !isPayment && isSaved) {
-      finalClosingBalance = +new BigNumber(closingBalanceAmount).plus(totalUpdateAmount);
+    if ((isPayment && isSaved) || (!isPayment && isUpdated)) {
+      finalClosingBalance = +new BigNumber(closingBalanceAmount).minus(
+        totalUpdateAmount,
+      );
+    } else if ((isPayment && isUpdated) || (!isPayment && isSaved)) {
+      finalClosingBalance = +new BigNumber(closingBalanceAmount).plus(
+        totalUpdateAmount,
+      );
     }
-    
+
     return finalClosingBalance;
   } catch (err) {
     throw err;

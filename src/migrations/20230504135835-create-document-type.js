@@ -1,39 +1,28 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('sales_headers', {
+    await queryInterface.createTable('document_types', {
       id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING(16),
       },
-      documentStatus: {
+      documentType: {
+        type: Sequelize.STRING(3),
         allowNull: false,
-        type: Sequelize.STRING(20),
-        defaultValue: 'Saved',
+        unique: true,
       },
-      postingDate: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
-      sapDocNo: {
-        type: Sequelize.STRING(30),
-        allowNull: false,
-      },
-      documentDate: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
-      reference: {
+      description: {
         type: Sequelize.STRING,
         allowNull: false,
+        unique: true,
       },
-      period: {
-        type: Sequelize.STRING(50),
+      businessTransactionId: {
+        type: Sequelize.STRING(16),
         allowNull: false,
-      },
-      documentHeaderText: {
-        type: Sequelize.STRING,
-        allowNull: false,
+        references: {
+          model: 'business_transactions',
+          key: 'id',
+        },
       },
       createdBy: {
         allowNull: true,
@@ -54,6 +43,6 @@ module.exports = {
     });
   },
   async down(queryInterface) {
-    await queryInterface.dropTable('sales_headers');
+    await queryInterface.dropTable('document_types');
   },
 };

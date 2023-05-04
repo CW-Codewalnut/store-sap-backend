@@ -1,43 +1,26 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('pos_mid_lists', {
+    await queryInterface.createTable('posting_keys', {
       id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING(16),
       },
-      meCode: {
-        type: Sequelize.STRING(8),
+      postingKey: {
+        type: Sequelize.INTEGER,
         allowNull: false,
         unique: true,
       },
-      tid: {
-        type: Sequelize.STRING(10),
-        allowNull: false,
-        unique: true,
-      },
-      legalName: {
-        type: Sequelize.STRING(50),
-        allowNull: false,
-      },
-      dbaName: {
-        type: Sequelize.STRING(50),
-        allowNull: false,
-      },
-      address: {
+      description: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      city: {
-        type: Sequelize.STRING(30),
-        allowNull: false,
-      },
-      pin: {
-        type: Sequelize.STRING(6),
+      accountType: {
+        type: Sequelize.ENUM('Credit', 'Debit'),
         allowNull: false,
       },
       groupName: {
-        type: Sequelize.STRING(20),
+        type: Sequelize.STRING(50),
         allowNull: false,
       },
       createdBy: {
@@ -59,6 +42,6 @@ module.exports = {
     });
   },
   async down(queryInterface) {
-    await queryInterface.dropTable('pos_mid_lists');
+    await queryInterface.dropTable('posting_keys');
   },
 };
