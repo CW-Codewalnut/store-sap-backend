@@ -26,7 +26,7 @@ const corsOptions: CorsOptions = {
   origin: [
     'http://localhost:3000',
     'https://sap-dev.codewalnut.com',
-    'https://sap-pre-prod.codewalnut.com',
+    'https://sap-uat.codewalnut.com',
   ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   optionsSuccessStatus: 200,

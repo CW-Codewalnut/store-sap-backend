@@ -338,7 +338,7 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
     validate: {
       len: {
         args: [1, 18],
-        msg: MESSAGE.ASSIGNMENT_VALID_LENGTH,
+        msg: MESSAGE.ASSIGNMENT_LENGTH,
       },
     },
   },
@@ -348,7 +348,7 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
     validate: {
       len: {
         args: [1, 25],
-        msg: MESSAGE.TEXT_VALID_LENGTH,
+        msg: MESSAGE.TEXT_LENGTH,
       },
     },
   },
@@ -358,7 +358,7 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
     validate: {
       len: {
         args: [1, 100],
-        msg: MESSAGE.ADDITIONAL_TEXT_1_VALID_LENGTH,
+        msg: MESSAGE.ADDITIONAL_TEXT_1_LENGTH,
       },
     },
   },
@@ -368,7 +368,7 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
     validate: {
       len: {
         args: [1, 30],
-        msg: 'AdditionalText2 must be under 1-30 characters.',
+        msg: MESSAGE.ADDITIONAL_TEXT_2_LENGTH,
       },
     },
   },
