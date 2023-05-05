@@ -212,14 +212,14 @@ const checkDocumentStatusSavedExist = async (
       { cashJournalId },
     ];
 
-    const doesPrevDaySavedDocumentExist = await PettyCash.findOne({
+    const prevDaySavedTransaction = await PettyCash.findOne({
       where: {
         [Op.and]: query,
       },
       raw: true,
     });
 
-    return !!doesPrevDaySavedDocumentExist;
+    return !!prevDaySavedTransaction;
   } catch (err) {
     throw err;
   }
@@ -404,7 +404,7 @@ const findPaymentsWithPaginate = async (
       MESSAGE.FETCHED,
       {
         ...cashPayment,
-        foundPrevDaySavedTransaction: foundPrevDaySavedTransaction,
+        foundPrevDaySavedTransaction,
       },
     );
     res.status(200).send(response);
@@ -450,7 +450,7 @@ const findReceiptsWithPaginate = async (
       MESSAGE.FETCHED,
       {
         ...cashReceipt,
-        foundPrevDaySavedTransaction: foundPrevDaySavedTransaction,
+        foundPrevDaySavedTransaction,
       },
     );
     res.status(200).send(response);
@@ -790,7 +790,11 @@ const calculateFinalClosingBalance = async (
 
     let finalClosingBalance = 0;
 
-    if (!pettyCashData || closingBalanceAmount == null || closingBalanceAmount == undefined) {
+    if (
+      !pettyCashData
+      || closingBalanceAmount == null
+      || closingBalanceAmount == undefined
+    ) {
       return finalClosingBalance;
     }
 
@@ -799,12 +803,15 @@ const calculateFinalClosingBalance = async (
     const isSaved = documentStatus === 'Saved';
     const isUpdated = documentStatus === 'Updated';
 
-    if (isPayment && isSaved || !isPayment && isUpdated) {
-      finalClosingBalance = +new BigNumber(closingBalanceAmount).minus(totalUpdateAmount);
-    } else if (isPayment && isUpdated || !isPayment && isSaved) {
-      finalClosingBalance = +new BigNumber(closingBalanceAmount).plus(totalUpdateAmount);
+    if ((isPayment && isSaved) || (!isPayment && isUpdated)) {
+      finalClosingBalance = +new BigNumber(closingBalanceAmount).minus(
+        totalUpdateAmount,
+      );
+    } else if ((isPayment && isUpdated) || (!isPayment && isSaved)) {
+      finalClosingBalance = +new BigNumber(closingBalanceAmount).plus(
+        totalUpdateAmount,
+      );
     }
-    
     return finalClosingBalance;
   } catch (err) {
     throw err;
