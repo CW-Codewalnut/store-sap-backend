@@ -212,14 +212,14 @@ const checkDocumentStatusSavedExist = async (
       { cashJournalId },
     ];
 
-    const doesPrevDaySavedDocumentExist = await PettyCash.findOne({
+    const prevDaySavedTransaction = await PettyCash.findOne({
       where: {
         [Op.and]: query,
       },
       raw: true,
     });
 
-    return !!doesPrevDaySavedDocumentExist;
+    return !!prevDaySavedTransaction;
   } catch (err) {
     throw err;
   }
