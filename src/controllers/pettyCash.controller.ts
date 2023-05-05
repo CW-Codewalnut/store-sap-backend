@@ -812,7 +812,6 @@ const calculateFinalClosingBalance = async (
         totalUpdateAmount,
       );
     }
-
     return finalClosingBalance;
   } catch (err) {
     throw err;
