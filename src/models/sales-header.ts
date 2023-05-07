@@ -1,6 +1,6 @@
-import { DataTypes } from 'sequelize';
-import { nanoid } from 'nanoid';
-import { sequelize } from '.';
+import {DataTypes} from 'sequelize';
+import {nanoid} from 'nanoid';
+import {sequelize} from '.';
 import SalesHeaderModel from '../interfaces/masters/salesHeader.interface';
 import Plant from './plant';
 
