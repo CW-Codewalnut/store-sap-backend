@@ -16,24 +16,40 @@ module.exports = {
         allowNull: false,
       },
       sapDocNo: {
-        type: Sequelize.STRING(30),
-        allowNull: false,
+        type: Sequelize.STRING(10),
+        allowNull: true,
       },
       documentDate: {
         type: Sequelize.DATE,
         allowNull: false,
       },
       reference: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(16),
         allowNull: false,
       },
       period: {
-        type: Sequelize.STRING(50),
+        type: Sequelize.STRING,
         allowNull: false,
       },
       documentHeaderText: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(25),
         allowNull: false,
+      },
+      plantId: {
+        type: Sequelize.STRING(16),
+        allowNull: false,
+        references: {
+          model: 'plants',
+          key: 'id',
+        },
+      },
+      cashLedgerId: {
+        type: Sequelize.STRING(16),
+        allowNull: false,
+        references: {
+          model: 'cash_ledgers',
+          key: 'id',
+        },
       },
       createdBy: {
         allowNull: true,

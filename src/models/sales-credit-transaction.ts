@@ -1,33 +1,57 @@
 import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
-import PlantModel from '../interfaces/masters/plant.interface';
+import SalesCreditTransactionModel from '../interfaces/masters/salesCreditTransaction.interface';
+import MESSAGE from '../config/message.json';
 
-const Plant = sequelize.define<PlantModel>('plant', {
+const SalesCreditTransaction = sequelize.define<SalesCreditTransactionModel>('sales_credit_transaction', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  plantCode: {
+  salesHeaderId: {
     allowNull: false,
-    unique: true,
-    type: DataTypes.BIGINT,
+    type: DataTypes.STRING(16),
   },
-  plant: {
-    allowNull: false,
-    unique: true,
-    type: DataTypes.STRING(100),
+  customerId: {
+    allowNull: true,
+    type: DataTypes.STRING(16),
     validate: {
-      notNull: {
-        msg: 'Plant is required!',
-      },
-      len: {
-        args: [3, 50],
-        msg: 'Plant must be under 3-50 characters.',
+      is: {
+        args: /^[A-Za-z0-9_-]{16}$/,
+        msg: MESSAGE.CUSTOMER_INVALID,
       },
     },
+  },
+  description: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  postingKeyId: {
+    type: DataTypes.STRING(16),
+    allowNull: false,
+  },
+  amount: {
+    allowNull: false,
+    type: DataTypes.DECIMAL(13, 2),
+  },
+  baselineDate: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  paymentMethod: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  assignment: {
+    allowNull: true,
+    type: DataTypes.STRING(18),
+  },
+  text: {
+    allowNull: true,
+    type: DataTypes.STRING(25),
   },
   createdBy: {
     allowNull: true,
@@ -47,4 +71,4 @@ const Plant = sequelize.define<PlantModel>('plant', {
   },
 });
 
-export default Plant;
+export default SalesCreditTransaction;

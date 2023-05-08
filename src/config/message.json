@@ -16,6 +16,7 @@
   "BUSINESS_TRANSACTION_REQUIRED": "Business transaction is required",
   "CASH_JOURNAL_INVALID": "Invalid cash journal",
   "CASH_JOURNAL_REQUIRED": "Cash journal is required",
+  "CASH_LEDGER_REQUIRED": "Cash ledger not exist for selected plant",
   "CJ_DOC_NO_LENGTH": "Cash journal document no. should be between 1-10 characters",
   "CONTROLLING_AREA_LENGTH": "Controlling area should be between 1-10 characters",
   "CONTROLLING_AREA_VALUE": "Controlling area must be 1000",
