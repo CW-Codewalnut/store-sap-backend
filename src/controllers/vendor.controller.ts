@@ -4,6 +4,7 @@ import Vendor from '../models/vendor';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import PaymentTerm from '../models/payment-term';
 import MESSAGE from '../config/message.json';
+import GlAccount from '../models/gl-account';
 
 const findAll = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -50,6 +51,12 @@ const findWithPaginate = async (
       include: [
         {
           model: PaymentTerm,
+          attributes: {
+            exclude: ['createdBy', 'updatedBy', 'createdAt', 'updatedAt'],
+          },
+        },
+        {
+          model: GlAccount,
           attributes: {
             exclude: ['createdBy', 'updatedBy', 'createdAt', 'updatedAt'],
           },

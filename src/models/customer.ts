@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import PaymentTerm from './payment-term';
 import CustomerModel from '../interfaces/masters/customer.interface';
+import GlAccount from './gl-account';
 
 const Customer = sequelize.define<CustomerModel>('customer', {
   id: {
@@ -150,6 +151,10 @@ const Customer = sequelize.define<CustomerModel>('customer', {
 
 Customer.belongsTo(PaymentTerm, {
   foreignKey: 'paymentTermId',
+});
+
+Customer.belongsTo(GlAccount, {
+  foreignKey: 'glAccountId',
 });
 
 export default Customer;

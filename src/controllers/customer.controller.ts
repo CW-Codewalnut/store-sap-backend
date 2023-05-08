@@ -4,6 +4,7 @@ import Customer from '../models/customer';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import PaymentTerm from '../models/payment-term';
 import MESSAGE from '../config/message.json';
+import GlAccount from '../models/gl-account';
 
 const findWithPaginate = async (
   req: Request,
@@ -36,6 +37,12 @@ const findWithPaginate = async (
       include: [
         {
           model: PaymentTerm,
+          attributes: {
+            exclude: ['createdBy', 'updatedBy', 'createdAt', 'updatedAt'],
+          },
+        },
+        {
+          model: GlAccount,
           attributes: {
             exclude: ['createdBy', 'updatedBy', 'createdAt', 'updatedAt'],
           },
