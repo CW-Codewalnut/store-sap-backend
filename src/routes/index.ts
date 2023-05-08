@@ -1,4 +1,4 @@
-import { Application } from 'express';
+import {Application} from 'express';
 
 import UserController from '../controllers/user.controller';
 import PlantController from '../controllers/plant.controller';
@@ -18,7 +18,7 @@ import CustomerController from '../controllers/customer.controller';
 import PettyCashController from '../controllers/pettyCash.controller';
 import UserPlantController from '../controllers/userPlant.controller';
 
-import { checkAuthenticated, verifyRouteAccess } from '../middleware/auth';
+import {checkAuthenticated, verifyRouteAccess} from '../middleware/auth';
 import CashJournalController from '../controllers/cashJournal.controller';
 import CashDenominationController from '../controllers/cashDenomination.controller';
 import PostingKeyController from '../controllers/postingKey.controller';
