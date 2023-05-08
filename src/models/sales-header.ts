@@ -1,33 +1,51 @@
 import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
-import PlantModel from '../interfaces/masters/plant.interface';
+import SalesHeaderModel from '../interfaces/masters/salesHeader.interface';
 
-const Plant = sequelize.define<PlantModel>('plant', {
+const SalesHeader = sequelize.define<SalesHeaderModel>('sales_header', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  plantCode: {
+  documentStatus: {
     allowNull: false,
-    unique: true,
-    type: DataTypes.BIGINT,
+    type: DataTypes.STRING(20),
+    defaultValue: 'Saved',
   },
-  plant: {
+  postingDate: {
+    type: DataTypes.DATE,
     allowNull: false,
-    unique: true,
-    type: DataTypes.STRING(100),
-    validate: {
-      notNull: {
-        msg: 'Plant is required!',
-      },
-      len: {
-        args: [3, 50],
-        msg: 'Plant must be under 3-50 characters.',
-      },
-    },
+  },
+  sapDocNo: {
+    type: DataTypes.STRING(10),
+    allowNull: true,
+  },
+  documentDate: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  reference: {
+    type: DataTypes.STRING(16),
+    allowNull: false,
+  },
+  period: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  documentHeaderText: {
+    type: DataTypes.STRING(25),
+    allowNull: false,
+  },
+  plantId: {
+    allowNull: false,
+    type: DataTypes.STRING(16),
+  },
+  cashLedgerId: {
+    allowNull: false,
+    type: DataTypes.STRING(16),
   },
   createdBy: {
     allowNull: true,
@@ -47,4 +65,4 @@ const Plant = sequelize.define<PlantModel>('plant', {
   },
 });
 
-export default Plant;
+export default SalesHeader;
