@@ -69,6 +69,10 @@ const Vendor = sequelize.define<VendorModel>('vendor', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  glAccountId: {
+    type: DataTypes.STRING(16),
+    allowNull: true,
+  },
   createdBy: {
     allowNull: true,
     type: DataTypes.STRING(16),

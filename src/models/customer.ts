@@ -126,6 +126,10 @@ const Customer = sequelize.define<CustomerModel>('customer', {
     type: DataTypes.STRING(21),
     allowNull: true,
   },
+  glAccountId: {
+    type: DataTypes.STRING(16),
+    allowNull: true,
+  },
   updatedBy: {
     allowNull: true,
     type: DataTypes.STRING(16),
