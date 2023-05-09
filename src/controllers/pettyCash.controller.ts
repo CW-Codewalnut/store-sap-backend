@@ -215,7 +215,7 @@ const checkDocumentStatusSavedExist = async (
       { plantId: activePlantId },
       { cashJournalId },
     ];
-    console.log('test111');
+    
     const prevDaySavedTransaction = await PettyCash.findOne({
       where: {
         [Op.and]: query,
