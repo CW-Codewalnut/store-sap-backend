@@ -202,7 +202,7 @@ const checkDocumentStatusSavedExist = async (
 
     const query = [
       sequelize.where(
-        sequelize.fn('FORMAT', sequelize.col('createdAt'), 'dd-MM-yyyy'),
+        sequelize.fn('CONVERT', sequelize.literal('DATE'), sequelize.col('createdAt')),
         {
           [Op.lt]: today,
         },
@@ -211,7 +211,7 @@ const checkDocumentStatusSavedExist = async (
       { plantId: activePlantId },
       { cashJournalId },
     ];
-
+    console.log('test111');
     const prevDaySavedTransaction = await PettyCash.findOne({
       where: {
         [Op.and]: query,
@@ -839,7 +839,7 @@ const getPreviousDayTransactionIds = async (
           },
         },
         sequelize.where(
-          sequelize.fn('FORMAT', sequelize.col('createdAt'), 'dd-MM-yyyy'),
+          sequelize.fn('CONVERT', sequelize.literal('DATE'), sequelize.col('createdAt')),
           {
             [Op.lt]: today,
           },
