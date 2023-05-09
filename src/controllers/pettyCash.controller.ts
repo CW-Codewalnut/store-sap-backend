@@ -514,6 +514,7 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
         MESSAGE.BAD_REQUEST,
         null,
       );
+
       return res.status(400).send(response);
     }
 
@@ -1361,6 +1362,7 @@ const transactionReverse = async (
       return res.status(CODE[400]).send(response);
     }
 
+
     const cashDenominationBody = calculateCashDenomination(req);
     const totalUpdateAmount = await getTotalUpdateAmount(transactionIds);
     const closingBalanceAmount = await getClosingBalance(req);
@@ -1410,12 +1412,14 @@ const transactionReverse = async (
         ...restPettyCashData,
       };
 
+
       const transactionData = await PettyCash.create(pettyCash);
 
       await PettyCash.update(
         { documentStatus: 'Updated Reversed' },
         { where: { id: transactionId } },
       );
+
 
       updatedTransactionIds.push(transactionData.id);
     }
@@ -1444,6 +1448,7 @@ const transactionReverse = async (
     next(err);
   }
 };
+
 
 const getUpdateTransactionCount = (
   transactionIds: Array<string>,
