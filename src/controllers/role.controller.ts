@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import groupBy from 'lodash.groupby';
 import sequelize, { Op } from 'sequelize';
+import { nanoid } from 'nanoid';
 import Role from '../models/role';
 import Permission from '../models/permission';
 import RolePermission from '../models/role-permission';
@@ -12,11 +13,17 @@ import Employee from '../models/employee';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (!req.body || !req.body.name || !req.body.description) {
+    if (
+      !req.body
+      || !req.body.name
+      || !req.body.description
+      || !Array.isArray(req.body.permissionIds)
+      || !req.body.permissionIds.length
+    ) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.EMPTY_CONTENT,
+        MESSAGE.BAD_REQUEST,
         null,
       );
       return res.status(CODE[400]).send(response);
@@ -38,6 +45,22 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     req.body.updatedBy = req.user.id;
     const role = await Role.create(req.body);
     const { id } = role;
+
+    const rolePermissions = [];
+
+    for (const permissionId of req.body.permissionIds) {
+      const rolePermissionData: any = {
+        id: nanoid(16),
+        roleId: id,
+        permissionId,
+        createdBy: req.user.id,
+        updatedBy: req.user.id,
+      };
+      rolePermissions.push(rolePermissionData);
+    }
+
+    await RolePermission.bulkCreate(rolePermissions);
+
     const roleData = await Role.findByPk(id);
     const response = responseFormatter(
       CODE[201],
@@ -173,11 +196,16 @@ const updateRolePermissions = async (
   next: NextFunction,
 ) => {
   try {
-    if (!req.body && !req.params) {
+    if (
+      !req.body
+      || !req.params
+      || !Array.isArray(req.body.permissionIds)
+      || !req.body.permissionIds.length
+    ) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
-        MESSAGE.EMPTY_CONTENT,
+        MESSAGE.BAD_REQUEST,
         null,
       );
       return res.status(CODE[400]).send(response);
@@ -272,6 +300,28 @@ const updateRolePermissions = async (
   }
 };
 
+const getAllPermissions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const permissions = await Permission.findAll();
+    const groupedPermission = groupBy(permissions, 'groupName');
+
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      MESSAGE.FETCHED,
+      groupedPermission,
+    );
+
+    return res.status(CODE[200]).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export default {
   create,
   findAll,
@@ -279,4 +329,5 @@ export default {
   update,
   findRolePermissions,
   updateRolePermissions,
+  getAllPermissions,
 };
