@@ -202,7 +202,11 @@ const checkDocumentStatusSavedExist = async (
 
     const query = [
       sequelize.where(
-        sequelize.fn('CONVERT', sequelize.literal('DATE'), sequelize.col('createdAt')),
+        sequelize.fn(
+          'CONVERT',
+          sequelize.literal('DATE'),
+          sequelize.col('createdAt'),
+        ),
         {
           [Op.lt]: today,
         },
@@ -839,7 +843,11 @@ const getPreviousDayTransactionIds = async (
           },
         },
         sequelize.where(
-          sequelize.fn('CONVERT', sequelize.literal('DATE'), sequelize.col('createdAt')),
+          sequelize.fn(
+            'CONVERT',
+            sequelize.literal('DATE'),
+            sequelize.col('createdAt'),
+          ),
           {
             [Op.lt]: today,
           },
@@ -1046,8 +1054,8 @@ const exportPettyCash = async (
       text: transaction.text ? transaction.text : '',
       venderNo: transaction.vendor ? transaction.vendor.venderNo : '',
       customerNo: transaction.customer ? transaction.customer.customerNo : '',
-      postingDate: dateFormat(transaction.postingDate, '.'),
-      documentDate: dateFormat(transaction.documentDate, '.'),
+      postingDate: dateFormat(transaction.postingDate, '.', false),
+      documentDate: dateFormat(transaction.documentDate, '.', false),
       costCentre: transaction.cost_centre
         ? transaction.cost_centre.costCentre
         : '',
@@ -1362,7 +1370,6 @@ const transactionReverse = async (
       return res.status(CODE[400]).send(response);
     }
 
-
     const cashDenominationBody = calculateCashDenomination(req);
     const totalUpdateAmount = await getTotalUpdateAmount(transactionIds);
     const closingBalanceAmount = await getClosingBalance(req);
@@ -1412,14 +1419,12 @@ const transactionReverse = async (
         ...restPettyCashData,
       };
 
-
       const transactionData = await PettyCash.create(pettyCash);
 
       await PettyCash.update(
         { documentStatus: 'Updated Reversed' },
         { where: { id: transactionId } },
       );
-
 
       updatedTransactionIds.push(transactionData.id);
     }
@@ -1448,7 +1453,6 @@ const transactionReverse = async (
     next(err);
   }
 };
-
 
 const getUpdateTransactionCount = (
   transactionIds: Array<string>,
