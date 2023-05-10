@@ -41,10 +41,6 @@ const SalesCreditTransaction = sequelize.define<SalesCreditTransactionModel>('sa
     type: DataTypes.DATE,
     allowNull: false,
   },
-  paymentMethod: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
   assignment: {
     allowNull: true,
     type: DataTypes.STRING(18),
@@ -52,6 +48,55 @@ const SalesCreditTransaction = sequelize.define<SalesCreditTransactionModel>('sa
   text: {
     allowNull: true,
     type: DataTypes.STRING(25),
+  },
+  paymentMethod: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  cardType: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Debit/credit card receipt',
+  },
+  cardSubType: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Debit/credit card receipt',
+  },
+  terminalId: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Debit/credit card receipt',
+  },
+  remitterName: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'All except cash receipt',
+  },
+  RemitterContactNumber: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'All except cash receipt',
+  },
+  UpiDetails: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'UPI receipt',
+  },
+  qrCode: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'UPI receipt',
+  },
+  rtgsOrNeftDetails: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Bank Transfer',
+  },
+  customerBankName: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Bank Transfer',
   },
   createdBy: {
     allowNull: true,
