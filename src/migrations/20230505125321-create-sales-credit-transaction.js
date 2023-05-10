@@ -42,10 +42,6 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
       },
-      paymentMethod: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
       assignment: {
         allowNull: true,
         type: Sequelize.STRING(18),
@@ -53,6 +49,55 @@ module.exports = {
       text: {
         allowNull: true,
         type: Sequelize.STRING(25),
+      },
+      paymentMethod: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      cardType: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        comment: 'Debit/credit card receipt',
+      },
+      cardSubType: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        comment: 'Debit/credit card receipt',
+      },
+      terminalId: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        comment: 'Debit/credit card receipt',
+      },
+      remitterName: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        comment: 'All, except cash receipt',
+      },
+      RemitterContactNumber: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        comment: 'All, except cash receipt',
+      },
+      UpiDetails: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        comment: 'UPI receipt',
+      },
+      qrCode: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        comment: 'UPI receipt',
+      },
+      rtgsOrNeftDetails: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        comment: 'Bank Transfer',
+      },
+      customerBankName: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        comment: 'Bank Transfer',
       },
       createdBy: {
         allowNull: true,
