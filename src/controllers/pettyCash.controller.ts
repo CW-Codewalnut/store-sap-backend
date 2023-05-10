@@ -215,7 +215,7 @@ const checkDocumentStatusSavedExist = async (
       { plantId: activePlantId },
       { cashJournalId },
     ];
-    
+
     const prevDaySavedTransaction = await PettyCash.findOne({
       where: {
         [Op.and]: query,
@@ -243,7 +243,6 @@ const checkTaxCode = async (
     const isTaxCodeExist = await TaxCode.findOne({
       where: { id: taxCodeId, taxCode: 'V0' },
     });
-
     return !!isTaxCodeExist && taxRate === 0;
   } catch (err) {
     throw err;
