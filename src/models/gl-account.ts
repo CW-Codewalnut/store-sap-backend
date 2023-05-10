@@ -26,7 +26,7 @@ const GlAccount = sequelize.define<GlAccountModel>('gl_account', {
     unique: true,
   },
   businessTransactionId: {
-    allowNull: false,
+    allowNull: true,
     type: DataTypes.STRING(16),
     references: {
       model: 'business_transactions',

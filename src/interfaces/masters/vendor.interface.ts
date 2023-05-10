@@ -19,6 +19,7 @@ interface VendorModel
   phone: string;
   mobileNo: string;
   email: string;
+  glAccountId: string;
   createdBy: string;
   updatedBy: string;
   createdAt: Date;
