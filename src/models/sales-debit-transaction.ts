@@ -2,6 +2,10 @@ import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import SalesDebitTransactionModel from '../interfaces/masters/salesDebitTransaction.interface';
+import BusinessTransaction from './business-transaction';
+import GlAccount from './gl-account';
+import PostingKey from './posting-key';
+import ProfitCentre from './profit-centre';
 
 const SalesDebitTransaction = sequelize.define<SalesDebitTransactionModel>('sales_debit_transaction', {
   id: {
@@ -62,6 +66,19 @@ const SalesDebitTransaction = sequelize.define<SalesDebitTransactionModel>('sale
     allowNull: false,
     type: DataTypes.DATE,
   },
+});
+
+SalesDebitTransaction.belongsTo(BusinessTransaction, {
+  foreignKey: 'businessTransactionId',
+});
+SalesDebitTransaction.belongsTo(GlAccount, {
+  foreignKey: 'glAccountId',
+});
+SalesDebitTransaction.belongsTo(PostingKey, {
+  foreignKey: 'postingKeyId',
+});
+SalesDebitTransaction.belongsTo(ProfitCentre, {
+  foreignKey: 'profitCentreId',
 });
 
 export default SalesDebitTransaction;

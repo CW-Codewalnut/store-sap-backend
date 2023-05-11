@@ -2,6 +2,7 @@ import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import SalesHeaderModel from '../interfaces/masters/salesHeader.interface';
+import Plant from './plant';
 
 const SalesHeader = sequelize.define<SalesHeaderModel>('sales_header', {
   id: {
@@ -63,6 +64,10 @@ const SalesHeader = sequelize.define<SalesHeaderModel>('sales_header', {
     allowNull: false,
     type: DataTypes.DATE,
   },
+});
+
+SalesHeader.belongsTo(Plant, {
+  foreignKey: 'plantId',
 });
 
 export default SalesHeader;
