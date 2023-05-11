@@ -34,14 +34,19 @@ const createSaleHeader = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const header = {
+    const headerBody = {
       ...req.body,
       plantId: req.session.activePlantId,
       cashLedgerId: cashLedger.id,
       createdBy: req.user.id,
       updatedBy: req.user.id,
     } 
-    const saleHeader = await SalesHeader.create(header);
+
+    if (req.body.saleHeaderId) {
+      Object.assign(headerBody, { id: req.body.saleHeaderId });
+    }
+
+    const [saleHeader] = await SalesHeader.upsert(headerBody);
 
     const response = responseFormatter(
       CODE[200],
@@ -54,6 +59,7 @@ const createSaleHeader = async (
     next(err);
   }
 };
+
 const createSaleDebitTransaction = async (
   req: Request,
   res: Response,
@@ -65,19 +71,30 @@ const createSaleDebitTransaction = async (
       createdBy: req.user.id,
       updatedBy: req.user.id,
     } 
-    await SalesDebitTransaction.create(debitTransaction);
+    
+    if (req.body.salesDebitTransactionId) {
+      Object.assign(debitTransaction, { id: req.body.salesDebitTransactionId });
+    }
+
+    await SalesDebitTransaction.upsert(debitTransaction);
+    const salesDebitTransactions = await SalesDebitTransaction.findAll({
+      where: {
+        salesHeaderId: req.body.salesHeaderId
+      }
+    });
     
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.FETCHED,
-      null,
+      salesDebitTransactions,
     );
     res.status(CODE[200]).send(response);
   } catch (err) {
     next(err);
   }
 };
+
 const createSaleCreditTransaction = async (
   req: Request,
   res: Response,
@@ -89,13 +106,23 @@ const createSaleCreditTransaction = async (
       createdBy: req.user.id,
       updatedBy: req.user.id,
     } 
-    await SalesCreditTransaction.create(creditTransaction);
+
+    if (req.body.salesCreditTransactionId) {
+      Object.assign(creditTransaction, { id: req.body.salesCreditTransactionId });
+    }
+
+    await SalesCreditTransaction.upsert(creditTransaction);
+    const salesCreditTransactions = await SalesCreditTransaction.findAll({
+      where: {
+        salesHeaderId: req.body.salesHeaderId
+      }
+    });
     
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.FETCHED,
-      null,
+      salesCreditTransactions,
     );
     res.status(CODE[200]).send(response);
   } catch (err) {
