@@ -84,4 +84,17 @@ SalesDebitTransaction.belongsTo(ProfitCentre, {
   foreignKey: 'profitCentreId',
 });
 
+SalesDebitTransaction.belongsTo(BusinessTransaction, {
+  foreignKey: 'businessTransactionId',
+});
+SalesDebitTransaction.belongsTo(GlAccount, {
+  foreignKey: 'glAccountId',
+});
+SalesDebitTransaction.belongsTo(PostingKey, {
+  foreignKey: 'postingKeyId',
+});
+SalesDebitTransaction.belongsTo(ProfitCentre, {
+  foreignKey: 'profitCentreId',
+});
+
 export default SalesDebitTransaction;
