@@ -3,6 +3,9 @@ import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import SalesCreditTransactionModel from '../interfaces/masters/salesCreditTransaction.interface';
 import MESSAGE from '../config/message.json';
+import Customer from './customer';
+import PostingKey from './posting-key';
+import PosMidList from './pos-mid-list';
 
 const SalesCreditTransaction = sequelize.define<SalesCreditTransactionModel>('sales_credit_transaction', {
   id: {
@@ -63,8 +66,8 @@ const SalesCreditTransaction = sequelize.define<SalesCreditTransactionModel>('sa
     allowNull: true,
     comment: 'Debit/credit card receipt',
   },
-  terminalId: {
-    type: DataTypes.STRING,
+  posMidId: {
+    type: DataTypes.STRING(16),
     allowNull: true,
     comment: 'Debit/credit card receipt',
   },
@@ -114,6 +117,18 @@ const SalesCreditTransaction = sequelize.define<SalesCreditTransactionModel>('sa
     allowNull: false,
     type: DataTypes.DATE,
   },
+});
+
+SalesCreditTransaction.belongsTo(Customer, {
+  foreignKey: 'customerId',
+});
+ 
+SalesCreditTransaction.belongsTo(PostingKey, {
+  foreignKey: 'postingKeyId',
+});
+
+SalesCreditTransaction.belongsTo(PosMidList, {
+  foreignKey: 'posMidId',
 });
 
 export default SalesCreditTransaction;

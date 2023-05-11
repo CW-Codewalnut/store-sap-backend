@@ -17,7 +17,7 @@ interface SalesCreditTransactionModel
   paymentMethod: string;
   cardType: string;
   cardSubType: string;
-  terminalId: string;
+  posMidId: string;
   remitterName: string;
   RemitterContactNumber: string;
   UpiDetails: string;

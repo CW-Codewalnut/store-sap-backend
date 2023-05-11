@@ -5,6 +5,13 @@ import SalesHeader from '../models/sales-header';
 import SalesDebitTransaction from '../models/sales-debit-transaction';
 import SalesCreditTransaction from '../models/sales-credit-transaction';
 import CashLedger from '../models/cash-ledger';
+import BusinessTransaction from '../models/business-transaction';
+import GlAccount from '../models/gl-account';
+import Customer from '../models/customer';
+import PostingKey from '../models/posting-key';
+import PosMidList from '../models/pos-mid-list';
+import ProfitCentre from '../models/profit-centre';
+import Plant from '../models/plant';
 
 const createSaleHeader = async (
   req: Request,
@@ -48,11 +55,22 @@ const createSaleHeader = async (
 
     const [saleHeader] = await SalesHeader.upsert(headerBody);
 
+    const saleHeaderData = await SalesHeader.findOne({
+      where: {
+        id: saleHeader.id
+      },
+      include: [
+        {
+          model: Plant
+        }
+      ]
+    });
+
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.FETCHED,
-      saleHeader,
+      saleHeaderData,
     );
     res.status(CODE[200]).send(response);
   } catch (err) {
@@ -80,7 +98,21 @@ const createSaleDebitTransaction = async (
     const salesDebitTransactions = await SalesDebitTransaction.findAll({
       where: {
         salesHeaderId: req.body.salesHeaderId
-      }
+      },
+      include: [
+        {
+          model: BusinessTransaction
+        },
+        {
+          model: GlAccount
+        },
+        {
+          model: PostingKey
+        },
+        {
+          model: ProfitCentre
+        }
+      ]
     });
     
     const response = responseFormatter(
@@ -115,7 +147,18 @@ const createSaleCreditTransaction = async (
     const salesCreditTransactions = await SalesCreditTransaction.findAll({
       where: {
         salesHeaderId: req.body.salesHeaderId
-      }
+      },
+      include: [
+        {
+          model: Customer
+        },
+        {
+          model: PostingKey
+        },
+        {
+          model: PosMidList
+        },
+      ]
     });
     
     const response = responseFormatter(

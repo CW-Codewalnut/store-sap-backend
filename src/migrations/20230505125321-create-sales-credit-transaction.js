@@ -64,10 +64,14 @@ module.exports = {
         allowNull: true,
         comment: 'Debit/credit card receipt',
       },
-      terminalId: {
-        type: Sequelize.STRING,
+      posMidId: {
+        type: Sequelize.STRING(16),
         allowNull: true,
         comment: 'Debit/credit card receipt',
+        references: {
+          model: 'pos_mid_lists',
+          key: 'id',
+        },
       },
       remitterName: {
         type: Sequelize.STRING,
