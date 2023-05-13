@@ -18,7 +18,6 @@ module.exports = {
     mailFrom: process.env.LOCAL_MAIL_FROM,
     appBaseUrl: process.env.LOCAL_APP_BASE_URL,
     sonarToken: process.env.SONAR_TOKEN,
-    sonarHostUrl: process.env.SONAR_HOST_URL,
   },
   dev: {
     database: process.env.DEV_DB,
@@ -37,7 +36,6 @@ module.exports = {
     mailFrom: process.env.DEV_MAIL_FROM,
     appBaseUrl: process.env.DEV_APP_BASE_URL,
     sonarToken: process.env.SONAR_TOKEN,
-    sonarHostUrl: process.env.SONAR_HOST_URL,
   },
   uat: {
     database: process.env.UAT_DB,
@@ -55,7 +53,6 @@ module.exports = {
     mailPass: process.env.UAT_MAIL_PASS,
     appBaseUrl: process.env.UAT_APP_BASE_URL,
     sonarToken: process.env.SONAR_TOKEN,
-    sonarHostUrl: process.env.SONAR_HOST_URL,
   },
   prod: {
     database: process.env.PROD_DB,
@@ -73,6 +70,5 @@ module.exports = {
     mailPass: process.env.PROD_MAIL_PASS,
     appBaseUrl: process.env.PROD_APP_BASE_URL,
     sonarToken: process.env.SONAR_TOKEN,
-    sonarHostUrl: process.env.SONAR_HOST_URL,
   },
 };
