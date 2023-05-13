@@ -7,7 +7,7 @@ const config = configs[env];
 
 sonarqubeScanner(
   {
-    serverUrl: config.sonarHostUrl,
+    serverUrl: 'https://sonar.codewalnut.com/',
     token: config.sonarToken,
     options: {
       'sonar.sources': 'src',
