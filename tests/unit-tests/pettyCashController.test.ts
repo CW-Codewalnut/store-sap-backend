@@ -82,39 +82,6 @@ describe('Petty Routes', () => {
       expect(res.body.data).toEqual(MESSAGE.NULL);
   });
 
-/*   it('should return a 400 error when a new transaction is not allowed', async () => {
-    const yesterday = new Date(new Date().setDate(new Date().getDate() - 1));
-    const yesterdayISOString = yesterday.toISOString();
-
-    const previousDayRequestBody: any = {
-      ...requestBody,
-      documentDate: yesterdayISOString.split('T')[0],
-      postingDate: yesterdayISOString,
-      createdAt: yesterdayISOString,
-      updatedAt: yesterdayISOString,
-      createdBy: '2lABv_d3NkXwRrXx',
-      updatedBy: '2lABv_d3NkXwRrXx',
-    };
-
-    const pettyCash = await PettyCash.create(previousDayRequestBody);
-    pettyCashId = pettyCash.id;
-
-    const res = await agent
-      .post('/petty-cash')
-      .send(requestBody)
-      .expect(400)
-
-      expect(checkResponsePropertiesExist(res)).toEqual(true);
-      expect(
-        checkResponseBodyValue(
-          res, 
-          CODE[400], 
-          SUCCESS.FALSE, 
-          MESSAGE.NEW_TRANSACTION_NOT_ALLOWED)
-      ).toEqual(true);
-      expect(res.body.data).toEqual(MESSAGE.NULL);
-  }); */
-
   it('should return a 400 error when the closing balance is exceeded', async () => {
     const requestBodyWithError = { ...requestBody, amount: 10000, pettyCashType: 'Payment', fromDate: new Date(), toDate: new Date() };
     const res = await agent

@@ -6,4 +6,5 @@ module.exports = {
   detectOpenHandles: true,
   testTimeout: 10000,
   roots: ['tests'],
+  verbose: true,
 };
