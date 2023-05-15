@@ -33,14 +33,6 @@ const findWithPaginate = async (
     }
 
     const customers = await Customer.findAndCountAll({
-      include: [
-        {
-          model: PaymentTerm,
-          attributes: {
-            exclude: ['createdBy', 'updatedBy', 'createdAt', 'updatedAt'],
-          },
-        },
-      ],
       where: condition,
       order: [['createdAt', 'DESC']],
       offset,
