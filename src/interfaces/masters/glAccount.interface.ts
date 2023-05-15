@@ -10,9 +10,6 @@ interface GlAccountModel
   shortText: string;
   longText: string;
   businessTransactionId: string;
-  venderGl: boolean;
-  customerGl: boolean;
-  houseBankMandatory: boolean;
   createdBy: string;
   updatedBy: string;
   createdAt: Date;
