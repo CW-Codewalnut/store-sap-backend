@@ -84,7 +84,7 @@ const onError = (error: any) => {
     default:
       throw error;
   }
-}
+};
 
 /**
  * Event listener for HTTP server "listening" event.
@@ -93,10 +93,10 @@ const onError = (error: any) => {
 const onListening = () => {
   const addr = server.address();
   const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr?.port}`;
-}
+};
 
 server.on('error', onError);
 server.on('listening', onListening);
 
-export default app;	
+export default app;
 export { server };

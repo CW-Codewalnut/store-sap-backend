@@ -4,7 +4,9 @@ import { SuperTest, Test } from 'supertest';
 import loginUser from '../utils/login';
 import MESSAGE from '../../src/config/message.json';
 import { CODE, SUCCESS } from '../../src/config/response';
-import checkResponsePropertiesExist, { checkResponseBodyValue } from '../utils/checkResponsePropertiesExist';
+import checkResponsePropertiesExist, {
+  checkResponseBodyValue,
+} from '../utils/checkResponsePropertiesExist';
 import { sharedAgent } from '../utils/sharedAgent';
 import { stopServer } from '../utils/serverHandler';
 
@@ -20,20 +22,14 @@ describe('Vendor Routes', () => {
 
   afterAll(async () => {
     await stopServer();
-  })
+  });
 
   it('should return vendor list when authenticated', async () => {
-    const res = await agent
-    .get('/vendors')
-    .expect(200);
+    const res = await agent.get('/vendors').expect(200);
 
     expect(checkResponsePropertiesExist(res)).toEqual(true);
     expect(
-      checkResponseBodyValue(
-        res, 
-        CODE[200], 
-        SUCCESS.TRUE, 
-        MESSAGE.FETCHED)
+      checkResponseBodyValue(res, CODE[200], SUCCESS.TRUE, MESSAGE.FETCHED),
     ).toEqual(true);
     expect(Array.isArray(res.body.data)).toBe(true);
   });
