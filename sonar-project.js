@@ -11,16 +11,17 @@ sonarqubeScanner(
     token: config.sonarToken,
     options: {
       'sonar.sources': 'src',
-      'sonar.tests': 'test',
+      'sonar.exclusions': '**/*.test.ts',
       'sonar.inclusions': '**', // Entry point of your code
-      'sonar.test.inclusions': 'test/**/*.test.js', // Test files
+      'sonar.tests': 'tests',
+      'sonar.test.inclusions': 'tests/**/*.test.ts', // Test files
       'sonar.javascript.lcov.reportPaths': 'coverage/lcov.info', // LCOV coverage file (you should generate this file with a test runner like Jest)
       'sonar.projectKey': 'store-sap-backend',
       'sonar.projectName': 'store-sap-backend',
       'sonar.organization': 'codewalnut',
       'sonar.projectVersion': '1.0.0',
-      'sonar.login': config.sonarToken,
+      'sonar.token': config.sonarToken,
     },
   },
-  () => {},
+  () => process.exit(),
 );
