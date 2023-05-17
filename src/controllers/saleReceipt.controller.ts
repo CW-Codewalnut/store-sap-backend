@@ -18,8 +18,8 @@ const createSaleHeader = async (
   res: Response,
   next: NextFunction,
 ) => {
-  try { 
-    if(!req.session.activePlantId) {
+  try {
+    if (!req.session.activePlantId) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -29,9 +29,11 @@ const createSaleHeader = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const cashLedger:any = await CashLedger.findOne({where: {plantId: req.session.activePlantId}});  
-   
-    if(!cashLedger) {
+    const cashLedger: any = await CashLedger.findOne({
+      where: { plantId: req.session.activePlantId },
+    });
+
+    if (!cashLedger) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -47,7 +49,7 @@ const createSaleHeader = async (
       cashLedgerId: cashLedger.id,
       createdBy: req.user.id,
       updatedBy: req.user.id,
-    } 
+    };
 
     if (req.body.saleHeaderId) {
       Object.assign(headerBody, { id: req.body.saleHeaderId });
@@ -57,13 +59,13 @@ const createSaleHeader = async (
 
     const saleHeaderData = await SalesHeader.findOne({
       where: {
-        id: saleHeader.id
+        id: saleHeader.id,
       },
       include: [
         {
-          model: Plant
-        }
-      ]
+          model: Plant,
+        },
+      ],
     });
 
     const response = responseFormatter(
@@ -88,8 +90,8 @@ const createSaleDebitTransaction = async (
       ...req.body,
       createdBy: req.user.id,
       updatedBy: req.user.id,
-    } 
-    
+    };
+
     if (req.body.salesDebitTransactionId) {
       Object.assign(debitTransaction, { id: req.body.salesDebitTransactionId });
     }
@@ -97,24 +99,24 @@ const createSaleDebitTransaction = async (
     await SalesDebitTransaction.upsert(debitTransaction);
     const salesDebitTransactions = await SalesDebitTransaction.findAll({
       where: {
-        salesHeaderId: req.body.salesHeaderId
+        salesHeaderId: req.body.salesHeaderId,
       },
       include: [
         {
-          model: BusinessTransaction
+          model: BusinessTransaction,
         },
         {
-          model: GlAccount
+          model: GlAccount,
         },
         {
-          model: PostingKey
+          model: PostingKey,
         },
         {
-          model: ProfitCentre
-        }
-      ]
+          model: ProfitCentre,
+        },
+      ],
     });
-    
+
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
@@ -132,12 +134,12 @@ const createSaleCreditTransaction = async (
   res: Response,
   next: NextFunction,
 ) => {
-  try { 
+  try {
     const creditTransaction = {
       ...req.body,
       createdBy: req.user.id,
       updatedBy: req.user.id,
-    } 
+    };
 
     if (req.body.salesCreditTransactionId) {
       Object.assign(creditTransaction, { id: req.body.salesCreditTransactionId });
@@ -146,21 +148,21 @@ const createSaleCreditTransaction = async (
     await SalesCreditTransaction.upsert(creditTransaction);
     const salesCreditTransactions = await SalesCreditTransaction.findAll({
       where: {
-        salesHeaderId: req.body.salesHeaderId
+        salesHeaderId: req.body.salesHeaderId,
       },
       include: [
         {
-          model: Customer
+          model: Customer,
         },
         {
-          model: PostingKey
+          model: PostingKey,
         },
         {
-          model: PosMidList
+          model: PosMidList,
         },
-      ]
+      ],
     });
-    
+
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
@@ -173,4 +175,8 @@ const createSaleCreditTransaction = async (
   }
 };
 
-export default { createSaleHeader, createSaleDebitTransaction, createSaleCreditTransaction };
+export default {
+  createSaleHeader,
+  createSaleDebitTransaction,
+  createSaleCreditTransaction,
+};

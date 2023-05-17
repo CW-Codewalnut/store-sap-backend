@@ -7,11 +7,11 @@ interface SalesHeaderModel
   > {
   id: string;
   documentStatus:
-  | 'Saved'
-  | 'Updated'
-  | 'Posted'
-  | 'Updated Reversed'
-  | 'Posted Reversed';
+    | 'Saved'
+    | 'Updated'
+    | 'Posted'
+    | 'Updated Reversed'
+    | 'Posted Reversed';
   postingDate: Date;
   sapDocNo: string;
   documentDate: Date;
