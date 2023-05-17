@@ -9,6 +9,7 @@
     "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/app.js\"",
     "test": "NODE_ENV=test jest",
     "test:watch": "jest --watchAll",
+    "test:coverage": "NODE_ENV=test jest --coverage",
     "lint": "eslint './**/*.js' --fix",
     "format": "prettier-eslint './**/*.{js,json,ts}' --write",
     "sonar": "node sonar-project.js"
