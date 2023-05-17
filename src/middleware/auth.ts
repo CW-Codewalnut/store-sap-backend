@@ -1,9 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import SessionActivity from '../models/session-activity';
-import sessionActivityArgs from '../interfaces/sessionActivity/sessionActivity.interface';
+import SessionActivityArgs from '../interfaces/sessionActivity/sessionActivity.interface';
 import MESSAGE from '../config/message.json';
-import SessionActivityModel from '../interfaces/masters/sessionActivity.interface';
 
 const checkAuthenticated = (
   req: Request,
@@ -59,7 +58,7 @@ const saveSessionActivity = ({
   userId,
   sessionId,
   callBackFn,
-}: sessionActivityArgs) => {
+}: SessionActivityArgs) => {
   try {
     const ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim()
       || req.socket.remoteAddress;
