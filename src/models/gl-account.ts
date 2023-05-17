@@ -26,12 +26,27 @@ const GlAccount = sequelize.define<GlAccountModel>('gl_account', {
     unique: true,
   },
   businessTransactionId: {
-    allowNull: false,
+    allowNull: true,
     type: DataTypes.STRING(16),
     references: {
       model: 'business_transactions',
       key: 'id',
     },
+  },
+  venderGl: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
+  customerGl: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
+  houseBankMandatory: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
   },
   createdBy: {
     allowNull: true,

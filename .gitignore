@@ -7,7 +7,7 @@
 node_modules/
 coverage/
 dist/
-
+.scannerwork
 # Compiled Java class files
 *.class
 
