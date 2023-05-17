@@ -23,7 +23,7 @@ import {
   isNumber,
 } from '../utils/helper';
 import MESSAGE from '../config/message.json';
-import Preference from '../models/preferences';
+import Preference from '../models/preference';
 import CashDenomination from '../models/cash-denomination';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
@@ -802,8 +802,8 @@ const calculateFinalClosingBalance = async (
 
     if (
       !pettyCashData
-      || closingBalanceAmount == null
-      || closingBalanceAmount == undefined
+      || closingBalanceAmount === null
+      || closingBalanceAmount === undefined 
     ) {
       return finalClosingBalance;
     }
