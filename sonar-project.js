@@ -13,8 +13,8 @@ sonarqubeScanner(
       'sonar.sources': 'src',
       'sonar.exclusions': '**/*.test.ts',
       'sonar.inclusions': '**', // Entry point of your code
-      'sonar.tests': 'test',
-      'sonar.test.inclusions': 'test/**/*.test.ts', // Test files
+      'sonar.tests': 'tests',
+      'sonar.test.inclusions': 'tests/**/*.test.ts', // Test files
       'sonar.javascript.lcov.reportPaths': 'coverage/lcov.info', // LCOV coverage file (you should generate this file with a test runner like Jest)
       'sonar.projectKey': 'store-sap-backend',
       'sonar.projectName': 'store-sap-backend',
