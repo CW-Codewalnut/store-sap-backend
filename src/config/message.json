@@ -51,6 +51,7 @@
 	"NET_AMOUNT_REQUIRED": "Net amount is required",
 	"NEW_TRANSACTION_NOT_ALLOWED": "New transaction not allowed. Update previous day transactions to create new transactions",
 	"NO_MATCH_FOUND": "No match found",
+	"NULL": null,
 	"ORDER_NO_LENGTH": "Order no. should be between 1-10 characters",
 	"PASSWORD_EXPIRED_LINK": "The link you followed has been expired",
 	"PASSWORD_LENGTH": "Invalid password..try again",
