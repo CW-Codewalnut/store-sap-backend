@@ -121,7 +121,7 @@ describe('Petty Routes', () => {
       .post('/petty-cash')
       .send(requestBodyWithError)
       .expect(400);
-
+    console.log('tax==> ', res);
     expect(checkResponsePropertiesExist(res)).toEqual(true);
     expect(
       checkResponseBodyValue(
@@ -155,6 +155,7 @@ describe('Petty Routes', () => {
   });
 
   it('should successfully create a new petty cash entry', async () => {
+    await PettyCash.destroy({where: {documentStatus: 'Saved'}});
     const res = await agent.post('/petty-cash').send(requestBody).expect(200);
 
     pettyCashCreatedId = res.body.data.id;
