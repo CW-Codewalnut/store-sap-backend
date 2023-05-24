@@ -121,7 +121,6 @@ describe('Petty Routes', () => {
       .post('/petty-cash')
       .send(requestBodyWithError)
       .expect(400);
-    console.log('tax==> ', res);
     expect(checkResponsePropertiesExist(res)).toEqual(true);
     expect(
       checkResponseBodyValue(
