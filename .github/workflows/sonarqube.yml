@@ -1,13 +1,10 @@
 name: SonarQube Analysis
 
 on:
-  push:
+  pull_request:
     branches:
       - master
       - uat
-      - development
-  pull_request:
-    types: [opened, synchronize, reopened]
 
 jobs:
   sonarqube:
