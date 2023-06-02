@@ -1,37 +1,48 @@
 import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
-import BusinessTransaction from './business-transaction';
-import GlAccountModel from '../interfaces/masters/glAccount.interface';
+import PosMidListModel from '../interfaces/masters/posMidList.interface';
 
-const GlAccount = sequelize.define<GlAccountModel>('gl_account', {
+const PosMidList = sequelize.define<PosMidListModel>('pos_mid_list', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  glAccounts: {
-    type: DataTypes.BIGINT,
+  meCode: {
+    type: DataTypes.STRING(8),
     allowNull: false,
     unique: true,
   },
-  shortText: {
-    type: DataTypes.STRING(100),
+  tid: {
+    type: DataTypes.STRING(10),
+    allowNull: false,
+    unique: true,
+  },
+  legalName: {
+    type: DataTypes.INTEGER,
     allowNull: false,
   },
-  longText: {
+  dbaName: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  },
+  address: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
   },
-  businessTransactionId: {
-    allowNull: true,
-    type: DataTypes.STRING(16),
-    references: {
-      model: 'business_transactions',
-      key: 'id',
-    },
+  city: {
+    type: DataTypes.STRING(30),
+    allowNull: false,
+  },
+  pin: {
+    type: DataTypes.STRING(6),
+    allowNull: false,
+  },
+  groupName: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
   },
   createdBy: {
     allowNull: true,
@@ -51,8 +62,4 @@ const GlAccount = sequelize.define<GlAccountModel>('gl_account', {
   },
 });
 
-GlAccount.belongsTo(BusinessTransaction, {
-  foreignKey: 'businessTransactionId',
-});
-
-export default GlAccount;
+export default PosMidList;

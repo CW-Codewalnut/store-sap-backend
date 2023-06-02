@@ -1,23 +1,16 @@
 import { NextFunction, Request, Response } from 'express';
+import PosMidList from '../models/pos-mid-list';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import MESSAGE from '../config/message.json';
-import CashJournal from '../models/cash-journal';
 
-const getCashJournalByPlantId = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+const findAll = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { plantId } = req.params;
-    const CashJournals = await CashJournal.findAll({
-      where: { plantId },
-    });
+    const postingKeys = await PosMidList.findAll({});
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.FETCHED,
-      CashJournals,
+      postingKeys,
     );
     res.status(CODE[200]).send(response);
   } catch (err) {
@@ -25,4 +18,4 @@ const getCashJournalByPlantId = async (
   }
 };
 
-export default { getCashJournalByPlantId };
+export default { findAll };

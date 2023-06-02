@@ -1,28 +1,24 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('gl_accounts', {
+    await queryInterface.createTable('document_types', {
       id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING(16),
       },
-      glAccounts: {
-        type: Sequelize.BIGINT,
+      documentType: {
+        type: Sequelize.STRING(3),
         allowNull: false,
         unique: true,
       },
-      shortText: {
-        type: Sequelize.STRING(100),
-        allowNull: false,
-      },
-      longText: {
+      description: {
         type: Sequelize.STRING,
         allowNull: false,
         unique: true,
       },
       businessTransactionId: {
-        allowNull: true,
         type: Sequelize.STRING(16),
+        allowNull: false,
         references: {
           model: 'business_transactions',
           key: 'id',
@@ -47,6 +43,6 @@ module.exports = {
     });
   },
   async down(queryInterface) {
-    await queryInterface.dropTable('gl_accounts');
+    await queryInterface.dropTable('document_types');
   },
 };

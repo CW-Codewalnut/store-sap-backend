@@ -23,7 +23,7 @@ import {
   isNumber,
 } from '../utils/helper';
 import MESSAGE from '../config/message.json';
-import Preference from '../models/preferences';
+import Preference from '../models/preference';
 import CashDenomination from '../models/cash-denomination';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
@@ -181,6 +181,7 @@ const getTotalSavedAmount = async (
 
     return totalSavedAmount ?? 0;
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -225,6 +226,7 @@ const checkDocumentStatusSavedExist = async (
 
     return !!prevDaySavedTransaction;
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -245,6 +247,7 @@ const checkTaxCode = async (
     });
     return !!isTaxCodeExist && taxRate === 0;
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -264,6 +267,7 @@ const checkValidAmount = async (amount: number): Promise<boolean> => {
     });
     return !!isValidAmount;
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -678,6 +682,7 @@ const updateDocumentStatus = async (
       res.status(CODE[400]).send(response);
     }
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -735,6 +740,7 @@ const calculateCashDenomination = (req: Request) => {
     }
     return denominationBody;
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -796,8 +802,8 @@ const calculateFinalClosingBalance = async (
 
     if (
       !pettyCashData
-      || closingBalanceAmount == null
-      || closingBalanceAmount == undefined
+      || closingBalanceAmount === null
+      || closingBalanceAmount === undefined 
     ) {
       return finalClosingBalance;
     }
@@ -818,6 +824,7 @@ const calculateFinalClosingBalance = async (
     }
     return finalClosingBalance;
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -889,6 +896,7 @@ const updateTransactions = async (
       await PettyCash.update(updateData, { where: { id: transactionId } });
     });
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -1453,11 +1461,11 @@ const transactionReverse = async (
   }
 };
 
-const getUpdateTransactionCount = (
+const getUpdateTransactionCount = async (
   transactionIds: Array<string>,
 ): Promise<number> => {
   try {
-    return PettyCash.count({
+    return await PettyCash.count({
       where: {
         [Op.and]: [
           { id: { [Op.in]: transactionIds } },
@@ -1466,6 +1474,7 @@ const getUpdateTransactionCount = (
       },
     });
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -1504,6 +1513,7 @@ const getClosingBalance = async (req: Request): Promise<number> => {
     }
     throw new Error(MESSAGE.SELECT_PLANT);
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };

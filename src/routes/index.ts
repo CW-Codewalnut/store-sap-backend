@@ -21,6 +21,9 @@ import UserPlantController from '../controllers/userPlant.controller';
 import { checkAuthenticated, verifyRouteAccess } from '../middleware/auth';
 import CashJournalController from '../controllers/cashJournal.controller';
 import CashDenominationController from '../controllers/cashDenomination.controller';
+import PostingKeyController from '../controllers/postingKey.controller';
+import PosMidListController from '../controllers/posMidList.controller';
+import DocumentTypeController from '../controllers/documentType.controller';
 
 const routesMiddleware = (app: Application) => {
   // Auth api
@@ -92,6 +95,12 @@ const routesMiddleware = (app: Application) => {
     '/profit-centres/:costCentreId',
     checkAuthenticated,
     ProfitCenterController.getProfitCentreByCostCentreId,
+  );
+
+  app.get(
+    '/profit-centres/by/:plantId',
+    checkAuthenticated,
+    ProfitCenterController.getProfitCentreByPlantId,
   );
 
   app.get(
@@ -220,6 +229,16 @@ const routesMiddleware = (app: Application) => {
     '/cash-denomination/:cashJournalId',
     checkAuthenticated,
     CashDenominationController.getDenomination,
+  );
+
+  app.get('/posting-keys', checkAuthenticated, PostingKeyController.findAll);
+
+  app.get('/pos-mis-lists', checkAuthenticated, PosMidListController.findAll);
+
+  app.get(
+    '/document-types/:businessTransactionId',
+    checkAuthenticated,
+    DocumentTypeController.findAll,
   );
 };
 

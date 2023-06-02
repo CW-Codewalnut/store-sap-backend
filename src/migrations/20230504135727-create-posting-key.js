@@ -1,32 +1,27 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('gl_accounts', {
+    await queryInterface.createTable('posting_keys', {
       id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING(16),
       },
-      glAccounts: {
-        type: Sequelize.BIGINT,
+      postingKey: {
+        type: Sequelize.INTEGER,
         allowNull: false,
         unique: true,
       },
-      shortText: {
-        type: Sequelize.STRING(100),
-        allowNull: false,
-      },
-      longText: {
+      description: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true,
       },
-      businessTransactionId: {
-        allowNull: true,
-        type: Sequelize.STRING(16),
-        references: {
-          model: 'business_transactions',
-          key: 'id',
-        },
+      accountType: {
+        type: Sequelize.ENUM('Credit', 'Debit'),
+        allowNull: false,
+      },
+      groupName: {
+        type: Sequelize.STRING(50),
+        allowNull: false,
       },
       createdBy: {
         allowNull: true,
@@ -47,6 +42,6 @@ module.exports = {
     });
   },
   async down(queryInterface) {
-    await queryInterface.dropTable('gl_accounts');
+    await queryInterface.dropTable('posting_keys');
   },
 };

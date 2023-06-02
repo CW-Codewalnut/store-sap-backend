@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import PaymentTerm from './payment-term';
 import VendorModel from '../interfaces/masters/vendor.interface';
+import GlAccount from './gl-account';
 
 const Vendor = sequelize.define<VendorModel>('vendor', {
   id: {
@@ -69,6 +70,10 @@ const Vendor = sequelize.define<VendorModel>('vendor', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  glAccountId: {
+    type: DataTypes.STRING(16),
+    allowNull: true,
+  },
   createdBy: {
     allowNull: true,
     type: DataTypes.STRING(16),
@@ -89,6 +94,10 @@ const Vendor = sequelize.define<VendorModel>('vendor', {
 
 Vendor.belongsTo(PaymentTerm, {
   foreignKey: 'paymentTermId',
+});
+
+Vendor.belongsTo(GlAccount, {
+  foreignKey: 'glAccountId',
 });
 
 export default Vendor;

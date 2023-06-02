@@ -28,6 +28,7 @@ interface CustomerModel
   paymentTermId: string;
   currentCreditLimit: string;
   customerType: string;
+  glAccountId: string;
   updatedBy: string;
   createdBy: string;
   createdAt: Date;
