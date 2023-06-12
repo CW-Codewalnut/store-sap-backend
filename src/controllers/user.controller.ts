@@ -280,6 +280,7 @@ const sendPasswordLink = async (
     const passwordTokenData = await PasswordValidateToken.create(resetData);
     return sendEmail(passwordTokenData.id, employeeCode, passwordState);
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -309,7 +310,7 @@ const sendEmail = async (
       cc: [
         'umesh@codewalnut.com',
         'lovepreet@codewalnut.com',
-        'reshika@codewalnut.com',
+        'dhwani@codewalnut.com',
       ],
       subject: `Set your password for ${employeeCode}`,
       html: `<html>
@@ -322,6 +323,7 @@ const sendEmail = async (
 
     await transporter.sendMail(mailOptions);
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };

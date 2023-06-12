@@ -181,6 +181,7 @@ const getTotalSavedAmount = async (
 
     return totalSavedAmount ?? 0;
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -202,7 +203,11 @@ const checkDocumentStatusSavedExist = async (
 
     const query = [
       sequelize.where(
-        sequelize.fn('FORMAT', sequelize.col('createdAt'), 'dd-MM-yyyy'),
+        sequelize.fn(
+          'CONVERT',
+          sequelize.literal('DATE'),
+          sequelize.col('createdAt'),
+        ),
         {
           [Op.lt]: today,
         },
@@ -221,6 +226,7 @@ const checkDocumentStatusSavedExist = async (
 
     return !!prevDaySavedTransaction;
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -239,9 +245,9 @@ const checkTaxCode = async (
     const isTaxCodeExist = await TaxCode.findOne({
       where: { id: taxCodeId, taxCode: 'V0' },
     });
-
     return !!isTaxCodeExist && taxRate === 0;
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -261,6 +267,7 @@ const checkValidAmount = async (amount: number): Promise<boolean> => {
     });
     return !!isValidAmount;
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -514,6 +521,7 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
         MESSAGE.BAD_REQUEST,
         null,
       );
+
       return res.status(400).send(response);
     }
 
@@ -674,6 +682,7 @@ const updateDocumentStatus = async (
       res.status(CODE[400]).send(response);
     }
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -731,6 +740,7 @@ const calculateCashDenomination = (req: Request) => {
     }
     return denominationBody;
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -792,8 +802,8 @@ const calculateFinalClosingBalance = async (
 
     if (
       !pettyCashData
-      || closingBalanceAmount == null
-      || closingBalanceAmount == undefined
+      || closingBalanceAmount === null
+      || closingBalanceAmount === undefined 
     ) {
       return finalClosingBalance;
     }
@@ -812,9 +822,9 @@ const calculateFinalClosingBalance = async (
         totalUpdateAmount,
       );
     }
-
     return finalClosingBalance;
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -839,7 +849,11 @@ const getPreviousDayTransactionIds = async (
           },
         },
         sequelize.where(
-          sequelize.fn('FORMAT', sequelize.col('createdAt'), 'dd-MM-yyyy'),
+          sequelize.fn(
+            'CONVERT',
+            sequelize.literal('DATE'),
+            sequelize.col('createdAt'),
+          ),
           {
             [Op.lt]: today,
           },
@@ -882,6 +896,7 @@ const updateTransactions = async (
       await PettyCash.update(updateData, { where: { id: transactionId } });
     });
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -1046,8 +1061,8 @@ const exportPettyCash = async (
       text: transaction.text ? transaction.text : '',
       venderNo: transaction.vendor ? transaction.vendor.venderNo : '',
       customerNo: transaction.customer ? transaction.customer.customerNo : '',
-      postingDate: dateFormat(transaction.postingDate, '.'),
-      documentDate: dateFormat(transaction.documentDate, '.'),
+      postingDate: dateFormat(transaction.postingDate, '.', false),
+      documentDate: dateFormat(transaction.documentDate, '.', false),
       costCentre: transaction.cost_centre
         ? transaction.cost_centre.costCentre
         : '',
@@ -1446,11 +1461,11 @@ const transactionReverse = async (
   }
 };
 
-const getUpdateTransactionCount = (
+const getUpdateTransactionCount = async (
   transactionIds: Array<string>,
 ): Promise<number> => {
   try {
-    return PettyCash.count({
+    return await PettyCash.count({
       where: {
         [Op.and]: [
           { id: { [Op.in]: transactionIds } },
@@ -1459,6 +1474,7 @@ const getUpdateTransactionCount = (
       },
     });
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
@@ -1497,6 +1513,7 @@ const getClosingBalance = async (req: Request): Promise<number> => {
     }
     throw new Error(MESSAGE.SELECT_PLANT);
   } catch (err) {
+    console.error(err);
     throw err;
   }
 };
