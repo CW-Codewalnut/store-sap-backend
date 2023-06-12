@@ -15,19 +15,22 @@ const getDenomination = async (
     const { cashJournalId } = req.params;
 
     let cashDenomination;
-    
+
     const sessionData = await Session.findOne({ where: { sid: req.session.id } });
 
-    if(sessionData) {
+    if (sessionData) {
       const expressSessionData = JSON.parse(sessionData.data);
 
       cashDenomination = await CashDenomination.findOne({
         where: {
-          [Op.and]: [{ plantId: expressSessionData.activePlantId }, { cashJournalId }],
+          [Op.and]: [
+            { plantId: expressSessionData.activePlantId },
+            { cashJournalId },
+          ],
         },
         raw: true,
       });
-  
+
       if (!cashDenomination) {
         cashDenomination = {
           id: null,
@@ -44,7 +47,7 @@ const getDenomination = async (
           qty2000INR: 0,
         };
       }
-  
+
       const response = responseFormatter(
         CODE[200],
         SUCCESS.TRUE,
