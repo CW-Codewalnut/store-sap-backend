@@ -13,7 +13,7 @@ import PosMidList from '../models/pos-mid-list';
 import ProfitCentre from '../models/profit-centre';
 import Plant from '../models/plant';
 
-const createSaleHeader = async (
+const createSalesHeader = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -29,7 +29,7 @@ const createSaleHeader = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const cashLedger: any = await CashLedger.findOne({
+    const cashLedger = await CashLedger.findOne({
       where: { plantId: req.session.activePlantId },
     });
 
@@ -51,15 +51,15 @@ const createSaleHeader = async (
       updatedBy: req.user.id,
     };
 
-    if (req.body.saleHeaderId) {
-      Object.assign(headerBody, { id: req.body.saleHeaderId });
+    if (req.body.salesHeaderId) {
+      Object.assign(headerBody, { id: req.body.salesHeaderId });
     }
 
-    const [saleHeader] = await SalesHeader.upsert(headerBody);
+    const [salesHeader] = await SalesHeader.upsert(headerBody);
 
-    const saleHeaderData = await SalesHeader.findOne({
+    const salesHeaderData = await SalesHeader.findOne({
       where: {
-        id: saleHeader.id,
+        id: salesHeader.id,
       },
       include: [
         {
@@ -72,7 +72,7 @@ const createSaleHeader = async (
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.FETCHED,
-      saleHeaderData,
+      salesHeaderData,
     );
     res.status(CODE[200]).send(response);
   } catch (err) {
@@ -80,7 +80,7 @@ const createSaleHeader = async (
   }
 };
 
-const createSaleDebitTransaction = async (
+const createSalesDebitTransaction = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -129,7 +129,7 @@ const createSaleDebitTransaction = async (
   }
 };
 
-const createSaleCreditTransaction = async (
+const createSalesCreditTransaction = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -176,7 +176,7 @@ const createSaleCreditTransaction = async (
 };
 
 export default {
-  createSaleHeader,
-  createSaleDebitTransaction,
-  createSaleCreditTransaction,
+  createSalesHeader,
+  createSalesDebitTransaction,
+  createSalesCreditTransaction,
 };
