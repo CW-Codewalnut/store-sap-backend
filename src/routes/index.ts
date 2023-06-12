@@ -24,7 +24,7 @@ import CashDenominationController from '../controllers/cashDenomination.controll
 import PostingKeyController from '../controllers/postingKey.controller';
 import PosMidListController from '../controllers/posMidList.controller';
 import DocumentTypeController from '../controllers/documentType.controller';
-import SaleReceiptController from '../controllers/saleReceipt.controller';
+import SalesReceiptController from '../controllers/salesReceipt.controller';
 
 const routesMiddleware = (app: Application) => {
   // Auth api
@@ -244,17 +244,17 @@ const routesMiddleware = (app: Application) => {
   app.post(
     '/sales-receipt/header',
     checkAuthenticated,
-    SaleReceiptController.createSaleHeader,
+    SalesReceiptController.createSalesHeader,
   );
   app.post(
     '/sales-receipt/debit',
     checkAuthenticated,
-    SaleReceiptController.createSaleDebitTransaction,
+    SalesReceiptController.createSalesDebitTransaction,
   );
   app.post(
     '/sales-receipt/credit',
     checkAuthenticated,
-    SaleReceiptController.createSaleCreditTransaction,
+    SalesReceiptController.createSalesCreditTransaction,
   );
 };
 
