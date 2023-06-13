@@ -23,12 +23,8 @@ const findWithPaginate = async (
       condition = {
         [Op.or]: {
           customerNo: { [Op.like]: `%${search}%` },
-          customerName1: { [Op.like]: `%${search}%` },
-          customerName2: { [Op.like]: `%${search}%` },
-          customerName3: { [Op.like]: `%${search}%` },
           mobile: { [Op.like]: `%${search}%` },
-          email1: { [Op.like]: `%${search}%` },
-          email2: { [Op.like]: `%${search}%` },
+          gstNo: { [Op.like]: `%${search}%` },
         },
       };
     }

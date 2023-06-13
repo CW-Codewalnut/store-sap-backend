@@ -803,7 +803,7 @@ const calculateFinalClosingBalance = async (
     if (
       !pettyCashData
       || closingBalanceAmount === null
-      || closingBalanceAmount === undefined 
+      || closingBalanceAmount === undefined
     ) {
       return finalClosingBalance;
     }

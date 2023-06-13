@@ -25,6 +25,7 @@ import PostingKeyController from '../controllers/postingKey.controller';
 import PosMidListController from '../controllers/posMidList.controller';
 import DocumentTypeController from '../controllers/documentType.controller';
 import SalesReceiptController from '../controllers/salesReceipt.controller';
+import OneTimeCustomerController from '../controllers/oneTimeCustomer.controller';
 
 const routesMiddleware = (app: Application) => {
   // Auth api
@@ -255,6 +256,11 @@ const routesMiddleware = (app: Application) => {
     '/sales-receipt/credit',
     checkAuthenticated,
     SalesReceiptController.createSalesCreditTransaction,
+  );
+  app.post(
+    '/one-time-customer',
+    checkAuthenticated,
+    OneTimeCustomerController.create,
   );
 };
 
