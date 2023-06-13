@@ -1,12 +1,19 @@
 {
+  "root": true,
   "env": {
     "commonjs": true,
     "es2021": true,
     "node": true,
     "jest": true
   },
-  "extends": ["eslint:recommended", "airbnb-base", "prettier"],
-  "plugins": ["promise", "complexity"],
+  "extends": [
+    "eslint:recommended",
+    "airbnb-base",
+    "prettier",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "promise", "complexity"],
   "overrides": [],
   "parserOptions": {
     "ecmaVersion": "latest"
@@ -24,6 +31,13 @@
     "promise/no-return-in-finally": "error",
     "prefer-arrow-callback": "error",
     "complexity": ["warn", 10],
-    "camelcase": "off"
+    "camelcase": "off",
+    "import/no-unresolved": "off",
+    "import/extensions": "off",
+    "@typescript-eslint/no-var-requires": "off",
+    "consistent-return": "off",
+    "import/prefer-default-export": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "no-plusplus": "off"
   }
 }

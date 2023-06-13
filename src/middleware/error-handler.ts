@@ -1,15 +1,10 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { ForeignKeyConstraintError } from 'sequelize';
 import jwt from 'jsonwebtoken';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import MESSAGE from '../config/message.json';
 
-const ErrorHandler = (
-  err: any,
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+const ErrorHandler = (err: any, req: Request, res: Response) => {
   console.error(err);
   const errStatus = err.statusCode || CODE[500];
   let errMsg;
@@ -22,9 +17,10 @@ const ErrorHandler = (
     errMsg = err.message || MESSAGE.SOMETHING_WENT_WRONG;
   }
 
-  const stack: any = process.env.NODE_ENV === 'local' || process.env.NODE_ENV === 'dev'
-    ? err.stack
-    : {};
+  const stack: any =
+    process.env.NODE_ENV === 'local' || process.env.NODE_ENV === 'dev'
+      ? err.stack
+      : {};
 
   const response = responseFormatter(errStatus, SUCCESS.TRUE, errMsg, stack);
   res.status(CODE[500]).send(response);

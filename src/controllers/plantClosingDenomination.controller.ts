@@ -36,16 +36,17 @@ const storeDenomination = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const denominationTotalAmount = qty1INR * 1
-      + qty2INR * 2
-      + qty5INR * 5
-      + qty10INR * 10
-      + qty20INR * 20
-      + qty50INR * 50
-      + qty100INR * 100
-      + qty200INR * 200
-      + qty500INR * 500
-      + qty2000INR * 2000;
+    const denominationTotalAmount =
+      qty1INR * 1 +
+      qty2INR * 2 +
+      qty5INR * 5 +
+      qty10INR * 10 +
+      qty20INR * 20 +
+      qty50INR * 50 +
+      qty100INR * 100 +
+      qty200INR * 200 +
+      qty500INR * 500 +
+      qty2000INR * 2000;
 
     if (denominationTotalAmount !== closingBalanceAmount) {
       const response = responseFormatter(
