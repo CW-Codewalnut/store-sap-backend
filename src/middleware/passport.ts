@@ -8,6 +8,7 @@ import MESSAGE from '../config/message.json';
 const authenticateUser = async (
   employeeCode: string,
   password: string,
+  // eslint-disable-next-line @typescript-eslint/ban-types
   done: Function,
 ) => {
   try {
@@ -53,10 +54,12 @@ const strategy = new LocalStrategy(
 const passportMiddleware = () => {
   passport.use(strategy);
 
+  // eslint-disable-next-line @typescript-eslint/ban-types
   passport.serializeUser((user: any, done: Function) => {
     done(null, user.id);
   });
 
+  // eslint-disable-next-line @typescript-eslint/ban-types
   passport.deserializeUser(async (userId: string, done: Function) => {
     try {
       const user = await User.findOne({ where: { id: userId } });

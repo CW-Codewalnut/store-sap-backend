@@ -1,13 +1,10 @@
 name: SonarQube Analysis
 
 on:
-  push:
+  pull_request:
     branches:
       - master
       - uat
-      - development
-  pull_request:
-    types: [opened, synchronize, reopened]
 
 jobs:
   sonarqube:
@@ -38,7 +35,7 @@ jobs:
           TEST_MAIL_PASS: ${{ secrets.TEST_MAIL_PASS }}
           TEST_MAIL_FROM: ${{ secrets.TEST_MAIL_FROM }}
           TEST_APP_BASE_URL: ${{ secrets.TEST_APP_BASE_URL }}
-        run: npm run test:coverage
+        run: npm run test:report
 
       - name: Run SonarQube analysis
         run: npm run sonar
