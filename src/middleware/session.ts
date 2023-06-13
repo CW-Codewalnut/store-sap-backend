@@ -1,5 +1,5 @@
 import { Application } from 'express';
-import session, { SessionOptions, CookieOptions } from 'express-session';
+import ExpressSession, { SessionOptions, CookieOptions } from 'express-session';
 import ConnectSession from 'connect-session-sequelize';
 
 import { sequelize } from '../models';
@@ -16,7 +16,7 @@ const config = configs[env];
 
 require('../models/session');
 
-const SequelizeStore = ConnectSession(session.Store);
+const SequelizeStore = ConnectSession(ExpressSession.Store);
 
 function extendDefaultFields(
   defaults: DefaultFields,
@@ -52,7 +52,7 @@ const sessionMiddleware = (app: Application) => {
     cookie: cookieOptions,
   };
 
-  app.use(session(sessionConfig));
+  app.use(ExpressSession(sessionConfig));
 };
 
 export default sessionMiddleware;

@@ -55,7 +55,7 @@ module.exports = {
     });
   },
   // eslint-disable-next-line arrow-parens
-  down: async queryInterface => {
+  down: async (queryInterface) => {
     await queryInterface.dropTable('users');
   },
 };

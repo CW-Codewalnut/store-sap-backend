@@ -96,8 +96,8 @@ const PettyCash = sequelize.define<PettyCashModel>('petty_cash', {
       },
       customValidator() {
         if (
-          this.amount !== this.netAmount
-          || this.amount !== this.taxBaseAmount
+          this.amount !== this.netAmount ||
+          this.amount !== this.taxBaseAmount
         ) {
           throw new Error(MESSAGE.AMOUNT_EQUALITY_CHECKS);
         }

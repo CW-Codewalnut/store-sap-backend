@@ -1,8 +1,8 @@
 const checkResponsePropertiesExist = (res: any): boolean => {
-  const hasStatus = res.body.hasOwnProperty('status');
-  const hasSuccess = res.body.hasOwnProperty('success');
-  const hasMessage = res.body.hasOwnProperty('message');
-  const hasData = res.body.hasOwnProperty('data');
+  const hasStatus = Object.prototype.hasOwnProperty.call(res.body, 'status');
+  const hasSuccess = Object.prototype.hasOwnProperty.call(res.body, 'success');
+  const hasMessage = Object.prototype.hasOwnProperty.call(res.body, 'message');
+  const hasData = Object.prototype.hasOwnProperty.call(res.body, 'data');
 
   return hasStatus && hasSuccess && hasMessage && hasData;
 };

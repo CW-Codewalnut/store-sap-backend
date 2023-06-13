@@ -47,6 +47,7 @@ describe('Petty Routes', () => {
   });
 
   it('should return a 400 error due to a missing required property', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { amount, ...requestBodyWithError } = requestBody;
 
     const res = await agent
@@ -173,6 +174,7 @@ describe('Petty Routes', () => {
   });
 
   it('should return app payment transaction between dates when authenticated', async () => {
+    // eslint-disable-next-line no-shadow
     const requestBody = {
       fromDate: new Date(),
       toDate: new Date(),
@@ -198,6 +200,7 @@ describe('Petty Routes', () => {
   });
 
   it('should return app receipt transaction between dates when authenticated', async () => {
+    // eslint-disable-next-line no-shadow
     const requestBody = {
       fromDate: new Date(),
       toDate: new Date(),
@@ -223,6 +226,7 @@ describe('Petty Routes', () => {
   });
 
   test('should return a bad request error if required data is missing', async () => {
+    // eslint-disable-next-line no-shadow
     const requestBody = {
       fromDate: '2023-01-01',
       toDate: '',
@@ -247,6 +251,7 @@ describe('Petty Routes', () => {
   });
 
   test('should return a success for balance calculation', async () => {
+    // eslint-disable-next-line no-shadow
     const requestBody = {
       fromDate: new Date(),
       toDate: new Date(),

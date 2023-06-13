@@ -11,7 +11,7 @@
     "test:watch": "jest --watchAll",
     "test:coverage": "NODE_ENV=test jest --coverage",
     "test:report": "NODE_ENV=test jest --watchAll=false --coverage --testResultsProcessor jest-sonar-reporter",
-    "lint": "eslint './**/*.js' --fix",
+    "lint": "eslint 'src/**/*.{js,ts}' 'tests/**/*.{js,ts}' --fix",
     "format": "prettier-eslint './**/*.{js,json,ts}' --write",
     "sonar": "node sonar-project.js"
   },

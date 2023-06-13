@@ -34,7 +34,7 @@ const checkLoggedIn = (req: Request, res: Response, next: NextFunction) => {
   return next();
 };
 
-const verifyRouteAccess = (req: Request, res: Response, next: NextFunction) => {
+const verifyRouteAccess = (req: Request, res: Response) => {
   if (req.isAuthenticated()) {
     const response = responseFormatter(
       CODE[200],
@@ -60,8 +60,9 @@ const saveSessionActivity = ({
   callBackFn,
 }: SessionActivityArgs) => {
   try {
-    const ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim()
-      || req.socket.remoteAddress;
+    const ip =
+      (req.headers['x-forwarded-for'] || '').split(',').pop().trim() ||
+      req.socket.remoteAddress;
     const device = req.headers['user-agent'];
 
     const body = {
