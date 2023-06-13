@@ -887,9 +887,9 @@ const calculateFinalClosingBalance = async (
     let finalClosingBalance = 0;
 
     if (
-      !pettyCashData ||
-      closingBalanceAmount === null ||
-      closingBalanceAmount === undefined
+      !pettyCashData
+      || closingBalanceAmount === null
+      || closingBalanceAmount === undefined
     ) {
       return finalClosingBalance;
     }
