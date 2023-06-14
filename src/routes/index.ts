@@ -267,6 +267,16 @@ const routesMiddleware = (app: Application) => {
     checkAuthenticated,
     SalesReceiptController.transactionReverse,
   );
+  app.post(
+    '/sales-receipt/update/status',
+    checkAuthenticated,
+    SalesReceiptController.updateDocumentStatus,
+  );
+  app.delete(
+    '/sales-receipt/delete',
+    checkAuthenticated,
+    SalesReceiptController.deleteTransactions,
+  );
 };
 
 export default routesMiddleware;

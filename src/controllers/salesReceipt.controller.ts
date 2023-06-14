@@ -177,6 +177,51 @@ const createSalesCreditTransaction = async (
   }
 };
 
+const updateDocumentStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { salesHeaderId } = req.body;
+
+    if (!salesHeaderId) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    const [updateStatus] = await SalesHeader.update(
+      { documentStatus: 'Updated' },
+      { where: { id: salesHeaderId, documentStatus: 'Saved' } },
+    );
+
+    if (!updateStatus) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.ALLOWED_UPDATE_FOR_SAVED_STATUS,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      MESSAGE.DOCUMENT_LOCKED,
+      null,
+    );
+    res.status(CODE[200]).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
 const validateRequestBody = (
   debitTransactionIds: string[],
   creditTransactionIds: string[],
@@ -253,7 +298,6 @@ const transactionReverse = async (
         };
       }),
     );
-    console.log('test=> ', debitTransactions);
     await SalesDebitTransaction.bulkCreate(debitTransactions);
 
     // Credit Transaction Reversal
@@ -305,9 +349,71 @@ const transactionReverse = async (
   }
 };
 
+const deleteTransactions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { transactionId, transactionType } = req.body;
+    console.log('test=>', transactionId);
+
+    if (!transactionId || !transactionType) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    let transactionModel: any;
+
+    if (transactionType === 'credit') {
+      transactionModel = SalesCreditTransaction;
+    } else {
+      transactionModel = SalesDebitTransaction;
+    }
+
+    const transactionData = await transactionModel.findOne({
+      where: { id: transactionId },
+      raw: true,
+    });
+
+    const saleHeaderData = await SalesHeader.findOne({
+      where: { id: transactionData?.salesHeaderId, documentStatus: 'Saved' },
+    });
+    console.log({ saleHeaderData });
+    if (!saleHeaderData) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.ALLOWED_DELETION_FOR_SAVED_STATUS,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    await transactionModel.destroy({ where: { id: transactionId } });
+
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      MESSAGE.TRANSACTION_DELETED,
+      null,
+    );
+    res.status(CODE[200]).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export default {
   createSalesHeader,
   createSalesDebitTransaction,
   createSalesCreditTransaction,
+  updateDocumentStatus,
   transactionReverse,
+  deleteTransactions,
 };
