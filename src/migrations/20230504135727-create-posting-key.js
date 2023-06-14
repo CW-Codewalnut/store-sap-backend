@@ -23,6 +23,14 @@ module.exports = {
         type: Sequelize.STRING(50),
         allowNull: false,
       },
+      postingKeyReversalId: {
+        allowNull: true,
+        type: Sequelize.STRING(16),
+        references: {
+          model: 'posting_keys',
+          key: 'id',
+        },
+      },
       createdBy: {
         allowNull: true,
         type: Sequelize.STRING(16),

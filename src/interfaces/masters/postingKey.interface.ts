@@ -10,6 +10,7 @@ interface PostingKeyModel
   description: string;
   accountType: string;
   groupName: string;
+  postingKeyReversalId: string;
   createdBy: string;
   updatedBy: string;
   createdAt: Date;

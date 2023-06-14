@@ -1,8 +1,8 @@
-import {NextFunction, Request, Response} from 'express';
-import sequelize, {Op} from 'sequelize';
+import { NextFunction, Request, Response } from 'express';
+import sequelize, { Op } from 'sequelize';
 import * as xlsx from 'xlsx';
-import {BigNumber} from 'bignumber.js';
-import {responseFormatter, CODE, SUCCESS} from '../config/response';
+import { BigNumber } from 'bignumber.js';
+import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import PettyCash from '../models/petty-cash';
 import BusinessTransaction from '../models/business-transaction';
 import TaxCode from '../models/tax-code';
@@ -39,7 +39,7 @@ const checkDocumentStatusSavedExist = async (
   req: Request,
 ): Promise<boolean> => {
   try {
-    const {activePlantId} = req.session;
+    const { activePlantId } = req.session;
 
     const query = [
       sequelize.where(
@@ -52,9 +52,9 @@ const checkDocumentStatusSavedExist = async (
           [Op.lt]: today,
         },
       ),
-      {documentStatus: 'Saved'},
-      {plantId: activePlantId},
-      {cashJournalId},
+      { documentStatus: 'Saved' },
+      { plantId: activePlantId },
+      { cashJournalId },
     ];
 
     const prevDaySavedTransaction = await PettyCash.findOne({
@@ -201,7 +201,7 @@ const getTotalCashPayments = (
  */
 const getClosingBalance = async (req: Request): Promise<number> => {
   try {
-    const {cashJournalId, fromDate, toDate} = req.body;
+    const { cashJournalId, fromDate, toDate } = req.body;
 
     if (req.session.activePlantId) {
       const openingBalance =
@@ -248,15 +248,15 @@ const getTotalSavedAmount = async (
   session: any,
 ): Promise<number> => {
   try {
-    const {activePlantId} = session;
+    const { activePlantId } = session;
 
     const totalSavedAmount = await PettyCash.sum('amount', {
       where: {
         [Op.and]: [
-          {pettyCashType: {[Op.eq]: 'Payment'}},
-          {plantId: activePlantId},
-          {cashJournalId},
-          {documentStatus: {[Op.eq]: 'Saved'}},
+          { pettyCashType: { [Op.eq]: 'Payment' } },
+          { plantId: activePlantId },
+          { cashJournalId },
+          { documentStatus: { [Op.eq]: 'Saved' } },
         ],
       },
     });
@@ -280,7 +280,7 @@ const checkTaxCode = async (
 ): Promise<boolean> => {
   try {
     const isTaxCodeExist = await TaxCode.findOne({
-      where: {id: taxCodeId, taxCode: 'V0'},
+      where: { id: taxCodeId, taxCode: 'V0' },
     });
     return !!isTaxCodeExist && taxRate === 0;
   } catch (err) {
@@ -298,7 +298,10 @@ const checkValidAmount = async (amount: number): Promise<boolean> => {
   try {
     const isValidAmount = await Preference.findOne({
       where: {
-        [Op.and]: [{name: 'pettyCashStoreLimit'}, {value: {[Op.gte]: amount}}],
+        [Op.and]: [
+          { name: 'pettyCashStoreLimit' },
+          { value: { [Op.gte]: amount } },
+        ],
       },
       raw: true,
     });
@@ -430,8 +433,8 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(400).send(response);
     }
 
-    const {postingISODate, documentISODate, referenceISODate} =
-      convertDatesIntoIso({postingDate, documentDate, referenceDate});
+    const { postingISODate, documentISODate, referenceISODate } =
+      convertDatesIntoIso({ postingDate, documentDate, referenceDate });
 
     const pettyCashBody = {
       ...req.body,
@@ -465,31 +468,31 @@ const getPettyCashData = (
   try {
     const page = Number(req.query.page);
     const pageSize = Number(req.query.pageSize);
-    const {search} = req.query;
+    const { search } = req.query;
     const offset = page * pageSize - pageSize;
     const limit = pageSize;
-    const {fromDate, toDate, cashJournalId} = req.body;
+    const { fromDate, toDate, cashJournalId } = req.body;
     const query = [];
 
     if (fromDate && toDate) {
       const from = convertFromDate(fromDate);
       const to = convertToDate(toDate);
-      const dateBy = {createdAt: {[Op.between]: [from, to]}};
+      const dateBy = { createdAt: { [Op.between]: [from, to] } };
       query.push(dateBy);
     }
 
     if (search) {
       const condition = {
         [Op.or]: {
-          refDocNo: {[Op.like]: `%${search}%`},
+          refDocNo: { [Op.like]: `%${search}%` },
         },
       };
       query.push(condition);
     }
 
-    query.push({pettyCashType});
-    query.push({plantId: req.session.activePlantId});
-    query.push({cashJournalId});
+    query.push({ pettyCashType });
+    query.push({ plantId: req.session.activePlantId });
+    query.push({ cashJournalId });
 
     return PettyCash.findAndCountAll({
       include: [
@@ -532,7 +535,7 @@ const getPettyCashData = (
           model: Employee,
         },
       ],
-      where: {[Op.and]: query},
+      where: { [Op.and]: query },
       order: [['createdAt', 'ASC']],
       offset,
       limit,
@@ -636,16 +639,16 @@ const findReceiptsWithPaginate = async (
 
 const objectIncludesKeys = (pettyCashData: any, allowedKeys: Array<string>) => {
   const pettyCashKeys = Object.keys(pettyCashData);
-  return allowedKeys.every(allowedKey => pettyCashKeys.includes(allowedKey));
+  return allowedKeys.every((allowedKey) => pettyCashKeys.includes(allowedKey));
 };
 
 const updatePettyCash = async (pettyCashData: any, transactionId: string) => {
   await PettyCash.update(pettyCashData, {
-    where: {id: transactionId},
+    where: { id: transactionId },
   });
 
   const pettyCashResult = await PettyCash.findOne({
-    where: {id: transactionId},
+    where: { id: transactionId },
   });
 
   return responseFormatter(
@@ -666,7 +669,7 @@ const updatePettyCash = async (pettyCashData: any, transactionId: string) => {
 // eslint-disable-next-line complexity
 const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const {transactionId} = req.params;
+    const { transactionId } = req.params;
 
     const {
       body: {
@@ -750,8 +753,8 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
         return res.status(400).send(response);
       }
 
-      const {postingISODate, documentISODate, referenceISODate} =
-        convertDatesIntoIso({postingDate, documentDate, referenceDate});
+      const { postingISODate, documentISODate, referenceISODate } =
+        convertDatesIntoIso({ postingDate, documentDate, referenceDate });
 
       const pettyCashBody = {
         ...req.body,
@@ -771,7 +774,7 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const validateRequestBody = (
-  transactionIds: string,
+  transactionIds: string[],
   documentStatus: string,
   cashJournalId: string,
   fromDate: any,
@@ -836,7 +839,7 @@ const calculateCashDenomination = (req: Request) => {
     };
 
     if (denominationId) {
-      Object.assign(denominationBody, {id: denominationId});
+      Object.assign(denominationBody, { id: denominationId });
     }
     return denominationBody;
   } catch (err) {
@@ -880,21 +883,21 @@ const calculateFinalClosingBalance = async (
   try {
     const pettyCashData = await PettyCash.findOne({
       attributes: ['pettyCashType', 'documentStatus'],
-      where: {id: transactionIds[0]},
+      where: { id: transactionIds[0] },
       raw: true,
     });
 
     let finalClosingBalance = 0;
 
     if (
-      !pettyCashData
-      || closingBalanceAmount === null
-      || closingBalanceAmount === undefined
+      !pettyCashData ||
+      closingBalanceAmount === null ||
+      closingBalanceAmount === undefined
     ) {
       return finalClosingBalance;
     }
 
-    const {pettyCashType, documentStatus} = pettyCashData;
+    const { pettyCashType, documentStatus } = pettyCashData;
     const isPayment = pettyCashType === 'Payment';
     const isSaved = documentStatus === 'Saved';
     const isUpdated = documentStatus === 'Updated';
@@ -944,13 +947,13 @@ const getPreviousDayTransactionIds = async (
             [Op.lt]: today,
           },
         ),
-        {documentStatus: 'Saved'},
+        { documentStatus: 'Saved' },
       ],
     },
     raw: true,
   });
 
-  return previousDateSavedTransactions.map(transaction => transaction.id);
+  return previousDateSavedTransactions.map((transaction) => transaction.id);
 };
 
 /**
@@ -965,7 +968,7 @@ const updateTransactions = async (
   documentStatus: string,
 ) => {
   try {
-    transactionIds.forEach(async transactionId => {
+    transactionIds.forEach(async (transactionId) => {
       let updateData = {};
 
       if (previousDayTransactionIds.includes(transactionId)) {
@@ -976,10 +979,10 @@ const updateTransactions = async (
           updatedAt: new Date(),
         };
       } else {
-        updateData = {documentStatus};
+        updateData = { documentStatus };
       }
 
-      await PettyCash.update(updateData, {where: {id: transactionId}});
+      await PettyCash.update(updateData, { where: { id: transactionId } });
     });
   } catch (err) {
     console.error(err);
@@ -996,7 +999,7 @@ const updateTransactions = async (
  */
 const updateDocumentStatus = async (req: Request, res: Response) => {
   try {
-    const {transactionIds, documentStatus, cashJournalId, fromDate, toDate} =
+    const { transactionIds, documentStatus, cashJournalId, fromDate, toDate } =
       req.body;
 
     if (
@@ -1075,7 +1078,7 @@ const deleteTransactions = async (
   next: NextFunction,
 ) => {
   try {
-    const {transactionIds} = req.body;
+    const { transactionIds } = req.body;
     if (!Array.isArray(transactionIds) || !transactionIds.length) {
       const response = responseFormatter(
         CODE[400],
@@ -1089,8 +1092,8 @@ const deleteTransactions = async (
     const countMatched = await PettyCash.count({
       where: {
         [Op.and]: [
-          {id: {[Op.in]: transactionIds}},
-          {documentStatus: {[Op.eq]: 'Saved'}},
+          { id: { [Op.in]: transactionIds } },
+          { documentStatus: { [Op.eq]: 'Saved' } },
         ],
       },
     });
@@ -1115,8 +1118,8 @@ const deleteTransactions = async (
     await PettyCash.destroy({
       where: {
         [Op.and]: [
-          {id: {[Op.in]: transactionIds}},
-          {documentStatus: {[Op.eq]: 'Saved'}},
+          { id: { [Op.in]: transactionIds } },
+          { documentStatus: { [Op.eq]: 'Saved' } },
         ],
       },
     });
@@ -1142,16 +1145,16 @@ const exportPettyCash = async (
   next: NextFunction,
 ) => {
   try {
-    const {fromDate} = req.body;
-    const {toDate} = req.body;
+    const { fromDate } = req.body;
+    const { toDate } = req.body;
     const startDate = convertFromDate(fromDate);
     const endDate = convertToDate(toDate);
 
     const checkSavedStatus = await PettyCash.findOne({
       where: {
         [Op.and]: [
-          {documentStatus: {[Op.eq]: 'Saved'}},
-          {plantId: {[Op.eq]: req.session.activePlantId}},
+          { documentStatus: { [Op.eq]: 'Saved' } },
+          { plantId: { [Op.eq]: req.session.activePlantId } },
         ],
       },
     });
@@ -1209,9 +1212,9 @@ const exportPettyCash = async (
       ],
       where: {
         [Op.and]: [
-          {createdAt: {[Op.between]: [startDate, endDate]}},
-          {documentStatus: {[Op.eq]: 'Updated'}},
-          {plantId: {[Op.eq]: req.session.activePlantId}},
+          { createdAt: { [Op.between]: [startDate, endDate] } },
+          { documentStatus: { [Op.eq]: 'Updated' } },
+          { plantId: { [Op.eq]: req.session.activePlantId } },
         ],
       },
     });
@@ -1285,7 +1288,7 @@ const exportPettyCash = async (
     xlsx.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
 
     // send workbook as a download
-    const buffer = xlsx.write(workbook, {type: 'buffer'});
+    const buffer = xlsx.write(workbook, { type: 'buffer' });
     res.setHeader('Content-Disposition', 'attachment; filename=export.xlsx');
     res.setHeader(
       'Content-Type',
@@ -1310,7 +1313,7 @@ const getBalanceCalculation = async (
   next: NextFunction,
 ) => {
   try {
-    const {fromDate, toDate, cashJournalId} = req.body;
+    const { fromDate, toDate, cashJournalId } = req.body;
     if (!req.body || !fromDate || !toDate) {
       const response = responseFormatter(
         CODE[400],
@@ -1382,8 +1385,8 @@ const getUpdateTransactionCount = async (
     return await PettyCash.count({
       where: {
         [Op.and]: [
-          {id: {[Op.in]: transactionIds}},
-          {documentStatus: 'Updated'},
+          { id: { [Op.in]: transactionIds } },
+          { documentStatus: 'Updated' },
         ],
       },
     });
@@ -1408,7 +1411,7 @@ const transactionReverse = async (
   next: NextFunction,
 ) => {
   try {
-    const {transactionIds, documentStatus, cashJournalId, fromDate, toDate} =
+    const { transactionIds, documentStatus, cashJournalId, fromDate, toDate } =
       req.body;
 
     if (
@@ -1467,48 +1470,6 @@ const transactionReverse = async (
       return res.status(CODE[400]).send(response);
     }
 
-    /* const updatedTransactionIds = [];
-
-    for (const transactionId of transactionIds) {
-      // eslint-disable-next-line no-await-in-loop
-      const {
-        id,
-        createdBy,
-        updatedBy,
-        documentStatus,
-        amount,
-        netAmount,
-        taxBaseAmount,
-        reverseTransactionId,
-        ...restPettyCashData
-      }: any = await PettyCash.findOne({
-        where: { id: transactionId },
-        raw: true,
-      });
-
-      const pettyCash = {
-        reverseTransactionId: id,
-        createdBy: req.user.id,
-        updatedBy: req.user.id,
-        documentStatus: 'Updated Reversed',
-        amount: +new BigNumber(+amount).negated(),
-        netAmount: +new BigNumber(+amount).negated(),
-        taxBaseAmount: +new BigNumber(+amount).negated(),
-        ...restPettyCashData,
-      };
-
-      // eslint-disable-next-line no-await-in-loop
-      const transactionData = await PettyCash.create(pettyCash);
-
-      // eslint-disable-next-line no-await-in-loop
-      await PettyCash.update(
-        { documentStatus: 'Updated Reversed' },
-        { where: { id: transactionId } },
-      );
-
-      updatedTransactionIds.push(transactionData.id);
-    } */
-
     const updatedTransactionIds: any[] = await Promise.all(
       transactionIds.map(async (transactionId: string) => {
         /* eslint-disable */
@@ -1523,7 +1484,7 @@ const transactionReverse = async (
           reverseTransactionId,
           ...restPettyCashData
         }: any = await PettyCash.findOne({
-          where: {id: transactionId},
+          where: { id: transactionId },
           raw: true,
         });
         /* eslint-enable */
@@ -1542,8 +1503,8 @@ const transactionReverse = async (
         const transactionData = await PettyCash.create(pettyCash);
 
         await PettyCash.update(
-          {documentStatus: 'Updated Reversed'},
-          {where: {id: transactionId}},
+          { documentStatus: 'Updated Reversed' },
+          { where: { id: transactionId } },
         );
 
         return transactionData.id;

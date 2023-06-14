@@ -142,7 +142,9 @@ const createSalesCreditTransaction = async (
     };
 
     if (req.body.salesCreditTransactionId) {
-      Object.assign(creditTransaction, { id: req.body.salesCreditTransactionId });
+      Object.assign(creditTransaction, {
+        id: req.body.salesCreditTransactionId,
+      });
     }
 
     await SalesCreditTransaction.upsert(creditTransaction);
@@ -175,8 +177,137 @@ const createSalesCreditTransaction = async (
   }
 };
 
+const validateRequestBody = (
+  debitTransactionIds: string[],
+  creditTransactionIds: string[],
+  salesHeaderId: string,
+) =>
+  Array.isArray(debitTransactionIds) &&
+  debitTransactionIds.length &&
+  Array.isArray(creditTransactionIds) &&
+  creditTransactionIds.length &&
+  salesHeaderId;
+
+const transactionReverse = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { debitTransactionIds, creditTransactionIds, salesHeaderId } =
+      req.body;
+
+    if (
+      !validateRequestBody(
+        debitTransactionIds,
+        creditTransactionIds,
+        salesHeaderId,
+      )
+    ) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    const saleHeader = await SalesHeader.findOne({
+      where: { id: salesHeaderId, documentStatus: 'Updated' },
+    });
+
+    if (!saleHeader) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.TRANSACTION_REVERSED_CONTAINS,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    // Debit Transaction Reversal
+    const debitTransactions = await Promise.all(
+      debitTransactionIds.map(async (debitTransactionId: string) => {
+        const salesDebitTransaction = await SalesDebitTransaction.findOne({
+          where: { id: debitTransactionId },
+        });
+        const postingKeyData = await PostingKey.findOne({
+          where: { id: salesDebitTransaction?.postingKeyId },
+        });
+        return {
+          salesHeaderId: salesDebitTransaction?.salesHeaderId,
+          businessTransactionId: salesDebitTransaction?.businessTransactionId,
+          glAccountId: salesDebitTransaction?.glAccountId,
+          description: salesDebitTransaction?.description,
+          postingKeyId: postingKeyData?.postingKeyReversalId,
+          amount: salesDebitTransaction?.amount,
+          profitCentreId: salesDebitTransaction?.profitCentreId,
+          assignment: salesDebitTransaction?.assignment,
+          text: salesDebitTransaction?.text,
+          createdBy: req.user.id,
+          updatedBy: req.user.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      }),
+    );
+    console.log('test=> ', debitTransactions);
+    await SalesDebitTransaction.bulkCreate(debitTransactions);
+
+    // Credit Transaction Reversal
+    const creditTransactions = await Promise.all(
+      creditTransactionIds.map(async (creditTransactionId: string) => {
+        const salesCreditTransaction = await SalesCreditTransaction.findOne({
+          where: { id: creditTransactionId },
+        });
+        const postingKeyData = await PostingKey.findOne({
+          where: { id: salesCreditTransaction?.postingKeyId },
+        });
+        return {
+          salesHeaderId: salesCreditTransaction?.salesHeaderId,
+          customerId: salesCreditTransaction?.customerId,
+          description: salesCreditTransaction?.description,
+          postingKeyId: postingKeyData?.postingKeyReversalId,
+          amount: salesCreditTransaction?.amount,
+          baselineDate: salesCreditTransaction?.baselineDate,
+          paymentMethod: salesCreditTransaction?.paymentMethod,
+          cardType: salesCreditTransaction?.cardType,
+          cardSubType: salesCreditTransaction?.cardSubType,
+          posMidId: salesCreditTransaction?.posMidId,
+          remitterName: salesCreditTransaction?.remitterName,
+          RemitterContactNumber: salesCreditTransaction?.RemitterContactNumber,
+          UpiDetails: salesCreditTransaction?.UpiDetails,
+          qrCode: salesCreditTransaction?.qrCode,
+          rtgsOrNeftDetails: salesCreditTransaction?.rtgsOrNeftDetails,
+          customerBankName: salesCreditTransaction?.customerBankName,
+          assignment: salesCreditTransaction?.assignment,
+          text: salesCreditTransaction?.text,
+          createdBy: req.user.id,
+          updatedBy: req.user.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      }),
+    );
+    await SalesCreditTransaction.bulkCreate(creditTransactions);
+
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      MESSAGE.FETCHED,
+      null,
+    );
+    res.status(CODE[200]).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export default {
   createSalesHeader,
   createSalesDebitTransaction,
   createSalesCreditTransaction,
+  transactionReverse,
 };
