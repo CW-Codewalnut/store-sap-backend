@@ -177,6 +177,27 @@ const createSalesCreditTransaction = async (
   }
 };
 
+interface UpdateSalesHeaderArgs {
+  newDocumentStatus: 'Updated' | 'Updated Reversed';
+  oldDocumentStatus: 'Saved' | 'Updated';
+  salesHeaderId: string;
+}
+
+const updateSalesHeader = ({
+  newDocumentStatus,
+  oldDocumentStatus,
+  salesHeaderId,
+}: UpdateSalesHeaderArgs) =>
+  SalesHeader.update(
+    { documentStatus: newDocumentStatus },
+    { where: { id: salesHeaderId, documentStatus: oldDocumentStatus } },
+  );
+
+const getSaleHeaderData = (salesHeaderId: string) =>
+  SalesHeader.findOne({
+    where: { id: salesHeaderId },
+  });
+
 const updateDocumentStatus = async (
   req: Request,
   res: Response,
@@ -195,10 +216,11 @@ const updateDocumentStatus = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const [updateStatus] = await SalesHeader.update(
-      { documentStatus: 'Updated' },
-      { where: { id: salesHeaderId, documentStatus: 'Saved' } },
-    );
+    const [updateStatus] = await updateSalesHeader({
+      newDocumentStatus: 'Updated',
+      oldDocumentStatus: 'Saved',
+      salesHeaderId,
+    });
 
     if (!updateStatus) {
       const response = responseFormatter(
@@ -210,11 +232,13 @@ const updateDocumentStatus = async (
       return res.status(CODE[400]).send(response);
     }
 
+    const salesHeaderData = await getSaleHeaderData(salesHeaderId);
+
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.DOCUMENT_LOCKED,
-      null,
+      salesHeaderData,
     );
     res.status(CODE[200]).send(response);
   } catch (err) {
@@ -337,11 +361,18 @@ const transactionReverse = async (
     );
     await SalesCreditTransaction.bulkCreate(creditTransactions);
 
+    await updateSalesHeader({
+      newDocumentStatus: 'Updated Reversed',
+      oldDocumentStatus: 'Updated',
+      salesHeaderId,
+    });
+
+    const salesHeaderData = await getSaleHeaderData(salesHeaderId);
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.FETCHED,
-      null,
+      salesHeaderData,
     );
     res.status(CODE[200]).send(response);
   } catch (err) {
