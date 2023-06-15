@@ -356,7 +356,6 @@ const deleteTransactions = async (
 ) => {
   try {
     const { transactionId, transactionType } = req.body;
-    console.log('test=>', transactionId);
 
     if (!transactionId || !transactionType) {
       const response = responseFormatter(
@@ -380,11 +379,19 @@ const deleteTransactions = async (
       where: { id: transactionId },
       raw: true,
     });
+    if (!transactionData) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.TRANSACTION_ID_NOT_FOUND,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
 
     const saleHeaderData = await SalesHeader.findOne({
       where: { id: transactionData?.salesHeaderId, documentStatus: 'Saved' },
     });
-    console.log({ saleHeaderData });
     if (!saleHeaderData) {
       const response = responseFormatter(
         CODE[400],

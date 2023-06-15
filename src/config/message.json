@@ -90,6 +90,7 @@
 	"TEXT_LENGTH": "Text should be between 1-25 characters",
 	"TOTAL_SAVED_AMOUNT_EXCEEDING_CLOSING_BAL": "Total saved amount exceeds closing balance",
 	"TRANSACTION_DELETED": "Transaction successfully deleted",
+	"TRANSACTION_ID_NOT_FOUND": "Transaction id not found",
 	"TRANSACTION_MAY_PARTIALLY_REVERSED": "Transactions may be partially reversed",
 	"TRANSACTION_REVERSED": "Transaction reversed successfully",
 	"TRANSACTION_REVERSED_CONTAINS": "Only updated transactions can be reversed",
