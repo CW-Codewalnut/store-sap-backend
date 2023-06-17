@@ -15,6 +15,7 @@ import PosMidList from '../models/pos-mid-list';
 import ProfitCentre from '../models/profit-centre';
 import Plant from '../models/plant';
 import Preference from '../models/preference';
+import { UpdateSalesHeaderArgs } from '../interfaces/salesReceipt/saleReceipt.interface';
 
 const createSalesHeader = async (
   req: Request,
@@ -133,7 +134,8 @@ const createSalesDebitTransaction = async (
 };
 
 /**
- * This function returns false if the provided amount exceeds the specified limit; otherwise, it returns true.
+ * This function returns false if the provided amount exceeds the specified limit;
+ * otherwise, it returns true.
  * @param amount
  * @returns
  */
@@ -156,8 +158,7 @@ const checkValidAmount = async (amount: number): Promise<boolean> => {
 };
 
 /**
- * This function returns false if the provided amount exceeds the specified limit;
- * otherwise, it returns true.
+ * Calculate amount if payment method is cash
  * @param salesHeaderId
  * @returns
  */
@@ -179,8 +180,7 @@ const getSumOfAmountForCash = async (
 };
 
 /**
- * This function returns false if line item not exist;
- * otherwise, it returns true.
+ * Check line item one consist at least one transaction;
  * @param salesHeaderId
  * @returns
  */
@@ -201,21 +201,16 @@ const checkLineItemOneExist = async (
   }
 };
 
-// /**
-//  * Calculate and return total amount based on transaction type
-//  * @param salesHeaderId
-//  * @returns
-//  */
-
 /**
- *
- * @param param0
+ * Calculate and return total amount based on transaction type
+ * @param salesHeaderId
+ * @param transactionType
  * @returns
  */
-const calculateTotalAmount = async ({
-  salesHeaderId,
-  transactionType,
-}: any): Promise<number> => {
+const calculateTotalAmount = async (
+  salesHeaderId: string,
+  transactionType: 'credit' | 'debit',
+): Promise<number> => {
   try {
     let transactionModel: any;
 
@@ -311,12 +306,6 @@ const createSalesCreditTransaction = async (
   }
 };
 
-interface UpdateSalesHeaderArgs {
-  newDocumentStatus: 'Updated' | 'Updated Reversed';
-  oldDocumentStatus: 'Saved' | 'Updated';
-  salesHeaderId: string;
-}
-
 const updateSalesHeader = ({
   newDocumentStatus,
   oldDocumentStatus,
@@ -351,14 +340,14 @@ const updateDocumentStatus = async (
     }
 
     // Check debit equal to credit transaction
-    const totalDebitAmount = await calculateTotalAmount({
-      salesHeaderId: req.body.salesHeaderId,
-      transactionType: 'debit',
-    });
-    const totalCreditAmount = await calculateTotalAmount({
-      salesHeaderId: req.body.salesHeaderId,
-      transactionType: 'credit',
-    });
+    const totalDebitAmount = await calculateTotalAmount(
+      req.body.salesHeaderId,
+      'debit',
+    );
+    const totalCreditAmount = await calculateTotalAmount(
+      req.body.salesHeaderId,
+      'credit',
+    );
     if (totalDebitAmount !== totalCreditAmount) {
       const response = responseFormatter(
         CODE[400],

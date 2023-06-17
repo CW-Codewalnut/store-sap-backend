@@ -1,6 +1,6 @@
-import {DataTypes} from 'sequelize';
-import {nanoid} from 'nanoid';
-import {sequelize} from '.';
+import { DataTypes } from 'sequelize';
+import { nanoid } from 'nanoid';
+import { sequelize } from '.';
 import SalesDebitTransactionModel from '../interfaces/masters/salesDebitTransaction.interface';
 import BusinessTransaction from './business-transaction';
 import GlAccount from './gl-account';

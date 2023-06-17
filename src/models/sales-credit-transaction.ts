@@ -1,6 +1,6 @@
-import {DataTypes} from 'sequelize';
-import {nanoid} from 'nanoid';
-import {sequelize} from '.';
+import { DataTypes } from 'sequelize';
+import { nanoid } from 'nanoid';
+import { sequelize } from '.';
 import SalesCreditTransactionModel from '../interfaces/masters/salesCreditTransaction.interface';
 import MESSAGE from '../config/message.json';
 import Customer from './customer';

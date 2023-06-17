@@ -1,4 +1,4 @@
-import {InferAttributes, InferCreationAttributes, Model} from 'sequelize';
+import { InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 
 interface SalesHeaderModel
   extends Model<
