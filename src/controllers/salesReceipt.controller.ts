@@ -1,4 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
+import { BigNumber } from 'bignumber.js';
+import { Op } from 'sequelize';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import MESSAGE from '../config/message.json';
 import SalesHeader from '../models/sales-header';
@@ -12,6 +14,7 @@ import PostingKey from '../models/posting-key';
 import PosMidList from '../models/pos-mid-list';
 import ProfitCentre from '../models/profit-centre';
 import Plant from '../models/plant';
+import Preference from '../models/preference';
 
 const createSalesHeader = async (
   req: Request,
@@ -129,6 +132,110 @@ const createSalesDebitTransaction = async (
   }
 };
 
+/**
+ * This function returns false if the provided amount exceeds the specified limit; otherwise, it returns true.
+ * @param amount
+ * @returns
+ */
+const checkValidAmount = async (amount: number): Promise<boolean> => {
+  try {
+    const isValidAmount = await Preference.findOne({
+      where: {
+        [Op.and]: [
+          { name: 'salesReceiptCashLimit' },
+          { value: { [Op.gt]: amount } },
+        ],
+      },
+      raw: true,
+    });
+    return !!isValidAmount;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
+
+/**
+ * This function returns false if the provided amount exceeds the specified limit;
+ * otherwise, it returns true.
+ * @param salesHeaderId
+ * @returns
+ */
+const getSumOfAmountForCash = async (
+  salesHeaderId: string,
+): Promise<number> => {
+  try {
+    const totalUpdatingAmount = await SalesCreditTransaction.sum('amount', {
+      where: {
+        [Op.and]: [{ salesHeaderId }, { paymentMethod: 'Cash' }],
+      },
+    });
+
+    return totalUpdatingAmount ?? 0;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
+
+/**
+ * This function returns false if line item not exist;
+ * otherwise, it returns true.
+ * @param salesHeaderId
+ * @returns
+ */
+const checkLineItemOneExist = async (
+  salesHeaderId: string,
+): Promise<number> => {
+  try {
+    const debitTransactionCount = await SalesDebitTransaction.count({
+      where: {
+        salesHeaderId,
+      },
+    });
+
+    return debitTransactionCount;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
+
+// /**
+//  * Calculate and return total amount based on transaction type
+//  * @param salesHeaderId
+//  * @returns
+//  */
+
+/**
+ *
+ * @param param0
+ * @returns
+ */
+const calculateTotalAmount = async ({
+  salesHeaderId,
+  transactionType,
+}: any): Promise<number> => {
+  try {
+    let transactionModel: any;
+
+    if (transactionType === 'credit') {
+      transactionModel = SalesCreditTransaction;
+    } else {
+      transactionModel = SalesDebitTransaction;
+    }
+
+    const totalAmount = await transactionModel.sum('amount', {
+      where: { salesHeaderId },
+    });
+
+    return totalAmount ?? 0;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
+
 const createSalesCreditTransaction = async (
   req: Request,
   res: Response,
@@ -140,6 +247,33 @@ const createSalesCreditTransaction = async (
       createdBy: req.user.id,
       updatedBy: req.user.id,
     };
+
+    // Check line item 1 debit transaction is exist
+    if (!(await checkLineItemOneExist(req.body.salesHeaderId))) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.LINE_ITEM_ONE_TRANSACTION_NOT_FOUND,
+        null,
+      );
+      return res.status(400).send(response);
+    }
+
+    if (req.body.paymentMethod.toLowerCase() === 'cash') {
+      const sumOfAmount = await getSumOfAmountForCash(req.body.salesHeaderId);
+
+      const amount = new BigNumber(req.body.amount).toNumber();
+      const totalAmount = sumOfAmount + amount;
+      if (!(await checkValidAmount(totalAmount))) {
+        const response = responseFormatter(
+          CODE[400],
+          SUCCESS.FALSE,
+          MESSAGE.SALES_RECEIPT_CASH_LIMIT,
+          null,
+        );
+        return res.status(400).send(response);
+      }
+    }
 
     if (req.body.salesCreditTransactionId) {
       Object.assign(creditTransaction, {
@@ -214,6 +348,25 @@ const updateDocumentStatus = async (
         null,
       );
       return res.status(CODE[400]).send(response);
+    }
+
+    // Check debit equal to credit transaction
+    const totalDebitAmount = await calculateTotalAmount({
+      salesHeaderId: req.body.salesHeaderId,
+      transactionType: 'debit',
+    });
+    const totalCreditAmount = await calculateTotalAmount({
+      salesHeaderId: req.body.salesHeaderId,
+      transactionType: 'credit',
+    });
+    if (totalDebitAmount !== totalCreditAmount) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.CREDIT_DEBIT_AMOUNT_EQUALITY,
+        null,
+      );
+      return res.status(400).send(response);
     }
 
     const [updateStatus] = await updateSalesHeader({
