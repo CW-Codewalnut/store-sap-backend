@@ -40,6 +40,10 @@ const SalesDebitTransaction = sequelize.define<SalesDebitTransactionModel>(
       allowNull: false,
       type: DataTypes.DECIMAL(13, 2),
     },
+    documentTypeId: {
+      allowNull: false,
+      type: DataTypes.STRING(16),
+    },
     profitCentreId: {
       allowNull: false,
       type: DataTypes.STRING(16),
