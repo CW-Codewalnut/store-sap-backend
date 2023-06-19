@@ -1469,7 +1469,6 @@ const transactionReverse = async (
       );
       return res.status(CODE[400]).send(response);
     }
-
     const updatedTransactionIds: any[] = await Promise.all(
       transactionIds.map(async (transactionId: string) => {
         /* eslint-disable */
@@ -1506,7 +1505,6 @@ const transactionReverse = async (
           { documentStatus: 'Updated Reversed' },
           { where: { id: transactionId } },
         );
-
         return transactionData.id;
       }),
     );
