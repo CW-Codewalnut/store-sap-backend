@@ -48,6 +48,7 @@
   "GL_ACCOUNT_INVALID": "Invalid GL account",
   "GL_ACCOUNT_REQUIRED": "GL account is required",
   "INVALID_CREDENTIAL": "Invalid credentials",
+  "INVALID_DOCUMENT_NUMBER": "Invalid document number",
   "LINE_ITEM_ONE_TRANSACTION_NOT_FOUND": "Line item 1 transaction not found",
   "LOGGED_IN": "Logged in successfully",
   "LOGGED_OUT": "Logged out securely",

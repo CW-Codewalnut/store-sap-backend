@@ -134,16 +134,4 @@ SalesCreditTransaction.belongsTo(PosMidList, {
   foreignKey: 'posMidId',
 });
 
-SalesCreditTransaction.belongsTo(Customer, {
-  foreignKey: 'customerId',
-});
-
-SalesCreditTransaction.belongsTo(PostingKey, {
-  foreignKey: 'postingKeyId',
-});
-
-SalesCreditTransaction.belongsTo(PosMidList, {
-  foreignKey: 'posMidId',
-});
-
 export default SalesCreditTransaction;

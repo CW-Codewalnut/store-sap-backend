@@ -277,6 +277,12 @@ const routesMiddleware = (app: Application) => {
     checkAuthenticated,
     SalesReceiptController.deleteTransactions,
   );
+
+  app.get(
+    '/sales-receipt/:documentNumber',
+    checkAuthenticated,
+    SalesReceiptController.findByDocumentNumber,
+  );
 };
 
 export default routesMiddleware;

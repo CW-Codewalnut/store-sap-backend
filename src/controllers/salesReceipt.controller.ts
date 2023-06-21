@@ -16,6 +16,7 @@ import ProfitCentre from '../models/profit-centre';
 import Plant from '../models/plant';
 import Preference from '../models/preference';
 import { UpdateSalesHeaderArgs } from '../interfaces/salesReceipt/saleReceipt.interface';
+import OneTimeCustomer from '../models/one-time-customer';
 
 const createSalesHeader = async (
   req: Request,
@@ -589,6 +590,83 @@ const deleteTransactions = async (
   }
 };
 
+const findByDocumentNumber = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { documentNumber } = req.params;
+
+    const saleHeaderData: any = await SalesHeader.findOne({
+      where: { id: documentNumber },
+    });
+
+    if (!saleHeaderData) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.INVALID_DOCUMENT_NUMBER,
+        null,
+      );
+      return res.status(400).send(response);
+    }
+
+    const debitTransactionData = await SalesDebitTransaction.findAll({
+      where: { salesHeaderId: saleHeaderData.id },
+      include: [
+        {
+          model: BusinessTransaction,
+        },
+        {
+          model: GlAccount,
+        },
+        {
+          model: PostingKey,
+        },
+        {
+          model: ProfitCentre,
+        },
+      ],
+    });
+
+    const creditTransactionData = await SalesCreditTransaction.findAll({
+      where: { salesHeaderId: saleHeaderData.id },
+      include: [
+        {
+          model: Customer,
+        },
+        {
+          model: PostingKey,
+        },
+        {
+          model: PosMidList,
+        },
+      ],
+    });
+
+    const oneTimeCustomerData = await OneTimeCustomer.findOne({
+      where: { salesHeaderId: saleHeaderData.id },
+    });
+
+    const data = {
+      saleHeaderData,
+      debitTransactionData,
+      creditTransactionData,
+      oneTimeCustomerData,
+    };
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      MESSAGE.FETCHED,
+      data,
+    );
+    return res.status(200).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export default {
   createSalesHeader,
   createSalesDebitTransaction,
@@ -596,4 +674,5 @@ export default {
   updateDocumentStatus,
   transactionReverse,
   deleteTransactions,
+  findByDocumentNumber,
 };
