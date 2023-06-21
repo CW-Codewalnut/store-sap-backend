@@ -134,6 +134,12 @@ const routesMiddleware = (app: Application) => {
   );
 
   app.get(
+    '/employees/paginate',
+    checkAuthenticated,
+    EmployeeController.findWithPaginate,
+  );
+
+  app.get(
     '/employees/:plantId',
     checkAuthenticated,
     EmployeeController.getEmployeesByPlantId,
@@ -153,12 +159,6 @@ const routesMiddleware = (app: Application) => {
     '/customers/paginate',
     checkAuthenticated,
     CustomerController.findWithPaginate,
-  );
-
-  app.get(
-    '/employees/:plantId/paginate',
-    checkAuthenticated,
-    EmployeeController.findWithPaginate,
   );
 
   app.get('/employees', checkAuthenticated, EmployeeController.findAll);

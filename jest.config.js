@@ -7,4 +7,14 @@ module.exports = {
   testTimeout: 10000,
   roots: ['tests'],
   verbose: true,
+  coveragePathIgnorePatterns: [
+    'src/config/',
+    'src/interfaces/',
+    'src/migrations',
+    'src/models',
+    'src/routes',
+    'src/typings',
+    'tests/mock-data',
+    'tests/utils',
+  ],
 };

@@ -2,15 +2,15 @@ import 'jest';
 import { SuperTest, Test } from 'supertest';
 
 import loginUser from '../utils/login';
-import MESSAGE from '../../src/config/message.json';
 import { CODE, SUCCESS } from '../../src/config/response';
+import MESSAGE from '../../src/config/message.json';
 import checkResponsePropertiesExist, {
   checkResponseBodyValue,
 } from '../utils/checkResponsePropertiesExist';
 import { sharedAgent } from '../utils/sharedAgent';
 import { stopServer } from '../utils/serverHandler';
 
-describe('User Routes', () => {
+describe('Employee Routes', () => {
   let agent: SuperTest<Test>;
 
   beforeAll(async () => {
@@ -24,9 +24,34 @@ describe('User Routes', () => {
     await stopServer();
   });
 
-  it('should return user list when authenticated', async () => {
+  it('should return employee list by plant Id', async () => {
     const res = await agent
-      .get('/users/paginate')
+      .get('/employees/j_zwJnKLy7leIpel')
+      .expect(CODE[200]);
+
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(res, CODE[200], SUCCESS.TRUE, MESSAGE.FETCHED),
+    ).toEqual(true);
+    expect(Array.isArray(res.body.data)).toBe(true);
+  });
+
+  it("Return a list of employees who haven't created a user yet", async () => {
+    const res = await agent
+      .get('/employees')
+      .query({ search: 'SBPL - 001' })
+      .expect(CODE[200]);
+
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(res, CODE[200], SUCCESS.TRUE, MESSAGE.FETCHED),
+    ).toEqual(true);
+    expect(Array.isArray(res.body.data)).toBe(true);
+  });
+
+  it('should return paginated employee list when authenticated', async () => {
+    const res = await agent
+      .get('/employees/paginate')
       .query({ page: '1', pageSize: '10', search: 'SBPL - 001' })
       .expect(200);
 
@@ -46,7 +71,7 @@ describe('User Routes', () => {
 
   it('should return bad request if page query param not supplied', async () => {
     const res = await agent
-      .get('/users/paginate')
+      .get('/employees/paginate')
       .query({ pageSize: '10', search: '' })
       .expect(CODE[400]);
 
@@ -58,7 +83,7 @@ describe('User Routes', () => {
 
   it('should return bad request if pageSize query param not supplied', async () => {
     const res = await agent
-      .get('/users/paginate')
+      .get('/employees/paginate')
       .query({ page: '1', search: '' })
       .expect(CODE[400]);
 
@@ -70,7 +95,7 @@ describe('User Routes', () => {
 
   it('should return bad request if search query param not supplied', async () => {
     const res = await agent
-      .get('/users/paginate')
+      .get('/employees/paginate')
       .query({ page: '1', pageSize: '10' })
       .expect(CODE[400]);
 
