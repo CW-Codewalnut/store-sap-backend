@@ -670,7 +670,6 @@ const updatePettyCash = async (pettyCashData: any, transactionId: string) => {
 const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { transactionId } = req.params;
-
     const {
       body: {
         amount,
@@ -733,6 +732,16 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
       const response = await updatePettyCash(allowedUpdatedData, transactionId);
       res.status(CODE[200]).send(response);
     } else {
+      if (!transactionData) {
+        const response = responseFormatter(
+          CODE[400],
+          SUCCESS.FALSE,
+          MESSAGE.TRANSACTION_ID_NOT_FOUND,
+          null,
+        );
+        return res.status(400).send(response);
+      }
+
       if (!(await checkTaxCode(taxCodeId, taxRate))) {
         const response = responseFormatter(
           CODE[400],
@@ -1538,10 +1547,10 @@ export default {
   create,
   findPaymentsWithPaginate,
   findReceiptsWithPaginate,
-  update,
-  updateDocumentStatus,
-  deleteTransactions,
-  exportPettyCash,
+  update, // undone
+  updateDocumentStatus, // undone
+  deleteTransactions, // undone
+  exportPettyCash, // undone
   getBalanceCalculation,
-  transactionReverse,
+  transactionReverse, // undone
 };
