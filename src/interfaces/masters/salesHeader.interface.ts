@@ -20,6 +20,7 @@ interface SalesHeaderModel
   documentHeaderText: string;
   plantId: string;
   cashLedgerId: string;
+  reversalId: string;
   createdBy: string;
   updatedBy: string;
   createdAt: Date;

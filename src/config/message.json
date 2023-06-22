@@ -31,6 +31,7 @@
   "DOCUMENT_DELETED": "successfully deleted",
   "DOCUMENT_EXPORT_ERROR": "Update or Delete 'Saved' documents before exporting",
   "DOCUMENT_LOCKED": "Document status updated successfully",
+  "DOCUMENT_NOT_FOUND": "Document not found",
   "DOCUMENT_SAVED": "Saved new document successfully",
   "DOCUMENT_STATUS_ALLOWED_VALUES": "Document status must be 'Saved', 'Updated', 'Posted', 'Updated Reversed' or 'Posted Reversed'",
   "DOCUMENT_UPDATED": "Document updated successfully",

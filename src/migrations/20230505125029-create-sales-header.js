@@ -51,6 +51,14 @@ module.exports = {
           key: 'id',
         },
       },
+      reversalId: {
+        allowNull: true,
+        type: Sequelize.STRING(16),
+        references: {
+          model: 'sales_headers',
+          key: 'id',
+        },
+      },
       createdBy: {
         allowNull: true,
         type: Sequelize.STRING(16),

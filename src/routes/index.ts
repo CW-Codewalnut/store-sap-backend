@@ -279,6 +279,12 @@ const routesMiddleware = (app: Application) => {
   );
 
   app.get(
+    '/sales-receipt/last-document',
+    checkAuthenticated,
+    SalesReceiptController.getLastDocument,
+  );
+
+  app.get(
     '/sales-receipt/:documentNumber',
     checkAuthenticated,
     SalesReceiptController.findByDocumentNumber,
