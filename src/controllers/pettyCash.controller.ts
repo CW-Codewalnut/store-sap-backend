@@ -937,32 +937,36 @@ const getPreviousDayTransactionIds = async (
   transactionIds: Array<string>,
   today: string,
 ) => {
-  const previousDateSavedTransactions = await PettyCash.findAll({
-    attributes: ['id'],
-    where: {
-      [Op.and]: [
-        {
-          id: {
-            [Op.in]: transactionIds,
-          },
-        },
-        sequelize.where(
-          sequelize.fn(
-            'CONVERT',
-            sequelize.literal('DATE'),
-            sequelize.col('createdAt'),
-          ),
+  try {
+    const previousDateSavedTransactions = await PettyCash.findAll({
+      attributes: ['id'],
+      where: {
+        [Op.and]: [
           {
-            [Op.lt]: today,
+            id: {
+              [Op.in]: transactionIds,
+            },
           },
-        ),
-        { documentStatus: 'Saved' },
-      ],
-    },
-    raw: true,
-  });
-
-  return previousDateSavedTransactions.map((transaction) => transaction.id);
+          sequelize.where(
+            sequelize.fn(
+              'CONVERT',
+              sequelize.literal('DATE'),
+              sequelize.col('createdAt'),
+            ),
+            {
+              [Op.lt]: today,
+            },
+          ),
+          { documentStatus: 'Saved' },
+        ],
+      },
+      raw: true,
+    });
+    return previousDateSavedTransactions.map((transaction) => transaction.id);
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
 };
 
 /**
@@ -1547,10 +1551,10 @@ export default {
   create,
   findPaymentsWithPaginate,
   findReceiptsWithPaginate,
-  update, // undone
-  updateDocumentStatus, // undone
-  deleteTransactions, // undone
-  exportPettyCash, // undone
+  update,
+  updateDocumentStatus,
+  deleteTransactions,
+  exportPettyCash,
   getBalanceCalculation,
-  transactionReverse, // undone
+  transactionReverse,
 };
