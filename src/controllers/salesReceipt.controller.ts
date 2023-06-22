@@ -311,9 +311,10 @@ const updateSalesHeader = ({
   newDocumentStatus,
   oldDocumentStatus,
   salesHeaderId,
+  reversalId,
 }: UpdateSalesHeaderArgs) =>
   SalesHeader.update(
-    { documentStatus: newDocumentStatus },
+    { documentStatus: newDocumentStatus, reversalId },
     { where: { id: salesHeaderId, documentStatus: oldDocumentStatus } },
   );
 
@@ -427,6 +428,7 @@ const transactionReverse = async (
 
     const saleHeader = await SalesHeader.findOne({
       where: { id: salesHeaderId, documentStatus: 'Updated' },
+      raw: true,
     });
 
     if (!saleHeader) {
@@ -439,6 +441,25 @@ const transactionReverse = async (
       return res.status(CODE[400]).send(response);
     }
 
+    /* eslint-disable */
+    const {
+      id,
+      createdBy,
+      updatedBy,
+      createdAt,
+      updatedAt,
+      ...toBeReverseSalesHeader
+    }: any = saleHeader;
+    /* eslint-enable */
+
+    toBeReverseSalesHeader.createdBy = req.user.id;
+    toBeReverseSalesHeader.updatedBy = req.user.id;
+    toBeReverseSalesHeader.documentStatus = 'Updated Reversed';
+
+    const reversedSalesHeader = await SalesHeader.create(
+      toBeReverseSalesHeader,
+    );
+
     // Debit Transaction Reversal
     const debitTransactions = await Promise.all(
       debitTransactionIds.map(async (debitTransactionId: string) => {
@@ -449,9 +470,10 @@ const transactionReverse = async (
           where: { id: salesDebitTransaction?.postingKeyId },
         });
         return {
-          salesHeaderId: salesDebitTransaction?.salesHeaderId,
+          salesHeaderId: reversedSalesHeader?.id,
           businessTransactionId: salesDebitTransaction?.businessTransactionId,
           glAccountId: salesDebitTransaction?.glAccountId,
+          documentTypeId: salesDebitTransaction?.documentTypeId,
           description: salesDebitTransaction?.description,
           postingKeyId: postingKeyData?.postingKeyReversalId,
           amount: salesDebitTransaction?.amount,
@@ -477,7 +499,7 @@ const transactionReverse = async (
           where: { id: salesCreditTransaction?.postingKeyId },
         });
         return {
-          salesHeaderId: salesCreditTransaction?.salesHeaderId,
+          salesHeaderId: reversedSalesHeader?.id,
           customerId: salesCreditTransaction?.customerId,
           description: salesCreditTransaction?.description,
           postingKeyId: postingKeyData?.postingKeyReversalId,
@@ -508,6 +530,7 @@ const transactionReverse = async (
       newDocumentStatus: 'Updated Reversed',
       oldDocumentStatus: 'Updated',
       salesHeaderId,
+      reversalId: reversedSalesHeader?.id,
     });
 
     const salesHeaderData = await getSaleHeaderData(salesHeaderId);
