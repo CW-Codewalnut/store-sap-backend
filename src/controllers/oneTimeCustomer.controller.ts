@@ -26,7 +26,11 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       Object.assign(oneTimeCustomerBody, { reference: req.body.reference });
     }
 
-    const oneTimeCustomerData = await OneTimeCustomer.create(
+    if (req.body.oneTimeCustomerId) {
+      Object.assign(oneTimeCustomerBody, { id: req.body.oneTimeCustomerId });
+    }
+
+    const [oneTimeCustomerData] = await OneTimeCustomer.upsert(
       oneTimeCustomerBody,
     );
 
