@@ -10,6 +10,7 @@ import CashLedger from '../models/cash-ledger';
 import BusinessTransaction from '../models/business-transaction';
 import GlAccount from '../models/gl-account';
 import Customer from '../models/customer';
+import DocumentType from '../models/document-type';
 import PostingKey from '../models/posting-key';
 import PosMidList from '../models/pos-mid-list';
 import ProfitCentre from '../models/profit-centre';
@@ -112,6 +113,9 @@ const createSalesDebitTransaction = async (
         },
         {
           model: GlAccount,
+        },
+        {
+          model: DocumentType,
         },
         {
           model: PostingKey,
