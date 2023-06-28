@@ -651,6 +651,13 @@ const findByDocumentNumber = async (
         raw: true,
       });
       saleHeaderData.reversalId = reversalDocument.id;
+      saleHeaderData.documentLabel = MESSAGE.REVERSAL_DOCUMENT;
+    } else if (
+      saleHeaderData &&
+      saleHeaderData.documentStatus === 'Updated Reversed' &&
+      saleHeaderData.reversalId !== null
+    ) {
+      saleHeaderData.documentLabel = MESSAGE.ORIGINAL_DOCUMENT;
     }
 
     const debitTransactionData = await SalesDebitTransaction.findAll({
