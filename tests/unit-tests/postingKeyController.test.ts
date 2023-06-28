@@ -24,7 +24,7 @@ describe('POS Mid Routes', () => {
     await stopServer();
   });
 
-  it('should return pos mid', async () => {
+  it('should return sucess with pos mid', async () => {
     const res = await agent.get('/pos-mis-lists').expect(CODE[200]);
 
     expect(checkResponsePropertiesExist(res)).toEqual(true);

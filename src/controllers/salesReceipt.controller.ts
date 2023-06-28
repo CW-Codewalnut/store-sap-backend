@@ -437,7 +437,7 @@ const transactionReverse = async (
 
     if (!saleHeader) {
       const response = responseFormatter(
-        CODE[400],
+        CODE[401],
         SUCCESS.FALSE,
         MESSAGE.TRANSACTION_REVERSED_CONTAINS,
         null,
@@ -541,7 +541,7 @@ const transactionReverse = async (
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      MESSAGE.FETCHED,
+      MESSAGE.TRANSACTION_REVERSED,
       salesHeaderData,
     );
     res.status(CODE[200]).send(response);
@@ -627,6 +627,7 @@ const findByDocumentNumber = async (
 
     const saleHeaderData: any = await SalesHeader.findOne({
       where: { id: documentNumber },
+      raw: true,
     });
 
     if (!saleHeaderData) {
@@ -637,6 +638,19 @@ const findByDocumentNumber = async (
         null,
       );
       return res.status(400).send(response);
+    }
+
+    if (
+      saleHeaderData &&
+      saleHeaderData.documentStatus === 'Updated Reversed' &&
+      saleHeaderData.reversalId === null
+    ) {
+      const reversalDocument: any = await SalesHeader.findOne({
+        attributes: ['id'],
+        where: { reversalId: saleHeaderData.id },
+        raw: true,
+      });
+      saleHeaderData.reversalId = reversalDocument.id;
     }
 
     const debitTransactionData = await SalesDebitTransaction.findAll({

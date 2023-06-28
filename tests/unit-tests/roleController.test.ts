@@ -10,7 +10,7 @@ import checkResponsePropertiesExist, {
 import { sharedAgent } from '../utils/sharedAgent';
 import { stopServer } from '../utils/serverHandler';
 
-describe('House Bank Routes', () => {
+describe('Role Routes', () => {
   let agent: SuperTest<Test>;
 
   beforeAll(async () => {
@@ -24,15 +24,18 @@ describe('House Bank Routes', () => {
     await stopServer();
   });
 
-  it('should return bank accounts by house bank Id', async () => {
-    const res = await agent
-      .get('/bank-accounts/pNRQetVnFl8VA1-t')
-      .expect(CODE[200]);
-
+  it('should return success with roles', async () => {
+    const res = await agent.get('/roles').expect(CODE[200]);
     expect(checkResponsePropertiesExist(res)).toEqual(true);
     expect(
       checkResponseBodyValue(res, CODE[200], SUCCESS.TRUE, MESSAGE.FETCHED),
     ).toEqual(true);
-    expect(Array.isArray(res.body.data)).toBe(true);
+    // Test if count exists and is a number
+    expect(res.body.data).toHaveProperty('count');
+    expect(typeof res.body.data.count).toBe('number');
+
+    // Test if rows exists and is an array
+    expect(res.body.data).toHaveProperty('rows');
+    expect(Array.isArray(res.body.data.rows)).toBe(true);
   });
 });

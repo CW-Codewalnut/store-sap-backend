@@ -1012,8 +1012,14 @@ const updateTransactions = async (
  */
 const updateDocumentStatus = async (req: Request, res: Response) => {
   try {
-    const { transactionIds, documentStatus, cashJournalId, fromDate, toDate } =
-      req.body;
+    const {
+      transactionIds,
+      documentStatus,
+      cashJournalId,
+      fromDate,
+      toDate,
+      cashDenomination,
+    } = req.body;
 
     if (
       !validateRequestBody(
@@ -1022,7 +1028,7 @@ const updateDocumentStatus = async (req: Request, res: Response) => {
         cashJournalId,
         fromDate,
         toDate,
-        req.body.cashDenomination,
+        cashDenomination,
       )
     ) {
       const response = responseFormatter(
@@ -1424,8 +1430,14 @@ const transactionReverse = async (
   next: NextFunction,
 ) => {
   try {
-    const { transactionIds, documentStatus, cashJournalId, fromDate, toDate } =
-      req.body;
+    const {
+      transactionIds,
+      documentStatus,
+      cashJournalId,
+      fromDate,
+      toDate,
+      cashDenomination,
+    } = req.body;
 
     if (
       !validateRequestBody(
@@ -1434,7 +1446,7 @@ const transactionReverse = async (
         cashJournalId,
         fromDate,
         toDate,
-        req.body.cashDenomination,
+        cashDenomination,
       )
     ) {
       const response = responseFormatter(
@@ -1470,6 +1482,7 @@ const transactionReverse = async (
       transactionIds,
     );
 
+    // This check will ensure that while reversing, the closing amount should be equal to the cash denomination.
     if (
       cashDenominationBody &&
       finalClosingBalance !== cashDenominationBody.denominationTotalAmount
