@@ -15,7 +15,6 @@ import CashDenomination from '../../src/models/cash-denomination';
 
 describe('Petty Cash Routes', () => {
   let agent: SuperTest<Test>;
-  let pettyCashId: string;
   let pettyCashCreatedId: string;
 
   beforeAll(async () => {
@@ -26,24 +25,7 @@ describe('Petty Cash Routes', () => {
   });
 
   afterAll(async () => {
-    if (pettyCashCreatedId) {
-      await PettyCash.destroy({
-        where: {
-          id: pettyCashCreatedId,
-        },
-      });
-    }
     await stopServer();
-  });
-
-  afterEach(async () => {
-    if (pettyCashId) {
-      await PettyCash.destroy({
-        where: {
-          id: pettyCashId,
-        },
-      });
-    }
   });
 
   // Test cases for create function
@@ -349,54 +331,54 @@ describe('Petty Cash Routes', () => {
     expect(res.body.data).not.toEqual(MESSAGE.NULL);
   });
 
-  // it('should return a 400 error due to invalid transaction Id', async () => {
-  //   const res = await agent
-  //     .patch('/petty-cash/12345')
-  //     .send(requestBody)
-  //     .expect(400);
+  it('should return a 400 error due to invalid transaction Id', async () => {
+    const res = await agent
+      .patch('/petty-cash/12345')
+      .send(requestBody)
+      .expect(400);
 
-  //   expect(checkResponsePropertiesExist(res)).toEqual(true);
-  //   expect(
-  //     checkResponseBodyValue(
-  //       res,
-  //       CODE[400],
-  //       SUCCESS.FALSE,
-  //       MESSAGE.TRANSACTION_ID_NOT_FOUND,
-  //     ),
-  //   ).toEqual(true);
-  //   expect(res.body.data).toEqual(MESSAGE.NULL);
-  // });
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.TRANSACTION_ID_NOT_FOUND,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).toEqual(MESSAGE.NULL);
+  });
 
-  // it('should return a 400 error when the tax code is invalid', async () => {
-  //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  //   const { id, ...transactionData }: any = await PettyCash.findOne({
-  //     where: { documentStatus: 'Saved' },
-  //     raw: true,
-  //   });
+  it('should return a 400 error when the tax code is invalid', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...transactionData }: any = await PettyCash.findOne({
+      where: { documentStatus: 'Saved' },
+      raw: true,
+    });
 
-  //   const requestBodyWithWrongTaxCodeId = {
-  //     ...transactionData,
-  //     taxCodeId: '2T9kgBIQXd2nYLVd',
-  //     fromDate: new Date(),
-  //     toDate: new Date(),
-  //   };
+    const requestBodyWithWrongTaxCodeId = {
+      ...transactionData,
+      taxCodeId: '2T9kgBIQXd2nYLVd',
+      fromDate: new Date(),
+      toDate: new Date(),
+    };
 
-  //   const res = await agent
-  //     .patch(`/petty-cash/${id}`)
-  //     .send(requestBodyWithWrongTaxCodeId)
-  //     .expect(400);
+    const res = await agent
+      .patch(`/petty-cash/${id}`)
+      .send(requestBodyWithWrongTaxCodeId)
+      .expect(400);
 
-  //   expect(checkResponsePropertiesExist(res)).toEqual(true);
-  //   expect(
-  //     checkResponseBodyValue(
-  //       res,
-  //       CODE[400],
-  //       SUCCESS.FALSE,
-  //       MESSAGE.TAX_CODE_INVALID,
-  //     ),
-  //   ).toEqual(true);
-  //   expect(res.body.data).toEqual(MESSAGE.NULL);
-  // });
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.TAX_CODE_INVALID,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).toEqual(MESSAGE.NULL);
+  });
 
   it('should return a 400 error when the amount is invalid', async () => {
     const { id, ...transactionData }: any = await PettyCash.findOne({
@@ -525,48 +507,72 @@ describe('Petty Cash Routes', () => {
     expect(res.body.data).toEqual(MESSAGE.NULL);
   });
 
-  // it('should return success on document status update', async () => {
-  //   const { id, ...cashDenomination }: any = await CashDenomination.findOne({
-  //     where: {
-  //       plantId: requestBody.plantId,
-  //       cashJournalId: requestBody.cashJournalId,
-  //     },
-  //     raw: true,
-  //   });
+  // This specific test case is related to transactionReverse function but placed here to pass
+  it('should return a 400 when attempting to reverse a non-updated document', async () => {
+    const requestBodyData = {
+      transactionIds: [pettyCashCreatedId],
+      documentStatus: 'Updated Reversed',
+      cashJournalId: requestBody.cashJournalId,
+      cashDenomination: {},
+      fromDate: new Date(),
+      toDate: new Date(),
+    };
 
-  //   const { qty500INR } = cashDenomination;
-  //   cashDenomination.qty500INR = qty500INR + 1;
+    const res = await agent
+      .post(`/petty-cash/transaction-reverse`)
+      .send(requestBodyData)
+      .expect(400);
 
-  //   const requestBodyData = {
-  //     transactionIds: [pettyCashCreatedId],
-  //     documentStatus: 'Updated',
-  //     cashJournalId: requestBody.cashJournalId,
-  //     fromDate: new Date(),
-  //     toDate: new Date(),
-  //     denominationId: id,
-  //     cashDenomination,
-  //   };
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.TRANSACTION_REVERSED_CONTAINS,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).toEqual(MESSAGE.NULL);
+  });
 
-  //   console.log('test=> 12', requestBodyData);
+  it('should return success on document status update', async () => {
+    const { id, ...cashDenomination }: any = await CashDenomination.findOne({
+      where: {
+        plantId: requestBody.plantId,
+        cashJournalId: requestBody.cashJournalId,
+      },
+      raw: true,
+    });
 
-  //   const res = await agent
-  //     .post(`/petty-cash/update/status`)
-  //     .send(requestBodyData)
-  //     .expect(200);
+    const { qty500INR } = cashDenomination;
+    cashDenomination.qty500INR = qty500INR + 1;
 
-  //   console.log('test=> 123', requestBodyData, res.body);
+    const requestBodyData = {
+      transactionIds: [pettyCashCreatedId],
+      documentStatus: 'Updated',
+      cashJournalId: requestBody.cashJournalId,
+      fromDate: new Date(),
+      toDate: new Date(),
+      denominationId: id,
+      cashDenomination,
+    };
 
-  //   expect(checkResponsePropertiesExist(res)).toEqual(true);
-  //   expect(
-  //     checkResponseBodyValue(
-  //       res,
-  //       CODE[200],
-  //       SUCCESS.TRUE,
-  //       MESSAGE.DOCUMENT_LOCKED,
-  //     ),
-  //   ).toEqual(true);
-  //   expect(res.body.data).not.toEqual(MESSAGE.NULL);
-  // });
+    const res = await agent
+      .post(`/petty-cash/update/status`)
+      .send(requestBodyData)
+      .expect(200);
+
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[200],
+        SUCCESS.TRUE,
+        MESSAGE.DOCUMENT_LOCKED,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).not.toEqual(MESSAGE.NULL);
+  });
 
   // Test cases for transactionReverse function
   it('should return a 400 for missing cash denomination while reverse the transaction', async () => {
@@ -601,110 +607,77 @@ describe('Petty Cash Routes', () => {
     expect(res.body.data).toEqual(MESSAGE.NULL);
   });
 
-  // You have to send Saved doc to pass this test
-  // it('should return a 400 when attempting to reverse a non-updated document', async () => {
-  //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  //   const { id, ...transactionData }: any = await PettyCash.findOne({
-  //     where: { documentStatus: 'Saved' },
-  //     raw: true,
-  //   });
-  //   const requestBodyData = {
-  //     transactionIds: [id],
-  //     documentStatus: 'Saved',
-  //     cashJournalId: transactionData.cashJournalId,
-  //     cashDenomination: {},
-  //     fromDate: new Date(),
-  //     toDate: new Date(),
-  //   };
-  //   console.log('test=> ', requestBodyData);
-  //   const res = await agent
-  //     .post(`/petty-cash/transaction-reverse`)
-  //     .send(requestBodyData)
-  //     .expect(400);
+  it('should return a 400 if cash denomination does not match while doing transaction reverse', async () => {
+    const cashDenomination = await CashDenomination.findOne({
+      where: {
+        plantId: requestBody.plantId,
+        cashJournalId: requestBody.cashJournalId,
+      },
+      raw: true,
+    });
 
-  //   expect(checkResponsePropertiesExist(res)).toEqual(true);
-  //   expect(
-  //     checkResponseBodyValue(
-  //       res,
-  //       CODE[400],
-  //       SUCCESS.FALSE,
-  //       MESSAGE.TRANSACTION_REVERSED_CONTAINS,
-  //     ),
-  //   ).toEqual(true);
-  //   expect(res.body.data).toEqual(MESSAGE.NULL);
-  // });
+    const requestBodyData = {
+      transactionIds: [pettyCashCreatedId],
+      documentStatus: 'Updated',
+      cashJournalId: requestBody.cashJournalId,
+      fromDate: new Date(),
+      toDate: new Date(),
+      cashDenomination,
+    };
 
-  // it('should return a 400 if cash denomination does not match while doing transaction reverse', async () => {
-  //   const cashDenomination = await CashDenomination.findOne({
-  //     where: {
-  //       plantId: requestBody.plantId,
-  //       cashJournalId: requestBody.cashJournalId,
-  //     },
-  //     raw: true,
-  //   });
+    const res = await agent
+      .post(`/petty-cash/transaction-reverse`)
+      .send(requestBodyData)
+      .expect(400);
 
-  //   const requestBodyData = {
-  //     transactionIds: [pettyCashCreatedId],
-  //     documentStatus: 'Updated',
-  //     cashJournalId: requestBody.cashJournalId,
-  //     fromDate: new Date(),
-  //     toDate: new Date(),
-  //     cashDenomination,
-  //   };
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.DENOMINATION_NOT_MATCH,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).toEqual(MESSAGE.NULL);
+  });
 
-  //   const res = await agent
-  //     .post(`/petty-cash/transaction-reverse`)
-  //     .send(requestBodyData)
-  //     .expect(400);
+  it('should return success when document reversed', async () => {
+    const { id, ...cashDenomination }: any = await CashDenomination.findOne({
+      where: {
+        plantId: requestBody.plantId,
+        cashJournalId: requestBody.cashJournalId,
+      },
+      raw: true,
+    });
 
-  //   expect(checkResponsePropertiesExist(res)).toEqual(true);
-  //   expect(
-  //     checkResponseBodyValue(
-  //       res,
-  //       CODE[400],
-  //       SUCCESS.FALSE,
-  //       MESSAGE.DENOMINATION_NOT_MATCH,
-  //     ),
-  //   ).toEqual(true);
-  //   expect(res.body.data).toEqual(MESSAGE.NULL);
-  // });
+    const { qty500INR } = cashDenomination;
+    cashDenomination.qty500INR = qty500INR - 1;
 
-  // it('should return success on document status update', async () => {
-  //   const { id, ...cashDenomination }: any = await CashDenomination.findOne({
-  //     where: {
-  //       plantId: requestBody.plantId,
-  //       cashJournalId: requestBody.cashJournalId,
-  //     },
-  //     raw: true,
-  //   });
+    const requestBodyData = {
+      transactionIds: [pettyCashCreatedId],
+      documentStatus: 'Updated Reversed',
+      cashJournalId: requestBody.cashJournalId,
+      fromDate: new Date(),
+      toDate: new Date(),
+      denominationId: id,
+      cashDenomination,
+    };
 
-  //   const { qty500INR } = cashDenomination;
-  //   cashDenomination.qty500INR = qty500INR - 1;
+    const res = await agent
+      .post(`/petty-cash/transaction-reverse`)
+      .send(requestBodyData)
+      .expect(200);
 
-  //   const requestBodyData = {
-  //     transactionIds: [pettyCashCreatedId],
-  //     documentStatus: 'Updated',
-  //     cashJournalId: requestBody.cashJournalId,
-  //     fromDate: new Date(),
-  //     toDate: new Date(),
-  //     denominationId: id,
-  //     cashDenomination,
-  //   };
-
-  //   const res = await agent
-  //     .post(`/petty-cash/transaction-reverse`)
-  //     .send(requestBodyData)
-  //     .expect(200);
-
-  //   expect(checkResponsePropertiesExist(res)).toEqual(true);
-  //   expect(
-  //     checkResponseBodyValue(
-  //       res,
-  //       CODE[200],
-  //       SUCCESS.TRUE,
-  //       MESSAGE.TRANSACTION_REVERSED,
-  //     ),
-  //   ).toEqual(true);
-  //   expect(res.body.data).not.toEqual(MESSAGE.NULL);
-  // });
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[200],
+        SUCCESS.TRUE,
+        MESSAGE.TRANSACTION_REVERSED,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).not.toEqual(MESSAGE.NULL);
+  });
 });

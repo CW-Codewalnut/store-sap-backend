@@ -12,9 +12,6 @@ import checkResponsePropertiesExist, {
 } from '../utils/checkResponsePropertiesExist';
 import { sharedAgent } from '../utils/sharedAgent';
 import { stopServer } from '../utils/serverHandler';
-import SalesHeader from '../../src/models/sales-header';
-import SalesDebitTransaction from '../../src/models/sales-debit-transaction';
-import SalesCreditTransaction from '../../src/models/sales-credit-transaction';
 
 describe('Sales Receipt Routes', () => {
   let agent: SuperTest<Test>;
@@ -30,23 +27,6 @@ describe('Sales Receipt Routes', () => {
   });
 
   afterAll(async () => {
-    if (salesHeaderId) {
-      // await SalesDebitTransaction.destroy({
-      //   where: {
-      //     salesHeaderId,
-      //   },
-      // });
-      // await SalesCreditTransaction.destroy({
-      //   where: {
-      //     salesHeaderId,
-      //   },
-      // });
-      // await SalesHeader.destroy({
-      //   where: {
-      //     id: salesHeaderId,
-      //   },
-      // });
-    }
     await stopServer();
   });
 
