@@ -289,6 +289,12 @@ const routesMiddleware = (app: Application) => {
     checkAuthenticated,
     SalesReceiptController.findByDocumentNumber,
   );
+
+  app.post(
+    '/sales-receipt/export',
+    checkAuthenticated,
+    SalesReceiptController.exportSalesReceipt,
+  );
 };
 
 export default routesMiddleware;

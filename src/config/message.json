@@ -30,6 +30,7 @@
   "DENOMINATION_UPDATED": "Denominations updated successfully",
   "DOCUMENT_DELETED": "successfully deleted",
   "DOCUMENT_EXPORT_ERROR": "Update or Delete 'Saved' documents before exporting",
+  "DOCUMENT_EXPORT_ALLOWED": "Document export allowed for only updated document",
   "DOCUMENT_LOCKED": "Document status updated successfully",
   "DOCUMENT_NOT_FOUND": "Document not found",
   "DOCUMENT_SAVED": "Saved new document successfully",
