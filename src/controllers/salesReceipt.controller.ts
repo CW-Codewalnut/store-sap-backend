@@ -670,6 +670,9 @@ const findByDocumentNumber = async (
           model: GlAccount,
         },
         {
+          model: DocumentType,
+        },
+        {
           model: PostingKey,
         },
         {
@@ -743,6 +746,9 @@ const getLastDocument = async (
         },
         {
           model: GlAccount,
+        },
+        {
+          model: DocumentType,
         },
         {
           model: PostingKey,
