@@ -273,9 +273,14 @@ const routesMiddleware = (app: Application) => {
     SalesReceiptController.updateDocumentStatus,
   );
   app.delete(
+    '/sales-receipt/line-item/delete',
+    checkAuthenticated,
+    SalesReceiptController.deleteLineItem,
+  );
+  app.delete(
     '/sales-receipt/delete',
     checkAuthenticated,
-    SalesReceiptController.deleteTransactions,
+    SalesReceiptController.deleteDocument,
   );
 
   app.get(
