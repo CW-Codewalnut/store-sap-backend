@@ -551,7 +551,7 @@ const transactionReverse = async (
   }
 };
 
-const deleteTransactions = async (
+const deleteLineItem = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -609,7 +609,7 @@ const deleteTransactions = async (
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      MESSAGE.TRANSACTION_DELETED,
+      MESSAGE.LINE_ITEM_DELETED,
       null,
     );
     res.status(CODE[200]).send(response);
@@ -928,14 +928,50 @@ const exportSalesReceipt = async (
   }
 };
 
+const deleteDocument = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { salesHeaderId } = req.body;
+
+    if (!salesHeaderId) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    await OneTimeCustomer.destroy({ where: { salesHeaderId } });
+    await SalesDebitTransaction.destroy({ where: { salesHeaderId } });
+    await SalesCreditTransaction.destroy({ where: { salesHeaderId } });
+    await SalesHeader.destroy({ where: { id: salesHeaderId } });
+
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      MESSAGE.DOCUMENT_DELETED_SINGLE,
+      null,
+    );
+    res.status(CODE[200]).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export default {
   createSalesHeader,
   createSalesDebitTransaction,
   createSalesCreditTransaction,
   updateDocumentStatus,
   transactionReverse,
-  deleteTransactions,
+  deleteLineItem,
   findByDocumentNumber,
   getLastDocument,
   exportSalesReceipt,
+  deleteDocument,
 };
