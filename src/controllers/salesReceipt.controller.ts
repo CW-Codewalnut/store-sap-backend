@@ -939,6 +939,19 @@ const deleteDocument = async (
       return res.status(CODE[400]).send(response);
     }
 
+    const saleHeaderData = await SalesHeader.findOne({
+      where: { id: salesHeaderId, documentStatus: 'Saved' },
+    });
+    if (!saleHeaderData) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.ALLOWED_DELETION_FOR_SAVED_STATUS,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
     await OneTimeCustomer.destroy({ where: { salesHeaderId } });
     await SalesDebitTransaction.destroy({ where: { salesHeaderId } });
     await SalesCreditTransaction.destroy({ where: { salesHeaderId } });
