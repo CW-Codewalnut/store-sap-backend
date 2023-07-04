@@ -740,6 +740,26 @@ const getLastDocument = async (
       return res.status(400).send(response);
     }
 
+    if (
+      saleHeaderData &&
+      saleHeaderData.documentStatus === 'Updated Reversed' &&
+      saleHeaderData.reversalId === null
+    ) {
+      const reversalDocument: any = await SalesHeader.findOne({
+        attributes: ['id'],
+        where: { reversalId: saleHeaderData.id },
+        raw: true,
+      });
+      saleHeaderData.reversalId = reversalDocument.id;
+      saleHeaderData.documentLabel = MESSAGE.REVERSAL_DOCUMENT;
+    } else if (
+      saleHeaderData &&
+      saleHeaderData.documentStatus === 'Updated Reversed' &&
+      saleHeaderData.reversalId !== null
+    ) {
+      saleHeaderData.documentLabel = MESSAGE.ORIGINAL_DOCUMENT;
+    }
+
     const debitTransactionData = await SalesDebitTransaction.findAll({
       where: { salesHeaderId: saleHeaderData.id },
       include: [
