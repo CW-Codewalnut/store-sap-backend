@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { BigNumber } from 'bignumber.js';
+import * as xlsx from 'xlsx';
 import { Op } from 'sequelize';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import MESSAGE from '../config/message.json';
@@ -20,6 +21,9 @@ import OneTimeCustomer from '../models/one-time-customer';
 import SalesHeaderModel, {
   SalesHeaderWithDocumentLabel,
 } from '../interfaces/masters/salesHeader.interface';
+import { dateFormat } from '../utils/helper';
+import { SalesCreditTransactionModelWithIncludes } from '../interfaces/masters/salesCreditTransaction.interface';
+import { SalesDebitTransactionModelWithIncludes } from '../interfaces/masters/salesDebitTransaction.interface';
 
 const createSalesHeader = async (
   req: Request,
@@ -537,6 +541,7 @@ const transactionReverse = async (
     });
 
     const salesHeaderData = await getSaleHeaderData(salesHeaderId);
+
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
@@ -549,7 +554,7 @@ const transactionReverse = async (
   }
 };
 
-const deleteTransactions = async (
+const deleteLineItem = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -607,7 +612,7 @@ const deleteTransactions = async (
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      MESSAGE.TRANSACTION_DELETED,
+      MESSAGE.LINE_ITEM_DELETED,
       null,
     );
     res.status(CODE[200]).send(response);
@@ -686,6 +691,7 @@ const findByDocumentNumber = async (
           model: ProfitCentre,
         },
       ],
+      raw: true,
     });
 
     const creditTransactionData = await SalesCreditTransaction.findAll({
@@ -701,10 +707,12 @@ const findByDocumentNumber = async (
           model: PosMidList,
         },
       ],
+      raw: true,
     });
 
     const oneTimeCustomerData = await OneTimeCustomer.findOne({
       where: { salesHeaderId: salesHeaderFromDocumentNumber.id },
+      raw: true,
     });
 
     const data = {
@@ -731,11 +739,12 @@ const getLastDocument = async (
   next: NextFunction,
 ) => {
   try {
-    const saleHeaderData = await SalesHeader.findOne({
+    const salesHeaderFromPlantId = await SalesHeader.findOne({
       where: { plantId: req.session.activePlantId },
       order: [['createdAt', 'desc']],
+      raw: true,
     });
-    if (!saleHeaderData) {
+    if (!salesHeaderFromPlantId) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -745,7 +754,129 @@ const getLastDocument = async (
       return res.status(400).send(response);
     }
 
+    let newSalesHeaderFromPlantId = salesHeaderFromPlantId;
+
+    if (
+      salesHeaderFromPlantId &&
+      salesHeaderFromPlantId.documentStatus === 'Updated Reversed' &&
+      salesHeaderFromPlantId.reversalId === null
+    ) {
+      const reversalDocument = (await SalesHeader.findOne({
+        attributes: ['id'],
+        where: { reversalId: salesHeaderFromPlantId.id },
+        raw: true,
+      })) as SalesHeaderModel;
+      newSalesHeaderFromPlantId = {
+        ...salesHeaderFromPlantId,
+        documentLabel: MESSAGE.ORIGINAL_DOCUMENT,
+        reversalId: reversalDocument.id,
+      } as SalesHeaderWithDocumentLabel;
+    } else if (
+      salesHeaderFromPlantId &&
+      salesHeaderFromPlantId.documentStatus === 'Updated Reversed' &&
+      salesHeaderFromPlantId.reversalId !== null
+    ) {
+      newSalesHeaderFromPlantId = {
+        ...salesHeaderFromPlantId,
+        documentLabel: MESSAGE.ORIGINAL_DOCUMENT,
+      } as SalesHeaderWithDocumentLabel;
+    }
+
     const debitTransactionData = await SalesDebitTransaction.findAll({
+      where: { salesHeaderId: salesHeaderFromPlantId.id },
+      include: [
+        {
+          model: BusinessTransaction,
+        },
+        {
+          model: GlAccount,
+        },
+        {
+          model: DocumentType,
+        },
+        {
+          model: PostingKey,
+        },
+        {
+          model: ProfitCentre,
+        },
+      ],
+      raw: true,
+    });
+
+    const creditTransactionData = await SalesCreditTransaction.findAll({
+      where: { salesHeaderId: salesHeaderFromPlantId.id },
+      include: [
+        {
+          model: Customer,
+        },
+        {
+          model: PostingKey,
+        },
+        {
+          model: PosMidList,
+        },
+      ],
+      raw: true,
+    });
+
+    const oneTimeCustomerData = await OneTimeCustomer.findOne({
+      where: { salesHeaderId: salesHeaderFromPlantId.id },
+      raw: true,
+    });
+
+    const data = {
+      saleHeaderData: newSalesHeaderFromPlantId,
+      debitTransactionData,
+      creditTransactionData,
+      oneTimeCustomerData,
+    };
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      MESSAGE.FETCHED,
+      data,
+    );
+    return res.status(200).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const exportSalesReceipt = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { salesHeaderId } = req.body;
+
+    if (!salesHeaderId) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    const saleHeaderData = await SalesHeader.findOne({
+      where: { id: salesHeaderId, documentStatus: 'Updated' },
+      raw: true,
+    });
+
+    if (!saleHeaderData) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.DOCUMENT_EXPORT_ALLOWED,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    const debitTransactionData = (await SalesDebitTransaction.findAll({
       where: { salesHeaderId: saleHeaderData.id },
       include: [
         {
@@ -764,9 +895,10 @@ const getLastDocument = async (
           model: ProfitCentre,
         },
       ],
-    });
+      raw: true,
+    })) as SalesDebitTransactionModelWithIncludes[];
 
-    const creditTransactionData = await SalesCreditTransaction.findAll({
+    const creditTransactionData = (await SalesCreditTransaction.findAll({
       where: { salesHeaderId: saleHeaderData.id },
       include: [
         {
@@ -779,25 +911,103 @@ const getLastDocument = async (
           model: PosMidList,
         },
       ],
+    })) as SalesCreditTransactionModelWithIncludes[];
+
+    const saleReceiptData = [
+      {
+        postingDate: dateFormat(saleHeaderData.postingDate, '.', false),
+        documentDate: dateFormat(saleHeaderData.documentDate, '.', false),
+        customerNo: creditTransactionData[0]?.customer?.customerNo
+          ? creditTransactionData[0]?.customer?.customerNo
+          : '',
+        amount: creditTransactionData[0].amount,
+        PostingKey: debitTransactionData[0]?.posting_key?.postingKey,
+        profitCentre: debitTransactionData[0]?.profit_centre?.profitCentre,
+        text: creditTransactionData[0].text,
+      },
+    ];
+
+    const heading = [
+      [
+        'Document Date',
+        'Posting Date',
+        'CustomerNo',
+        'Amount',
+        'PostingKey',
+        'ProfitCenter',
+        'Text',
+      ],
+    ];
+
+    // Had to create a new workbook and then add the header
+    const workbook = xlsx.utils.book_new();
+    const worksheet: xlsx.WorkSheet = xlsx.utils.json_to_sheet([]);
+    xlsx.utils.sheet_add_aoa(worksheet, heading);
+
+    // Starting in the second row to avoid overriding and skipping headers
+    xlsx.utils.sheet_add_json(worksheet, saleReceiptData, {
+      origin: 'A2',
+      skipHeader: true,
     });
 
-    const oneTimeCustomerData = await OneTimeCustomer.findOne({
-      where: { salesHeaderId: saleHeaderData.id },
-    });
+    xlsx.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
 
-    const data = {
-      saleHeaderData,
-      debitTransactionData,
-      creditTransactionData,
-      oneTimeCustomerData,
-    };
+    // send workbook as a download
+    const buffer = xlsx.write(workbook, { type: 'buffer' });
+    res.setHeader('Content-Disposition', 'attachment; filename=export.xlsx');
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.send(buffer);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const deleteDocument = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { salesHeaderId } = req.body;
+
+    if (!salesHeaderId) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    const saleHeaderData = await SalesHeader.findOne({
+      where: { id: salesHeaderId, documentStatus: 'Saved' },
+    });
+    if (!saleHeaderData) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.ALLOWED_DELETION_FOR_SAVED_STATUS,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
+    await OneTimeCustomer.destroy({ where: { salesHeaderId } });
+    await SalesDebitTransaction.destroy({ where: { salesHeaderId } });
+    await SalesCreditTransaction.destroy({ where: { salesHeaderId } });
+    await SalesHeader.destroy({ where: { id: salesHeaderId } });
+
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
-      MESSAGE.FETCHED,
-      data,
+      MESSAGE.DOCUMENT_DELETED_SINGLE,
+      null,
     );
-    return res.status(200).send(response);
+    res.status(CODE[200]).send(response);
   } catch (err) {
     next(err);
   }
@@ -809,7 +1019,9 @@ export default {
   createSalesCreditTransaction,
   updateDocumentStatus,
   transactionReverse,
-  deleteTransactions,
+  deleteLineItem,
   findByDocumentNumber,
   getLastDocument,
+  exportSalesReceipt,
+  deleteDocument,
 };

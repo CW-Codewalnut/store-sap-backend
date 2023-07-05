@@ -1285,7 +1285,7 @@ const exportPettyCash = async (
       }),
     );
 
-    const Heading = [
+    const heading = [
       [
         'Cash Journal Business Transaction',
         'Amount',
@@ -1314,7 +1314,7 @@ const exportPettyCash = async (
     // Had to create a new workbook and then add the header
     const workbook = xlsx.utils.book_new();
     const worksheet: xlsx.WorkSheet = xlsx.utils.json_to_sheet([]);
-    xlsx.utils.sheet_add_aoa(worksheet, Heading);
+    xlsx.utils.sheet_add_aoa(worksheet, heading);
 
     // Starting in the second row to avoid overriding and skipping headers
     xlsx.utils.sheet_add_json(worksheet, pettyCashData, {
