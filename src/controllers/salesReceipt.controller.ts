@@ -16,7 +16,6 @@ import PosMidList from '../models/pos-mid-list';
 import ProfitCentre from '../models/profit-centre';
 import Plant from '../models/plant';
 import Preference from '../models/preference';
-import { UpdateSalesHeaderArgs } from '../interfaces/salesReceipt/saleReceipt.interface';
 import OneTimeCustomer from '../models/one-time-customer';
 import SalesHeaderModel, {
   SalesHeaderWithDocumentLabel,
@@ -314,6 +313,13 @@ const createSalesCreditTransaction = async (
   }
 };
 
+interface UpdateSalesHeaderArgs {
+  newDocumentStatus: 'Updated' | 'Updated Reversed';
+  oldDocumentStatus: 'Saved' | 'Updated';
+  salesHeaderId: string;
+  reversalId?: string;
+}
+
 const updateSalesHeader = ({
   newDocumentStatus,
   oldDocumentStatus,
@@ -349,12 +355,9 @@ const updateDocumentStatus = async (
     }
 
     // Check debit equal to credit transaction
-    const totalDebitAmount = await calculateTotalAmount(
-      req.body.salesHeaderId,
-      'debit',
-    );
+    const totalDebitAmount = await calculateTotalAmount(salesHeaderId, 'debit');
     const totalCreditAmount = await calculateTotalAmount(
-      req.body.salesHeaderId,
+      salesHeaderId,
       'credit',
     );
     if (totalDebitAmount !== totalCreditAmount) {
