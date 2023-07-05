@@ -541,6 +541,7 @@ const transactionReverse = async (
     });
 
     const salesHeaderData = await getSaleHeaderData(salesHeaderId);
+
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
@@ -690,6 +691,7 @@ const findByDocumentNumber = async (
           model: ProfitCentre,
         },
       ],
+      raw: true,
     });
 
     const creditTransactionData = await SalesCreditTransaction.findAll({
@@ -705,10 +707,12 @@ const findByDocumentNumber = async (
           model: PosMidList,
         },
       ],
+      raw: true,
     });
 
     const oneTimeCustomerData = await OneTimeCustomer.findOne({
       where: { salesHeaderId: salesHeaderFromDocumentNumber.id },
+      raw: true,
     });
 
     const data = {
@@ -738,6 +742,7 @@ const getLastDocument = async (
     const salesHeaderFromPlantId = await SalesHeader.findOne({
       where: { plantId: req.session.activePlantId },
       order: [['createdAt', 'desc']],
+      raw: true,
     });
     if (!salesHeaderFromPlantId) {
       const response = responseFormatter(
@@ -796,6 +801,7 @@ const getLastDocument = async (
           model: ProfitCentre,
         },
       ],
+      raw: true,
     });
 
     const creditTransactionData = await SalesCreditTransaction.findAll({
@@ -811,10 +817,12 @@ const getLastDocument = async (
           model: PosMidList,
         },
       ],
+      raw: true,
     });
 
     const oneTimeCustomerData = await OneTimeCustomer.findOne({
       where: { salesHeaderId: salesHeaderFromPlantId.id },
+      raw: true,
     });
 
     const data = {
@@ -919,7 +927,7 @@ const exportSalesReceipt = async (
       },
     ];
 
-    const Heading = [
+    const heading = [
       [
         'Document Date',
         'Posting Date',
@@ -934,7 +942,7 @@ const exportSalesReceipt = async (
     // Had to create a new workbook and then add the header
     const workbook = xlsx.utils.book_new();
     const worksheet: xlsx.WorkSheet = xlsx.utils.json_to_sheet([]);
-    xlsx.utils.sheet_add_aoa(worksheet, Heading);
+    xlsx.utils.sheet_add_aoa(worksheet, heading);
 
     // Starting in the second row to avoid overriding and skipping headers
     xlsx.utils.sheet_add_json(worksheet, saleReceiptData, {

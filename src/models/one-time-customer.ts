@@ -69,8 +69,8 @@ const OneTimeCustomer = sequelize.define<OneTimeCustomerModel>(
     },
     email: {
       type: DataTypes.STRING(100),
+      allowNull: true,
       defaultValue: null,
-      unique: true,
       validate: {
         isEmail: {
           msg: 'Invalid email address!',
