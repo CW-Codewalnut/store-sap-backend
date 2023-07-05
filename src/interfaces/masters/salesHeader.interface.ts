@@ -20,10 +20,16 @@ interface SalesHeaderModel
   documentHeaderText: string;
   plantId: string;
   cashLedgerId: string;
+  reversalId: string;
   createdBy: string;
   updatedBy: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
+interface SalesHeaderWithDocumentLabel extends SalesHeaderModel {
+  documentLabel: string;
+}
+
 export default SalesHeaderModel;
+export { SalesHeaderWithDocumentLabel };

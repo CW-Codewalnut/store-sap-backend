@@ -46,6 +46,14 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DECIMAL(13, 2),
       },
+      documentTypeId: {
+        allowNull: false,
+        type: Sequelize.STRING(16),
+        references: {
+          model: 'document_types',
+          key: 'id',
+        },
+      },
       profitCentreId: {
         allowNull: false,
         type: Sequelize.STRING(16),

@@ -4,6 +4,7 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import { Op } from 'sequelize';
 import User from '../models/user';
 import MESSAGE from '../config/message.json';
+import UserModel from '../interfaces/masters/user.interface';
 
 const authenticateUser = async (
   employeeCode: string,
@@ -55,8 +56,8 @@ const passportMiddleware = () => {
   passport.use(strategy);
 
   // eslint-disable-next-line @typescript-eslint/ban-types
-  passport.serializeUser((user: any, done: Function) => {
-    done(null, user.id);
+  passport.serializeUser((user: Partial<UserModel>, done: Function) => {
+    done(null, user?.id);
   });
 
   // eslint-disable-next-line @typescript-eslint/ban-types

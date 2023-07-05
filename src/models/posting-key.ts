@@ -27,6 +27,10 @@ const PostingKey = sequelize.define<PostingKeyModel>('posting_key', {
     type: DataTypes.STRING(50),
     allowNull: false,
   },
+  postingKeyReversalId: {
+    allowNull: true,
+    type: DataTypes.STRING(16),
+  },
   createdBy: {
     allowNull: true,
     type: DataTypes.STRING(16),

@@ -34,6 +34,16 @@ const findWithPaginate = async (
     const limit = pageSize;
     let condition = {};
 
+    if (Number.isNaN(page) || Number.isNaN(pageSize) || search === undefined) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
     if (search) {
       condition = {
         [Op.or]: {

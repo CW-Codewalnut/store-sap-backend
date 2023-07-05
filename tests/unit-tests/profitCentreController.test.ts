@@ -10,7 +10,7 @@ import checkResponsePropertiesExist, {
 import { sharedAgent } from '../utils/sharedAgent';
 import { stopServer } from '../utils/serverHandler';
 
-describe('Plant Routes', () => {
+describe('Profit Centre Routes', () => {
   let agent: SuperTest<Test>;
 
   beforeAll(async () => {
@@ -24,8 +24,10 @@ describe('Plant Routes', () => {
     await stopServer();
   });
 
-  it('should return plant list when authenticated', async () => {
-    const res = await agent.get('/plants').expect(CODE[200]);
+  it('should return profit centre by cost centre Id', async () => {
+    const res = await agent
+      .get('/profit-centres/pJdYcH9EtEe7MUwR')
+      .expect(CODE[200]);
 
     expect(checkResponsePropertiesExist(res)).toEqual(true);
     expect(
@@ -34,8 +36,10 @@ describe('Plant Routes', () => {
     expect(Array.isArray(res.body.data)).toBe(true);
   });
 
-  it("should return user's plans by user Id", async () => {
-    const res = await agent.get('/plants').expect(CODE[200]);
+  it('should return profit centre by plant Id', async () => {
+    const res = await agent
+      .get('/profit-centres/by/j_zwJnKLy7leIpel')
+      .expect(CODE[200]);
 
     expect(checkResponsePropertiesExist(res)).toEqual(true);
     expect(

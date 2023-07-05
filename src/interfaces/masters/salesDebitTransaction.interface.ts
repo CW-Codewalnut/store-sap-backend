@@ -12,6 +12,7 @@ interface SalesDebitTransactionModel
   description: string;
   postingKeyId: string;
   amount: number;
+  documentTypeId: string;
   profitCentreId: string;
   assignment: string;
   text: string;

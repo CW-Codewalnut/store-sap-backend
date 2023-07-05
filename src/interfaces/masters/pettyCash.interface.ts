@@ -1,4 +1,14 @@
 import { InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import BusinessTransactionModel from './businessTransaction.interface';
+import GlAccountModel from './glAccount.interface';
+import HouseBankModel from './houseBank.interface';
+import BankAccountModel from './bankAccount.interface';
+import VendorModel from './vendor.interface';
+import CustomerModel from './customer.interface';
+import CostCentreModel from './costCentre.interface';
+import ProfitCentreModel from './profitCentre.interface';
+import SegmentModel from './segment.interface';
+import TaxCodeModel from './taxCode.interface';
 
 interface PettyCashModel
   extends Model<
@@ -52,4 +62,24 @@ interface PettyCashModel
   updatedAt: Date;
 }
 
+interface DatesType {
+  postingDate: string;
+  documentDate: string;
+  referenceDate: string;
+}
+
+interface PettyCashModelWithIncludes extends PettyCashModel {
+  business_transaction?: BusinessTransactionModel;
+  gl_account?: GlAccountModel;
+  house_bank?: HouseBankModel;
+  bank_account?: BankAccountModel;
+  vendor?: VendorModel;
+  customer?: CustomerModel;
+  tax_code?: TaxCodeModel;
+  cost_centre?: CostCentreModel;
+  profit_centre?: ProfitCentreModel;
+  segment?: SegmentModel;
+}
+
 export default PettyCashModel;
+export { DatesType, PettyCashModelWithIncludes };

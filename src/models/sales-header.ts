@@ -48,6 +48,10 @@ const SalesHeader = sequelize.define<SalesHeaderModel>('sales_header', {
     allowNull: false,
     type: DataTypes.STRING(16),
   },
+  reversalId: {
+    allowNull: true,
+    type: DataTypes.STRING(16),
+  },
   createdBy: {
     allowNull: true,
     type: DataTypes.STRING(16),

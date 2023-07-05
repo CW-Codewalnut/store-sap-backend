@@ -1,10 +1,16 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { ForeignKeyConstraintError } from 'sequelize';
 import jwt from 'jsonwebtoken';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import MESSAGE from '../config/message.json';
 
-const ErrorHandler = (err: any, req: Request, res: Response) => {
+const ErrorHandler = (
+  err: any,
+  req: Request,
+  res: Response,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  next: NextFunction,
+) => {
   console.error(err);
   const errStatus = err.statusCode || CODE[500];
   let errMsg;

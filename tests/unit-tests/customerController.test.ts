@@ -2,15 +2,15 @@ import 'jest';
 import { SuperTest, Test } from 'supertest';
 
 import loginUser from '../utils/login';
-import MESSAGE from '../../src/config/message.json';
 import { CODE, SUCCESS } from '../../src/config/response';
+import MESSAGE from '../../src/config/message.json';
 import checkResponsePropertiesExist, {
   checkResponseBodyValue,
 } from '../utils/checkResponsePropertiesExist';
 import { sharedAgent } from '../utils/sharedAgent';
 import { stopServer } from '../utils/serverHandler';
 
-describe('User Routes', () => {
+describe('Customer Routes', () => {
   let agent: SuperTest<Test>;
 
   beforeAll(async () => {
@@ -24,10 +24,10 @@ describe('User Routes', () => {
     await stopServer();
   });
 
-  it('should return user list when authenticated', async () => {
+  it('should return paginated customer list when authenticated', async () => {
     const res = await agent
-      .get('/users/paginate')
-      .query({ page: '1', pageSize: '10', search: 'SBPL - 001' })
+      .get('/customers/paginate')
+      .query({ page: '1', pageSize: '10', search: '1086854' })
       .expect(200);
 
     expect(checkResponsePropertiesExist(res)).toEqual(true);
@@ -46,7 +46,7 @@ describe('User Routes', () => {
 
   it('should return bad request if page query param not supplied', async () => {
     const res = await agent
-      .get('/users/paginate')
+      .get('/customers/paginate')
       .query({ pageSize: '10', search: '' })
       .expect(CODE[400]);
 
@@ -58,7 +58,7 @@ describe('User Routes', () => {
 
   it('should return bad request if pageSize query param not supplied', async () => {
     const res = await agent
-      .get('/users/paginate')
+      .get('/customers/paginate')
       .query({ page: '1', search: '' })
       .expect(CODE[400]);
 
@@ -70,7 +70,7 @@ describe('User Routes', () => {
 
   it('should return bad request if search query param not supplied', async () => {
     const res = await agent
-      .get('/users/paginate')
+      .get('/customers/paginate')
       .query({ page: '1', pageSize: '10' })
       .expect(CODE[400]);
 

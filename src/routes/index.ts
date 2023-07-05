@@ -25,6 +25,7 @@ import PostingKeyController from '../controllers/postingKey.controller';
 import PosMidListController from '../controllers/posMidList.controller';
 import DocumentTypeController from '../controllers/documentType.controller';
 import SalesReceiptController from '../controllers/salesReceipt.controller';
+import OneTimeCustomerController from '../controllers/oneTimeCustomer.controller';
 
 const routesMiddleware = (app: Application) => {
   // Auth api
@@ -133,6 +134,12 @@ const routesMiddleware = (app: Application) => {
   );
 
   app.get(
+    '/employees/paginate',
+    checkAuthenticated,
+    EmployeeController.findWithPaginate,
+  );
+
+  app.get(
     '/employees/:plantId',
     checkAuthenticated,
     EmployeeController.getEmployeesByPlantId,
@@ -152,12 +159,6 @@ const routesMiddleware = (app: Application) => {
     '/customers/paginate',
     checkAuthenticated,
     CustomerController.findWithPaginate,
-  );
-
-  app.get(
-    '/employees/:plantId/paginate',
-    checkAuthenticated,
-    EmployeeController.findWithPaginate,
   );
 
   app.get('/employees', checkAuthenticated, EmployeeController.findAll);
@@ -255,6 +256,38 @@ const routesMiddleware = (app: Application) => {
     '/sales-receipt/credit',
     checkAuthenticated,
     SalesReceiptController.createSalesCreditTransaction,
+  );
+  app.post(
+    '/one-time-customer',
+    checkAuthenticated,
+    OneTimeCustomerController.create,
+  );
+  app.post(
+    '/sales-receipt/transaction-reverse',
+    checkAuthenticated,
+    SalesReceiptController.transactionReverse,
+  );
+  app.post(
+    '/sales-receipt/update/status',
+    checkAuthenticated,
+    SalesReceiptController.updateDocumentStatus,
+  );
+  app.delete(
+    '/sales-receipt/delete',
+    checkAuthenticated,
+    SalesReceiptController.deleteTransactions,
+  );
+
+  app.get(
+    '/sales-receipt/last-document',
+    checkAuthenticated,
+    SalesReceiptController.getLastDocument,
+  );
+
+  app.get(
+    '/sales-receipt/:documentNumber',
+    checkAuthenticated,
+    SalesReceiptController.findByDocumentNumber,
   );
 };
 

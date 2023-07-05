@@ -6,6 +6,7 @@ import BusinessTransaction from './business-transaction';
 import GlAccount from './gl-account';
 import PostingKey from './posting-key';
 import ProfitCentre from './profit-centre';
+import DocumentType from './document-type';
 
 const SalesDebitTransaction = sequelize.define<SalesDebitTransactionModel>(
   'sales_debit_transaction',
@@ -39,6 +40,10 @@ const SalesDebitTransaction = sequelize.define<SalesDebitTransactionModel>(
     amount: {
       allowNull: false,
       type: DataTypes.DECIMAL(13, 2),
+    },
+    documentTypeId: {
+      allowNull: false,
+      type: DataTypes.STRING(16),
     },
     profitCentreId: {
       allowNull: false,
@@ -76,6 +81,9 @@ SalesDebitTransaction.belongsTo(BusinessTransaction, {
 });
 SalesDebitTransaction.belongsTo(GlAccount, {
   foreignKey: 'glAccountId',
+});
+SalesDebitTransaction.belongsTo(DocumentType, {
+  foreignKey: 'documentTypeId',
 });
 SalesDebitTransaction.belongsTo(PostingKey, {
   foreignKey: 'postingKeyId',

@@ -1,7 +1,7 @@
-import {NextFunction, Request, Response} from 'express';
-import {Op} from 'sequelize';
+import { NextFunction, Request, Response } from 'express';
+import { Op } from 'sequelize';
 import Customer from '../models/customer';
-import {responseFormatter, CODE, SUCCESS} from '../config/response';
+import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import PaymentTerm from '../models/payment-term';
 import MESSAGE from '../config/message.json';
 import GlAccount from '../models/gl-account';
@@ -14,21 +14,27 @@ const findWithPaginate = async (
   try {
     const page = Number(req.query.page);
     const pageSize = Number(req.query.pageSize);
-    const {search} = req.query;
+    const { search } = req.query;
     const offset = page * pageSize - pageSize;
     const limit = pageSize;
     let condition = {};
 
+    if (Number.isNaN(page) || Number.isNaN(pageSize) || search === undefined) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
     if (search) {
       condition = {
         [Op.or]: {
-          customerNo: {[Op.like]: `%${search}%`},
-          customerName1: {[Op.like]: `%${search}%`},
-          customerName2: {[Op.like]: `%${search}%`},
-          customerName3: {[Op.like]: `%${search}%`},
-          mobile: {[Op.like]: `%${search}%`},
-          email1: {[Op.like]: `%${search}%`},
-          email2: {[Op.like]: `%${search}%`},
+          customerNo: { [Op.like]: `%${search}%` },
+          mobile: { [Op.like]: `%${search}%` },
+          gstNo: { [Op.like]: `%${search}%` },
         },
       };
     }
@@ -66,4 +72,4 @@ const findWithPaginate = async (
   }
 };
 
-export default {findWithPaginate};
+export default { findWithPaginate };
