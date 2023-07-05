@@ -219,7 +219,7 @@ const calculateTotalAmount = async (
   transactionType: 'credit' | 'debit',
 ): Promise<number> => {
   try {
-    let transactionModel;
+    let transactionModel: any;
 
     if (transactionType === 'credit') {
       transactionModel = SalesCreditTransaction;
