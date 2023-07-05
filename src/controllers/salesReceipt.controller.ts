@@ -22,6 +22,8 @@ import SalesHeaderModel, {
   SalesHeaderWithDocumentLabel,
 } from '../interfaces/masters/salesHeader.interface';
 import { dateFormat } from '../utils/helper';
+import { SalesCreditTransactionModelWithIncludes } from '../interfaces/masters/salesCreditTransaction.interface';
+import { SalesDebitTransactionModelWithIncludes } from '../interfaces/masters/salesDebitTransaction.interface';
 
 const createSalesHeader = async (
   req: Request,
@@ -733,11 +735,11 @@ const getLastDocument = async (
   next: NextFunction,
 ) => {
   try {
-    const saleHeaderData = await SalesHeader.findOne({
+    const salesHeaderFromPlantId = await SalesHeader.findOne({
       where: { plantId: req.session.activePlantId },
       order: [['createdAt', 'desc']],
     });
-    if (!saleHeaderData) {
+    if (!salesHeaderFromPlantId) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -747,28 +749,36 @@ const getLastDocument = async (
       return res.status(400).send(response);
     }
 
+    let newSalesHeaderFromPlantId = salesHeaderFromPlantId;
+
     if (
-      saleHeaderData &&
-      saleHeaderData.documentStatus === 'Updated Reversed' &&
-      saleHeaderData.reversalId === null
+      salesHeaderFromPlantId &&
+      salesHeaderFromPlantId.documentStatus === 'Updated Reversed' &&
+      salesHeaderFromPlantId.reversalId === null
     ) {
-      const reversalDocument: any = await SalesHeader.findOne({
+      const reversalDocument = (await SalesHeader.findOne({
         attributes: ['id'],
-        where: { reversalId: saleHeaderData.id },
+        where: { reversalId: salesHeaderFromPlantId.id },
         raw: true,
-      });
-      saleHeaderData.reversalId = reversalDocument.id;
-      saleHeaderData.documentLabel = MESSAGE.REVERSAL_DOCUMENT;
+      })) as SalesHeaderModel;
+      newSalesHeaderFromPlantId = {
+        ...salesHeaderFromPlantId,
+        documentLabel: MESSAGE.ORIGINAL_DOCUMENT,
+        reversalId: reversalDocument.id,
+      } as SalesHeaderWithDocumentLabel;
     } else if (
-      saleHeaderData &&
-      saleHeaderData.documentStatus === 'Updated Reversed' &&
-      saleHeaderData.reversalId !== null
+      salesHeaderFromPlantId &&
+      salesHeaderFromPlantId.documentStatus === 'Updated Reversed' &&
+      salesHeaderFromPlantId.reversalId !== null
     ) {
-      saleHeaderData.documentLabel = MESSAGE.ORIGINAL_DOCUMENT;
+      newSalesHeaderFromPlantId = {
+        ...salesHeaderFromPlantId,
+        documentLabel: MESSAGE.ORIGINAL_DOCUMENT,
+      } as SalesHeaderWithDocumentLabel;
     }
 
     const debitTransactionData = await SalesDebitTransaction.findAll({
-      where: { salesHeaderId: saleHeaderData.id },
+      where: { salesHeaderId: salesHeaderFromPlantId.id },
       include: [
         {
           model: BusinessTransaction,
@@ -789,7 +799,7 @@ const getLastDocument = async (
     });
 
     const creditTransactionData = await SalesCreditTransaction.findAll({
-      where: { salesHeaderId: saleHeaderData.id },
+      where: { salesHeaderId: salesHeaderFromPlantId.id },
       include: [
         {
           model: Customer,
@@ -804,11 +814,11 @@ const getLastDocument = async (
     });
 
     const oneTimeCustomerData = await OneTimeCustomer.findOne({
-      where: { salesHeaderId: saleHeaderData.id },
+      where: { salesHeaderId: salesHeaderFromPlantId.id },
     });
 
     const data = {
-      saleHeaderData,
+      saleHeaderData: newSalesHeaderFromPlantId,
       debitTransactionData,
       creditTransactionData,
       oneTimeCustomerData,
@@ -843,7 +853,7 @@ const exportSalesReceipt = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const saleHeaderData: any = await SalesHeader.findOne({
+    const saleHeaderData = await SalesHeader.findOne({
       where: { id: salesHeaderId, documentStatus: 'Updated' },
       raw: true,
     });
@@ -858,7 +868,7 @@ const exportSalesReceipt = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const debitTransactionData: any = await SalesDebitTransaction.findAll({
+    const debitTransactionData = (await SalesDebitTransaction.findAll({
       where: { salesHeaderId: saleHeaderData.id },
       include: [
         {
@@ -878,9 +888,9 @@ const exportSalesReceipt = async (
         },
       ],
       raw: true,
-    });
+    })) as SalesDebitTransactionModelWithIncludes[];
 
-    const creditTransactionData: any = await SalesCreditTransaction.findAll({
+    const creditTransactionData = (await SalesCreditTransaction.findAll({
       where: { salesHeaderId: saleHeaderData.id },
       include: [
         {
@@ -893,19 +903,18 @@ const exportSalesReceipt = async (
           model: PosMidList,
         },
       ],
-      raw: true,
-    });
+    })) as SalesCreditTransactionModelWithIncludes[];
 
     const saleReceiptData = [
       {
         postingDate: dateFormat(saleHeaderData.postingDate, '.', false),
         documentDate: dateFormat(saleHeaderData.documentDate, '.', false),
-        customerNo: creditTransactionData[0]['customer.customerNo']
-          ? creditTransactionData[0]['customer.customerNo']
+        customerNo: creditTransactionData[0]?.customer?.customerNo
+          ? creditTransactionData[0]?.customer?.customerNo
           : '',
         amount: creditTransactionData[0].amount,
-        PostingKey: debitTransactionData[0]['posting_key.postingKey'],
-        profitCentre: debitTransactionData[0]['profit_centre.profitCentre'],
+        PostingKey: debitTransactionData[0]?.posting_key?.postingKey,
+        profitCentre: debitTransactionData[0]?.profit_centre?.profitCentre,
         text: creditTransactionData[0].text,
       },
     ];

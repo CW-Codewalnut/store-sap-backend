@@ -1,4 +1,6 @@
 import { InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import PostingKeyModel from './postingKey.interface';
+import ProfitCentreModel from './profitCentre.interface';
 
 interface SalesDebitTransactionModel
   extends Model<
@@ -22,4 +24,11 @@ interface SalesDebitTransactionModel
   updatedAt: Date;
 }
 
+interface SalesDebitTransactionModelWithIncludes
+  extends SalesDebitTransactionModel {
+  posting_key?: PostingKeyModel;
+  profit_centre?: ProfitCentreModel;
+}
+
 export default SalesDebitTransactionModel;
+export { SalesDebitTransactionModelWithIncludes };

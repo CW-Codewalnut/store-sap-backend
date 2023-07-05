@@ -1,4 +1,5 @@
 import { InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import CustomerModel from './customer.interface';
 
 interface SalesCreditTransactionModel
   extends Model<
@@ -30,4 +31,10 @@ interface SalesCreditTransactionModel
   updatedAt: Date;
 }
 
+interface SalesCreditTransactionModelWithIncludes
+  extends SalesCreditTransactionModel {
+  customer?: CustomerModel;
+}
+
 export default SalesCreditTransactionModel;
+export { SalesCreditTransactionModelWithIncludes };
