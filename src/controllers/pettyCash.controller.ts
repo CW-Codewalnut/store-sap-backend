@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import sequelize, { Op } from 'sequelize';
 import * as xlsx from 'xlsx';
 import { BigNumber } from 'bignumber.js';
+import { SessionData } from 'express-session';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import PettyCash from '../models/petty-cash';
 import BusinessTransaction from '../models/business-transaction';
@@ -25,6 +26,11 @@ import {
 import MESSAGE from '../config/message.json';
 import Preference from '../models/preference';
 import CashDenomination from '../models/cash-denomination';
+import PettyCashModel, {
+  DatesType,
+  PettyCashModelWithIncludes,
+} from '../interfaces/masters/pettyCash.interface';
+import CashDenominationModel from '../interfaces/masters/cashDenomination.interface';
 
 /**
  * It returns true if a saved transaction from the previous day is found; otherwise, it returns false.
@@ -245,7 +251,7 @@ const getClosingBalance = async (req: Request): Promise<number> => {
  */
 const getTotalSavedAmount = async (
   cashJournalId: string,
-  session: any,
+  session: Partial<SessionData>,
 ): Promise<number> => {
   try {
     const { activePlantId } = session;
@@ -321,7 +327,7 @@ const convertDatesIntoIso = ({
   postingDate,
   documentDate,
   referenceDate,
-}: any): any => ({
+}: DatesType) => ({
   postingISODate: new Date(postingDate).toISOString(),
   documentISODate: new Date(documentDate).toISOString(),
   referenceISODate: referenceDate
@@ -637,12 +643,18 @@ const findReceiptsWithPaginate = async (
   }
 };
 
-const objectIncludesKeys = (pettyCashData: any, allowedKeys: Array<string>) => {
+const objectIncludesKeys = (
+  pettyCashData: PettyCashModel,
+  allowedKeys: Array<string>,
+) => {
   const pettyCashKeys = Object.keys(pettyCashData);
   return allowedKeys.every((allowedKey) => pettyCashKeys.includes(allowedKey));
 };
 
-const updatePettyCash = async (pettyCashData: any, transactionId: string) => {
+const updatePettyCash = async (
+  pettyCashData: Partial<PettyCashModel>,
+  transactionId: string,
+) => {
   await PettyCash.update(pettyCashData, {
     where: { id: transactionId },
   });
@@ -786,9 +798,9 @@ const validateRequestBody = (
   transactionIds: string[],
   documentStatus: string,
   cashJournalId: string,
-  fromDate: any,
-  toDate: any,
-  cashDenomination: any,
+  fromDate: string,
+  toDate: string,
+  cashDenomination: CashDenominationModel,
 ) =>
   Array.isArray(transactionIds) &&
   transactionIds.length &&
@@ -829,8 +841,8 @@ const calculateCashDenomination = (req: Request) => {
       qty500INR * 500 +
       qty2000INR * 2000;
 
-    const denominationBody: any = {
-      plantId: req.session.activePlantId,
+    const denominationBody = {
+      plantId: req?.session?.activePlantId,
       cashJournalId,
       denominationTotalAmount,
       qty1INR,
@@ -928,7 +940,7 @@ const calculateFinalClosingBalance = async (
 };
 
 /**
- * This function returns any transactions that occurred on the previous date, if they exist
+ * This function returns those transactions that occurred on the previous date, if they exist
  * @param transactionIds
  * @param today
  * @returns
@@ -1040,7 +1052,9 @@ const updateDocumentStatus = async (req: Request, res: Response) => {
       return res.status(CODE[400]).send(response);
     }
 
-    const cashDenominationBody = calculateCashDenomination(req);
+    const cashDenominationBody = calculateCashDenomination(
+      req,
+    ) as CashDenominationModel;
     const totalUpdateAmount = await getTotalUpdateAmount(transactionIds);
     const closingBalanceAmount = await getClosingBalance(req);
     const finalClosingBalance = await calculateFinalClosingBalance(
@@ -1238,34 +1252,38 @@ const exportPettyCash = async (
       },
     });
 
-    const pettyCashData = pettyCashes.map((transaction: any) => ({
-      businessTransactionNo:
-        transaction.business_transaction.businessTransactionNo,
-      amount: transaction.amount,
-      glAccounts: transaction.gl_account.glAccounts,
-      houseBank: transaction.house_bank ? transaction.house_bank.ifsc : '',
-      bankAccount: transaction.bank_account
-        ? transaction.bank_account.bankAccountNumber
-        : '',
-      TaxCode: transaction.taxCodeId ? transaction.tax_code.taxCode : '',
-      bpName: transaction.receiptRecipient,
-      text: transaction.text ? transaction.text : '',
-      venderNo: transaction.vendor ? transaction.vendor.venderNo : '',
-      customerNo: transaction.customer ? transaction.customer.customerNo : '',
-      postingDate: dateFormat(transaction.postingDate, '.', false),
-      documentDate: dateFormat(transaction.documentDate, '.', false),
-      costCentre: transaction.cost_centre
-        ? transaction.cost_centre.costCentre
-        : '',
-      profitCentre: transaction.profit_centre.profitCentre,
-      fiscalYear: new Date(transaction.postingDate).getFullYear(),
-      cjDocNo: transaction.cjDocNo,
-      refDocNo: transaction.refDocNo,
-      orderNo: transaction.orderNo,
-      profitabilitySegmentNo: transaction.profitabilitySegmentNo,
-      assignmentNo: transaction.assignment,
-      segment: transaction.segment.segment,
-    }));
+    const pettyCashData = pettyCashes.map(
+      (transaction: PettyCashModelWithIncludes) => ({
+        businessTransactionNo:
+          transaction?.business_transaction?.businessTransactionNo,
+        amount: transaction.amount,
+        glAccounts: transaction?.gl_account?.glAccounts,
+        houseBank: transaction?.house_bank ? transaction?.house_bank?.ifsc : '',
+        bankAccount: transaction?.bank_account
+          ? transaction?.bank_account?.bankAccountNumber
+          : '',
+        TaxCode: transaction?.taxCodeId ? transaction?.tax_code?.taxCode : '',
+        bpName: transaction.receiptRecipient,
+        text: transaction.text ? transaction.text : '',
+        venderNo: transaction.vendor ? transaction.vendor?.vendorNo : '',
+        customerNo: transaction?.customer
+          ? transaction?.customer?.customerNo
+          : '',
+        postingDate: dateFormat(transaction.postingDate, '.', false),
+        documentDate: dateFormat(transaction.documentDate, '.', false),
+        costCentre: transaction?.cost_centre
+          ? transaction?.cost_centre?.costCentre
+          : '',
+        profitCentre: transaction?.profit_centre?.profitCentre,
+        fiscalYear: new Date(transaction.postingDate).getFullYear(),
+        cjDocNo: transaction.cjDocNo,
+        refDocNo: transaction.refDocNo,
+        orderNo: transaction.orderNo,
+        profitabilitySegmentNo: transaction.profitabilitySegmentNo,
+        assignmentNo: transaction.assignment,
+        segment: transaction?.segment?.segment,
+      }),
+    );
 
     const Heading = [
       [
@@ -1472,7 +1490,9 @@ const transactionReverse = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const cashDenominationBody = calculateCashDenomination(req);
+    const cashDenominationBody = calculateCashDenomination(
+      req,
+    ) as CashDenominationModel;
     const totalUpdateAmount = await getTotalUpdateAmount(transactionIds);
     const closingBalanceAmount = await getClosingBalance(req);
 
@@ -1495,26 +1515,18 @@ const transactionReverse = async (
       );
       return res.status(CODE[400]).send(response);
     }
-    const updatedTransactionIds: any[] = await Promise.all(
+    const updatedTransactionIds = await Promise.all(
       transactionIds.map(async (transactionId: string) => {
-        /* eslint-disable */
-        const {
-          id,
-          createdBy,
-          updatedBy,
-          documentStatus,
-          amount,
-          netAmount,
-          taxBaseAmount,
-          reverseTransactionId,
-          ...restPettyCashData
-        }: any = await PettyCash.findOne({
+        const pettyCashDataFromTransactionId = await PettyCash.findOne({
           where: { id: transactionId },
           raw: true,
         });
-        /* eslint-enable */
+
+        const { id, amount, ...restPettyCashData }: PettyCashModel =
+          pettyCashDataFromTransactionId ?? ({} as PettyCashModel);
 
         const pettyCash = {
+          ...restPettyCashData,
           reverseTransactionId: id,
           createdBy: req.user.id,
           updatedBy: req.user.id,
@@ -1522,8 +1534,7 @@ const transactionReverse = async (
           amount: +new BigNumber(+amount).negated(),
           netAmount: +new BigNumber(+amount).negated(),
           taxBaseAmount: +new BigNumber(+amount).negated(),
-          ...restPettyCashData,
-        };
+        } as PettyCashModel;
 
         const transactionData = await PettyCash.create(pettyCash);
 

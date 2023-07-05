@@ -12,6 +12,8 @@ import checkResponsePropertiesExist, {
 import { sharedAgent } from '../utils/sharedAgent';
 import { stopServer } from '../utils/serverHandler';
 import CashDenomination from '../../src/models/cash-denomination';
+import CashDenominationModel from '../../src/interfaces/masters/cashDenomination.interface';
+import PettyCashModel from '../../src/interfaces/masters/pettyCash.interface';
 
 describe('Petty Cash Routes', () => {
   let agent: SuperTest<Test>;
@@ -300,13 +302,15 @@ describe('Petty Cash Routes', () => {
 
   it('should return a success for petty cash update if document status is Updated', async () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, ...transactionData }: any = await PettyCash.findOne({
+    const transactionData = await PettyCash.findOne({
       where: { documentStatus: 'Updated' },
       raw: true,
     });
 
+    const { id, ...restTransactionData } = transactionData as PettyCashModel;
+
     const requestBodyData = {
-      ...transactionData,
+      ...restTransactionData,
       refDocNo: requestBody.refDocNo,
       assignment: requestBody.assignment,
       text: requestBody.text,
@@ -351,13 +355,15 @@ describe('Petty Cash Routes', () => {
 
   it('should return a 400 error when the tax code is invalid', async () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, ...transactionData }: any = await PettyCash.findOne({
+    const transactionData = await PettyCash.findOne({
       where: { documentStatus: 'Saved' },
       raw: true,
     });
 
+    const { id, ...restTransactionData } = transactionData as PettyCashModel;
+
     const requestBodyWithWrongTaxCodeId = {
-      ...transactionData,
+      ...restTransactionData,
       taxCodeId: '2T9kgBIQXd2nYLVd',
       fromDate: new Date(),
       toDate: new Date(),
@@ -381,13 +387,15 @@ describe('Petty Cash Routes', () => {
   });
 
   it('should return a 400 error when the amount is invalid', async () => {
-    const { id, ...transactionData }: any = await PettyCash.findOne({
+    const transactionData = await PettyCash.findOne({
       where: { documentStatus: 'Saved' },
       raw: true,
     });
 
+    const { id, ...restTransactionData } = transactionData as PettyCashModel;
+
     const requestBodyWithWrongAmount = {
-      ...transactionData,
+      ...restTransactionData,
       amount: 10001,
       fromDate: new Date(),
       toDate: new Date(),
@@ -411,13 +419,15 @@ describe('Petty Cash Routes', () => {
 
   it('should return a success for petty cash update if document status is Saved', async () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, ...transactionData }: any = await PettyCash.findOne({
+    const transactionData = await PettyCash.findOne({
       where: { documentStatus: 'Saved' },
       raw: true,
     });
 
+    const { id, ...restTransactionData } = transactionData as PettyCashModel;
+
     const requestBodyData = {
-      ...transactionData,
+      ...restTransactionData,
       fromDate: new Date(),
       toDate: new Date(),
     };
@@ -441,15 +451,17 @@ describe('Petty Cash Routes', () => {
   // Test cases for updateDocumentStatus function
   it('should return a 400 for missing cash denomination while update the document status', async () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, ...transactionData }: any = await PettyCash.findOne({
+    const transactionData = await PettyCash.findOne({
       where: { documentStatus: 'Saved' },
       raw: true,
     });
 
+    const { id, ...restTransactionData } = transactionData as PettyCashModel;
+
     const requestBodyData = {
       transactionIds: [id],
       documentStatus: 'Updated',
-      cashJournalId: transactionData.cashJournalId,
+      cashJournalId: restTransactionData.cashJournalId,
       fromDate: new Date(),
       toDate: new Date(),
     };
@@ -472,13 +484,16 @@ describe('Petty Cash Routes', () => {
   });
 
   it('should return a 400 if cash denomination does not match the closing balance while updating document status', async () => {
-    const { id, ...cashDenomination }: any = await CashDenomination.findOne({
+    const cashDenominationData = await CashDenomination.findOne({
       where: {
         plantId: requestBody.plantId,
         cashJournalId: requestBody.cashJournalId,
       },
       raw: true,
     });
+
+    const { id, ...cashDenomination } =
+      cashDenominationData as CashDenominationModel;
 
     const requestBodyData = {
       transactionIds: [pettyCashCreatedId],
@@ -536,13 +551,16 @@ describe('Petty Cash Routes', () => {
   });
 
   it('should return success on document status update', async () => {
-    const { id, ...cashDenomination }: any = await CashDenomination.findOne({
+    const cashDenominationData = await CashDenomination.findOne({
       where: {
         plantId: requestBody.plantId,
         cashJournalId: requestBody.cashJournalId,
       },
       raw: true,
     });
+
+    const { id, ...cashDenomination } =
+      cashDenominationData as CashDenominationModel;
 
     const { qty500INR } = cashDenomination;
     cashDenomination.qty500INR = qty500INR + 1;
@@ -577,15 +595,17 @@ describe('Petty Cash Routes', () => {
   // Test cases for transactionReverse function
   it('should return a 400 for missing cash denomination while reverse the transaction', async () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, ...transactionData }: any = await PettyCash.findOne({
+    const transactionData = await PettyCash.findOne({
       where: { documentStatus: 'Updated' },
       raw: true,
     });
 
+    const { id, ...restTransactionData } = transactionData as PettyCashModel;
+
     const requestBodyData = {
       transactionIds: [id],
       documentStatus: 'Updated',
-      cashJournalId: transactionData.cashJournalId,
+      cashJournalId: restTransactionData.cashJournalId,
       fromDate: new Date(),
       toDate: new Date(),
     };
@@ -643,13 +663,16 @@ describe('Petty Cash Routes', () => {
   });
 
   it('should return success when document reversed', async () => {
-    const { id, ...cashDenomination }: any = await CashDenomination.findOne({
+    const cashDenominationData = await CashDenomination.findOne({
       where: {
         plantId: requestBody.plantId,
         cashJournalId: requestBody.cashJournalId,
       },
       raw: true,
     });
+
+    const { id, ...cashDenomination } =
+      cashDenominationData as CashDenominationModel;
 
     const { qty500INR } = cashDenomination;
     cashDenomination.qty500INR = qty500INR - 1;

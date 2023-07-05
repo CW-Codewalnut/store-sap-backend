@@ -48,19 +48,6 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     const role = await Role.create(req.body);
     const { id } = role;
 
-    /*   const rolePermissions = [];
-
-    for (const permissionId of req.body.permissionIds) {
-      const rolePermissionData: any = {
-        id: nanoid(16),
-        roleId: id,
-        permissionId,
-        createdBy: req.user.id,
-        updatedBy: req.user.id,
-      };
-      rolePermissions.push(rolePermissionData);
-    } */
-
     const rolePermissions = req.body.permissionIds.map(
       (permissionId: string) => ({
         id: nanoid(16),
@@ -254,12 +241,12 @@ const updateRolePermissions = async (
         });
 
         if (data == null || !data) {
-          const rolePermissionData: any = {
+          const rolePermissionData = {
             roleId: req.params.id,
             permissionId: id,
             createdBy: req.user.id,
             updatedBy: req.user.id,
-          };
+          } as RolePermissionModel;
           // eslint-disable-next-line no-await-in-loop
           await RolePermission.create(rolePermissionData);
         }

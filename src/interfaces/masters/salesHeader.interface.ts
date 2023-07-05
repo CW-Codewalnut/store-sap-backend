@@ -27,4 +27,9 @@ interface SalesHeaderModel
   updatedAt: Date;
 }
 
+interface SalesHeaderWithDocumentLabel extends SalesHeaderModel {
+  documentLabel: string;
+}
+
 export default SalesHeaderModel;
+export { SalesHeaderWithDocumentLabel };

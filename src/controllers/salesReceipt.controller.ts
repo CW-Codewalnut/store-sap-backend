@@ -18,6 +18,9 @@ import Plant from '../models/plant';
 import Preference from '../models/preference';
 import { UpdateSalesHeaderArgs } from '../interfaces/salesReceipt/saleReceipt.interface';
 import OneTimeCustomer from '../models/one-time-customer';
+import SalesHeaderModel, {
+  SalesHeaderWithDocumentLabel,
+} from '../interfaces/masters/salesHeader.interface';
 
 const createSalesHeader = async (
   req: Request,
@@ -445,24 +448,17 @@ const transactionReverse = async (
       return res.status(CODE[400]).send(response);
     }
 
-    /* eslint-disable */
-    const {
-      id,
-      createdBy,
-      updatedBy,
-      createdAt,
-      updatedAt,
-      ...toBeReverseSalesHeader
-    }: any = saleHeader;
-    /* eslint-enable */
+    const reverseSalesHeader = {
+      ...saleHeader,
+      id: undefined,
+      createdAt: undefined,
+      updatedAt: undefined,
+      createdBy: req.user.id,
+      updatedBy: req.user.id,
+      documentStatus: 'Updated Reversed',
+    } as unknown as SalesHeaderModel;
 
-    toBeReverseSalesHeader.createdBy = req.user.id;
-    toBeReverseSalesHeader.updatedBy = req.user.id;
-    toBeReverseSalesHeader.documentStatus = 'Updated Reversed';
-
-    const reversedSalesHeader = await SalesHeader.create(
-      toBeReverseSalesHeader,
-    );
+    const reversedSalesHeader = await SalesHeader.create(reverseSalesHeader);
 
     // Debit Transaction Reversal
     const debitTransactions = await Promise.all(
@@ -625,12 +621,12 @@ const findByDocumentNumber = async (
   try {
     const { documentNumber } = req.params;
 
-    const saleHeaderData: any = await SalesHeader.findOne({
+    const salesHeaderFromDocumentNumber = await SalesHeader.findOne({
       where: { id: documentNumber },
       raw: true,
     });
 
-    if (!saleHeaderData) {
+    if (!salesHeaderFromDocumentNumber) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -640,28 +636,36 @@ const findByDocumentNumber = async (
       return res.status(400).send(response);
     }
 
+    let newSalesHeaderFromDocumentNumber = salesHeaderFromDocumentNumber;
+
     if (
-      saleHeaderData &&
-      saleHeaderData.documentStatus === 'Updated Reversed' &&
-      saleHeaderData.reversalId === null
+      salesHeaderFromDocumentNumber &&
+      salesHeaderFromDocumentNumber.documentStatus === 'Updated Reversed' &&
+      salesHeaderFromDocumentNumber.reversalId === null
     ) {
-      const reversalDocument: any = await SalesHeader.findOne({
+      const reversalDocument = (await SalesHeader.findOne({
         attributes: ['id'],
-        where: { reversalId: saleHeaderData.id },
+        where: { reversalId: salesHeaderFromDocumentNumber.id },
         raw: true,
-      });
-      saleHeaderData.reversalId = reversalDocument.id;
-      saleHeaderData.documentLabel = MESSAGE.REVERSAL_DOCUMENT;
+      })) as SalesHeaderModel;
+      newSalesHeaderFromDocumentNumber = {
+        ...salesHeaderFromDocumentNumber,
+        documentLabel: MESSAGE.ORIGINAL_DOCUMENT,
+        reversalId: reversalDocument.id,
+      } as SalesHeaderWithDocumentLabel;
     } else if (
-      saleHeaderData &&
-      saleHeaderData.documentStatus === 'Updated Reversed' &&
-      saleHeaderData.reversalId !== null
+      salesHeaderFromDocumentNumber &&
+      salesHeaderFromDocumentNumber.documentStatus === 'Updated Reversed' &&
+      salesHeaderFromDocumentNumber.reversalId !== null
     ) {
-      saleHeaderData.documentLabel = MESSAGE.ORIGINAL_DOCUMENT;
+      newSalesHeaderFromDocumentNumber = {
+        ...salesHeaderFromDocumentNumber,
+        documentLabel: MESSAGE.ORIGINAL_DOCUMENT,
+      } as SalesHeaderWithDocumentLabel;
     }
 
     const debitTransactionData = await SalesDebitTransaction.findAll({
-      where: { salesHeaderId: saleHeaderData.id },
+      where: { salesHeaderId: salesHeaderFromDocumentNumber.id },
       include: [
         {
           model: BusinessTransaction,
@@ -682,7 +686,7 @@ const findByDocumentNumber = async (
     });
 
     const creditTransactionData = await SalesCreditTransaction.findAll({
-      where: { salesHeaderId: saleHeaderData.id },
+      where: { salesHeaderId: salesHeaderFromDocumentNumber.id },
       include: [
         {
           model: Customer,
@@ -697,11 +701,11 @@ const findByDocumentNumber = async (
     });
 
     const oneTimeCustomerData = await OneTimeCustomer.findOne({
-      where: { salesHeaderId: saleHeaderData.id },
+      where: { salesHeaderId: salesHeaderFromDocumentNumber.id },
     });
 
     const data = {
-      saleHeaderData,
+      saleHeaderData: newSalesHeaderFromDocumentNumber,
       debitTransactionData,
       creditTransactionData,
       oneTimeCustomerData,
@@ -724,7 +728,7 @@ const getLastDocument = async (
   next: NextFunction,
 ) => {
   try {
-    const saleHeaderData: any = await SalesHeader.findOne({
+    const saleHeaderData = await SalesHeader.findOne({
       where: { plantId: req.session.activePlantId },
       order: [['createdAt', 'desc']],
     });
