@@ -24,6 +24,7 @@ import SalesHeaderModel, {
 import { dateFormat } from '../utils/helper';
 import { SalesCreditTransactionModelWithIncludes } from '../interfaces/masters/salesCreditTransaction.interface';
 import { SalesDebitTransactionModelWithIncludes } from '../interfaces/masters/salesDebitTransaction.interface';
+import OneTimeCustomerModel from '../interfaces/masters/oneTimeCustomer.interface';
 
 const createSalesHeader = async (
   req: Request,
@@ -130,6 +131,8 @@ const createSalesDebitTransaction = async (
           model: ProfitCentre,
         },
       ],
+      raw: true,
+      nest: true,
     });
 
     const response = responseFormatter(
@@ -303,6 +306,8 @@ const createSalesCreditTransaction = async (
           model: PosMidList,
         },
       ],
+      raw: true,
+      nest: true,
     });
 
     const response = responseFormatter(
@@ -338,6 +343,7 @@ const updateSalesHeader = ({
 const getSaleHeaderData = (salesHeaderId: string) =>
   SalesHeader.findOne({
     where: { id: salesHeaderId },
+    raw: true,
   });
 
 const updateDocumentStatus = async (
@@ -414,6 +420,31 @@ const validateRequestBody = (
   Array.isArray(creditTransactionIds) &&
   creditTransactionIds.length &&
   salesHeaderId;
+
+const createOneTimeCustomer = async (
+  userId: string,
+  reversedSalesHeaderId: string,
+  salesHeaderId: string,
+) => {
+  const oneTimeCustomerData = await OneTimeCustomer.findOne({
+    where: { salesHeaderId },
+    raw: true,
+  });
+
+  if (oneTimeCustomerData) {
+    const newOneTimeCustomerData = {
+      ...oneTimeCustomerData,
+      id: undefined,
+      createdAt: undefined,
+      updatedAt: undefined,
+      salesHeaderId: reversedSalesHeaderId,
+      createdBy: userId,
+      updatedBy: userId,
+    } as unknown as OneTimeCustomerModel;
+
+    return OneTimeCustomer.create(newOneTimeCustomerData);
+  }
+};
 
 const transactionReverse = async (
   req: Request,
@@ -533,6 +564,12 @@ const transactionReverse = async (
     );
     await SalesCreditTransaction.bulkCreate(creditTransactions);
 
+    await createOneTimeCustomer(
+      req.user.id,
+      reversedSalesHeader?.id,
+      salesHeaderId,
+    );
+
     await updateSalesHeader({
       newDocumentStatus: 'Updated Reversed',
       oldDocumentStatus: 'Updated',
@@ -542,11 +579,39 @@ const transactionReverse = async (
 
     const salesHeaderData = await getSaleHeaderData(salesHeaderId);
 
+    let newSalesHeaderData = salesHeaderData;
+
+    if (
+      salesHeaderData &&
+      salesHeaderData.documentStatus === 'Updated Reversed' &&
+      salesHeaderData.reversalId === null
+    ) {
+      const reversalDocument = (await SalesHeader.findOne({
+        attributes: ['id'],
+        where: { reversalId: salesHeaderData.id },
+        raw: true,
+      })) as SalesHeaderModel;
+      newSalesHeaderData = {
+        ...salesHeaderData,
+        documentLabel: MESSAGE.REVERSAL_DOCUMENT,
+        reversalId: reversalDocument.id,
+      } as SalesHeaderWithDocumentLabel;
+    } else if (
+      salesHeaderData &&
+      salesHeaderData.documentStatus === 'Updated Reversed' &&
+      salesHeaderData.reversalId !== null
+    ) {
+      newSalesHeaderData = {
+        ...salesHeaderData,
+        documentLabel: MESSAGE.ORIGINAL_DOCUMENT,
+      } as SalesHeaderWithDocumentLabel;
+    }
+
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.TRANSACTION_REVERSED,
-      salesHeaderData,
+      newSalesHeaderData,
     );
     res.status(CODE[200]).send(response);
   } catch (err) {
@@ -658,7 +723,7 @@ const findByDocumentNumber = async (
       })) as SalesHeaderModel;
       newSalesHeaderFromDocumentNumber = {
         ...salesHeaderFromDocumentNumber,
-        documentLabel: MESSAGE.ORIGINAL_DOCUMENT,
+        documentLabel: MESSAGE.REVERSAL_DOCUMENT,
         reversalId: reversalDocument.id,
       } as SalesHeaderWithDocumentLabel;
     } else if (
@@ -692,6 +757,7 @@ const findByDocumentNumber = async (
         },
       ],
       raw: true,
+      nest: true,
     });
 
     const creditTransactionData = await SalesCreditTransaction.findAll({
@@ -708,6 +774,7 @@ const findByDocumentNumber = async (
         },
       ],
       raw: true,
+      nest: true,
     });
 
     const oneTimeCustomerData = await OneTimeCustomer.findOne({
@@ -768,7 +835,7 @@ const getLastDocument = async (
       })) as SalesHeaderModel;
       newSalesHeaderFromPlantId = {
         ...salesHeaderFromPlantId,
-        documentLabel: MESSAGE.ORIGINAL_DOCUMENT,
+        documentLabel: MESSAGE.REVERSAL_DOCUMENT,
         reversalId: reversalDocument.id,
       } as SalesHeaderWithDocumentLabel;
     } else if (
@@ -802,6 +869,7 @@ const getLastDocument = async (
         },
       ],
       raw: true,
+      nest: true,
     });
 
     const creditTransactionData = await SalesCreditTransaction.findAll({
@@ -818,6 +886,7 @@ const getLastDocument = async (
         },
       ],
       raw: true,
+      nest: true,
     });
 
     const oneTimeCustomerData = await OneTimeCustomer.findOne({
@@ -896,6 +965,7 @@ const exportSalesReceipt = async (
         },
       ],
       raw: true,
+      nest: true,
     })) as SalesDebitTransactionModelWithIncludes[];
 
     const creditTransactionData = (await SalesCreditTransaction.findAll({
@@ -911,6 +981,8 @@ const exportSalesReceipt = async (
           model: PosMidList,
         },
       ],
+      raw: true,
+      nest: true,
     })) as SalesCreditTransactionModelWithIncludes[];
 
     const saleReceiptData = [
