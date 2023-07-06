@@ -24,6 +24,7 @@ import SalesHeaderModel, {
 import { dateFormat } from '../utils/helper';
 import { SalesCreditTransactionModelWithIncludes } from '../interfaces/masters/salesCreditTransaction.interface';
 import { SalesDebitTransactionModelWithIncludes } from '../interfaces/masters/salesDebitTransaction.interface';
+import OneTimeCustomerModel from '../interfaces/masters/oneTimeCustomer.interface';
 
 const createSalesHeader = async (
   req: Request,
@@ -420,6 +421,31 @@ const validateRequestBody = (
   creditTransactionIds.length &&
   salesHeaderId;
 
+const createOneTimeCustomer = async (
+  userId: string,
+  reversedSalesHeaderId: string,
+  salesHeaderId: string,
+) => {
+  const oneTimeCustomerData = await OneTimeCustomer.findOne({
+    where: { salesHeaderId },
+    raw: true,
+  });
+
+  if (oneTimeCustomerData) {
+    const newOneTimeCustomerData = {
+      ...oneTimeCustomerData,
+      id: undefined,
+      createdAt: undefined,
+      updatedAt: undefined,
+      salesHeaderId: reversedSalesHeaderId,
+      createdBy: userId,
+      updatedBy: userId,
+    } as unknown as OneTimeCustomerModel;
+
+    return OneTimeCustomer.create(newOneTimeCustomerData);
+  }
+};
+
 const transactionReverse = async (
   req: Request,
   res: Response,
@@ -537,6 +563,12 @@ const transactionReverse = async (
       }),
     );
     await SalesCreditTransaction.bulkCreate(creditTransactions);
+
+    await createOneTimeCustomer(
+      req.user.id,
+      reversedSalesHeader?.id,
+      salesHeaderId,
+    );
 
     await updateSalesHeader({
       newDocumentStatus: 'Updated Reversed',
