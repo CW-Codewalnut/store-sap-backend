@@ -33,4 +33,14 @@ describe('Plant Routes', () => {
     ).toEqual(true);
     expect(Array.isArray(res.body.data)).toBe(true);
   });
+
+  it("should return user's plans by user Id", async () => {
+    const res = await agent.get('/plants').expect(CODE[200]);
+
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(res, CODE[200], SUCCESS.TRUE, MESSAGE.FETCHED),
+    ).toEqual(true);
+    expect(Array.isArray(res.body.data)).toBe(true);
+  });
 });

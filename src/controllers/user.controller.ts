@@ -29,6 +29,63 @@ const configs = require('../config/config');
 const env = process.env.NODE_ENV || 'local';
 const config = configs[env];
 
+const getPlantsByUserId = async (
+  next: NextFunction,
+  userId: string,
+): Promise<UserPlantModel[] | undefined> => {
+  try {
+    const userPlants = await UserPlant.findAll({
+      attributes: ['plantId'],
+      where: { userId },
+      raw: true,
+    });
+    return userPlants;
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getUserPermissions = async (req: Request, next: NextFunction) => {
+  try {
+    const ids = await RolePermission.findAll({
+      where: { roleId: req.user.roleId },
+      attributes: ['permissionId'],
+      raw: true,
+    });
+
+    const permissionIds = ids.map((id) => id.permissionId);
+    const permissions = await Permission.findAll({
+      where: { id: { [Op.in]: permissionIds } },
+    });
+    const groupedPermission = groupBy(permissions, 'groupName');
+
+    const userData = await User.findOne({
+      include: [
+        {
+          model: Role,
+          attributes: ['name'],
+        },
+        {
+          model: Employee,
+          attributes: [],
+        },
+      ],
+      attributes: [
+        [sequelize.col('employee.employeeName'), 'name'],
+        'employeeCode',
+      ],
+      where: { id: req.user.id },
+    });
+
+    return {
+      userData,
+      permissions: groupedPermission,
+    };
+  } catch (err) {
+    next(err);
+  }
+};
+
 const auth = async (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('local', (err: any, user: any) => {
     try {
@@ -96,67 +153,10 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
           },
         });
       });
-    } catch (err) {
-      next(err);
+    } catch (error) {
+      next(error);
     }
   })(req, res, next);
-};
-
-const getUserPermissions = async (req: Request, next: NextFunction) => {
-  try {
-    const ids = await RolePermission.findAll({
-      where: { roleId: req.user.roleId },
-      attributes: ['permissionId'],
-      raw: true,
-    });
-
-    const permissionIds = ids.map((id) => id.permissionId);
-    const permissions = await Permission.findAll({
-      where: { id: { [Op.in]: permissionIds } },
-    });
-    const groupedPermission = groupBy(permissions, 'groupName');
-
-    const userData = await User.findOne({
-      include: [
-        {
-          model: Role,
-          attributes: ['name'],
-        },
-        {
-          model: Employee,
-          attributes: [],
-        },
-      ],
-      attributes: [
-        [sequelize.col('employee.employeeName'), 'name'],
-        'employeeCode',
-      ],
-      where: { id: req.user.id },
-    });
-
-    return {
-      userData,
-      permissions: groupedPermission,
-    };
-  } catch (err) {
-    next(err);
-  }
-};
-
-const getPlantsByUserId = async (
-  next: NextFunction,
-  userId: string,
-): Promise<UserPlantModel[] | undefined> => {
-  try {
-    const userPlants = await UserPlant.findAll({
-      attributes: ['plantId'],
-      where: { userId },
-      raw: true,
-    });
-    return userPlants;
-  } catch (err) {
-    next(err);
-  }
 };
 
 const logout = async (req: Request, res: Response, next: NextFunction) => {
@@ -185,17 +185,85 @@ const logout = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+const sendEmail = async (
+  passwordValidateTokenId: string,
+  employeeCode: string,
+  passwordState: string,
+) => {
+  try {
+    const transporter = await nodeMailer.createTransport({
+      host: config.mailHost,
+      port: 587,
+      secure: false,
+      auth: {
+        user: config.mailUser,
+        pass: config.mailPass,
+      },
+      tls: { rejectUnauthorized: false },
+    });
+
+    const employeeData = await Employee.findOne({ where: { employeeCode } });
+
+    const mailOptions = {
+      from: `Store SAP App <${config.mailFrom}>`,
+      to: 'umesh@codewalnut.com',
+      cc: [
+        'umesh@codewalnut.com',
+        'lovepreet@codewalnut.com',
+        'dhwani@codewalnut.com',
+      ],
+      subject: `Set your password for ${employeeCode}`,
+      html: `<html>
+      <body><h4>Dear ${employeeData?.employeeName},</h4><br>
+      <p>Click below to ${passwordState} your Store SAP App password</p>
+      <p><a href="${config.appBaseUrl}/reset-password/${passwordValidateTokenId}">${config.appBaseUrl}/reset-password/${passwordValidateTokenId}</a></p><br><br>
+      <p>At your service,<br>Team Buildpro<br>
+      </body></html>`,
+    };
+
+    await transporter.sendMail(mailOptions);
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
+
+const sendPasswordLink = async (
+  userId: string,
+  employeeCode: string,
+  passwordState: string,
+) => {
+  try {
+    const expiresIn = '2d';
+    const token = jwt.sign({ userId }, config.jwtSecret, {
+      expiresIn,
+    });
+
+    const resetData: any = {
+      userId,
+      token,
+    };
+
+    const passwordTokenData = await PasswordValidateToken.create(resetData);
+    return sendEmail(passwordTokenData.id, employeeCode, passwordState);
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
+
+// eslint-disable-next-line complexity
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (
-      !req.body
-      || !req.body.email
-      || !req.body.employeeCode
-      || req.body.password
-      || !req.body.roleId
-      || !req.body.plantIds
-      || !Array.isArray(req.body.plantIds)
-      || !req.body.plantIds.length
+      !req.body ||
+      !req.body.email ||
+      !req.body.employeeCode ||
+      req.body.password ||
+      !req.body.roleId ||
+      !req.body.plantIds ||
+      !Array.isArray(req.body.plantIds) ||
+      !req.body.plantIds.length
     ) {
       const response = responseFormatter(
         CODE[400],
@@ -208,7 +276,9 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
 
     const { employeeCode, plantIds } = req.body;
 
-    const existingEmployeeCode = await User.findOne({ where: { employeeCode } });
+    const existingEmployeeCode = await User.findOne({
+      where: { employeeCode },
+    });
 
     if (existingEmployeeCode) {
       const response = responseFormatter(
@@ -261,73 +331,6 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const sendPasswordLink = async (
-  userId: string,
-  employeeCode: string,
-  passwordState: string,
-) => {
-  try {
-    const expiresIn = '2d';
-    const token = jwt.sign({ userId }, config.jwtSecret, {
-      expiresIn,
-    });
-
-    const resetData: any = {
-      userId,
-      token,
-    };
-
-    const passwordTokenData = await PasswordValidateToken.create(resetData);
-    return sendEmail(passwordTokenData.id, employeeCode, passwordState);
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-};
-
-const sendEmail = async (
-  passwordValidateTokenId: string,
-  employeeCode: string,
-  passwordState: string,
-) => {
-  try {
-    const transporter = await nodeMailer.createTransport({
-      host: config.mailHost,
-      port: 587,
-      secure: false,
-      auth: {
-        user: config.mailUser,
-        pass: config.mailPass,
-      },
-      tls: { rejectUnauthorized: false },
-    });
-
-    const employeeData = await Employee.findOne({ where: { employeeCode } });
-
-    const mailOptions = {
-      from: `Store SAP App <${config.mailFrom}>`,
-      to: 'umesh@codewalnut.com',
-      cc: [
-        'umesh@codewalnut.com',
-        'lovepreet@codewalnut.com',
-        'dhwani@codewalnut.com',
-      ],
-      subject: `Set your password for ${employeeCode}`,
-      html: `<html>
-      <body><h4>Dear ${employeeData?.employeeName},</h4><br>
-      <p>Click below to ${passwordState} your Store SAP App password</p>
-      <p><a href="${config.appBaseUrl}/reset-password/${passwordValidateTokenId}">${config.appBaseUrl}/reset-password/${passwordValidateTokenId}</a></p><br><br>
-      <p>At your service,<br>Team Buildpro<br>
-      </body></html>`,
-    };
-
-    await transporter.sendMail(mailOptions);
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-};
-
 const findWithPaginate = async (
   req: Request,
   res: Response,
@@ -340,6 +343,16 @@ const findWithPaginate = async (
     const offset = page * pageSize - pageSize;
     const limit = pageSize;
     let condition = {};
+
+    if (Number.isNaN(page) || Number.isNaN(pageSize) || search === undefined) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
 
     if (search) {
       condition = {
@@ -423,12 +436,12 @@ const findById = async (req: Request, res: Response, next: NextFunction) => {
 const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (
-      !req.body
-      || req.body.password
-      || !req.body.email
-      || !req.body.roleId
-      || !Array.isArray(req.body.plantIds)
-      || !req.body.plantIds.length
+      !req.body ||
+      req.body.password ||
+      !req.body.email ||
+      !req.body.roleId ||
+      !Array.isArray(req.body.plantIds) ||
+      !req.body.plantIds.length
     ) {
       const response = responseFormatter(
         CODE[400],

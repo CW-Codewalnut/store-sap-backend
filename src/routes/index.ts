@@ -24,6 +24,8 @@ import CashDenominationController from '../controllers/cashDenomination.controll
 import PostingKeyController from '../controllers/postingKey.controller';
 import PosMidListController from '../controllers/posMidList.controller';
 import DocumentTypeController from '../controllers/documentType.controller';
+import SalesReceiptController from '../controllers/salesReceipt.controller';
+import OneTimeCustomerController from '../controllers/oneTimeCustomer.controller';
 
 const routesMiddleware = (app: Application) => {
   // Auth api
@@ -132,6 +134,12 @@ const routesMiddleware = (app: Application) => {
   );
 
   app.get(
+    '/employees/paginate',
+    checkAuthenticated,
+    EmployeeController.findWithPaginate,
+  );
+
+  app.get(
     '/employees/:plantId',
     checkAuthenticated,
     EmployeeController.getEmployeesByPlantId,
@@ -151,12 +159,6 @@ const routesMiddleware = (app: Application) => {
     '/customers/paginate',
     checkAuthenticated,
     CustomerController.findWithPaginate,
-  );
-
-  app.get(
-    '/employees/:plantId/paginate',
-    checkAuthenticated,
-    EmployeeController.findWithPaginate,
   );
 
   app.get('/employees', checkAuthenticated, EmployeeController.findAll);
@@ -239,6 +241,64 @@ const routesMiddleware = (app: Application) => {
     '/document-types/:businessTransactionId',
     checkAuthenticated,
     DocumentTypeController.findAll,
+  );
+  app.post(
+    '/sales-receipt/header',
+    checkAuthenticated,
+    SalesReceiptController.createSalesHeader,
+  );
+  app.post(
+    '/sales-receipt/debit',
+    checkAuthenticated,
+    SalesReceiptController.createSalesDebitTransaction,
+  );
+  app.post(
+    '/sales-receipt/credit',
+    checkAuthenticated,
+    SalesReceiptController.createSalesCreditTransaction,
+  );
+  app.post(
+    '/one-time-customer',
+    checkAuthenticated,
+    OneTimeCustomerController.create,
+  );
+  app.post(
+    '/sales-receipt/transaction-reverse',
+    checkAuthenticated,
+    SalesReceiptController.transactionReverse,
+  );
+  app.post(
+    '/sales-receipt/update/status',
+    checkAuthenticated,
+    SalesReceiptController.updateDocumentStatus,
+  );
+  app.delete(
+    '/sales-receipt/line-item/delete',
+    checkAuthenticated,
+    SalesReceiptController.deleteLineItem,
+  );
+  app.delete(
+    '/sales-receipt/delete',
+    checkAuthenticated,
+    SalesReceiptController.deleteDocument,
+  );
+
+  app.get(
+    '/sales-receipt/last-document',
+    checkAuthenticated,
+    SalesReceiptController.getLastDocument,
+  );
+
+  app.get(
+    '/sales-receipt/:documentNumber',
+    checkAuthenticated,
+    SalesReceiptController.findByDocumentNumber,
+  );
+
+  app.post(
+    '/sales-receipt/export',
+    checkAuthenticated,
+    SalesReceiptController.exportSalesReceipt,
   );
 };
 

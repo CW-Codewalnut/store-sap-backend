@@ -11,6 +11,12 @@ import { getIdArrays } from '../utils/helper';
 import MESSAGE from '../config/message.json';
 import ModuleModel from '../interfaces/masters/module.interface';
 
+function getBusinessTransactions(moduleId: string) {
+  return BusinessTransaction.findAll({
+    where: { moduleId },
+  });
+}
+
 const getBusinessTransactionsByModuleId = async (
   req: Request,
   res: Response,
@@ -32,12 +38,6 @@ const getBusinessTransactionsByModuleId = async (
     next(err);
   }
 };
-
-function getBusinessTransactions(moduleId: string) {
-  return BusinessTransaction.findAll({
-    where: { moduleId },
-  });
-}
 
 function getBankAccounts(houseBankIds: string[]) {
   return BankAccount.findAll({

@@ -87,16 +87,9 @@ const onError = (error: any) => {
 };
 
 /**
- * Event listener for HTTP server "listening" event.
+ * Event listener for HTTP server "error" event.
  */
-
-const onListening = () => {
-  const addr = server.address();
-  const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr?.port}`;
-};
-
 server.on('error', onError);
-server.on('listening', onListening);
 
 export default app;
 export { server };

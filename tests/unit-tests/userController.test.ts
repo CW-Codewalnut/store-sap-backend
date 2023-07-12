@@ -26,7 +26,8 @@ describe('User Routes', () => {
 
   it('should return user list when authenticated', async () => {
     const res = await agent
-      .get('/users/paginate?page=1&pageSize=10&search=')
+      .get('/users/paginate')
+      .query({ page: '1', pageSize: '10', search: 'SBPL - 001' })
       .expect(200);
 
     expect(checkResponsePropertiesExist(res)).toEqual(true);
@@ -41,5 +42,41 @@ describe('User Routes', () => {
     // Test if rows exists and is an array
     expect(res.body.data).toHaveProperty('rows');
     expect(Array.isArray(res.body.data.rows)).toBe(true);
+  });
+
+  it('should return bad request if page query param not supplied', async () => {
+    const res = await agent
+      .get('/users/paginate')
+      .query({ pageSize: '10', search: '' })
+      .expect(CODE[400]);
+
+    expect(res.body.status).toBe(CODE[400]);
+    expect(res.body.success).toBe(SUCCESS.FALSE);
+    expect(res.body.message).toBe(MESSAGE.BAD_REQUEST);
+    expect(res.body.data).toBeNull();
+  });
+
+  it('should return bad request if pageSize query param not supplied', async () => {
+    const res = await agent
+      .get('/users/paginate')
+      .query({ page: '1', search: '' })
+      .expect(CODE[400]);
+
+    expect(res.body.status).toBe(CODE[400]);
+    expect(res.body.success).toBe(SUCCESS.FALSE);
+    expect(res.body.message).toBe(MESSAGE.BAD_REQUEST);
+    expect(res.body.data).toBeNull();
+  });
+
+  it('should return bad request if search query param not supplied', async () => {
+    const res = await agent
+      .get('/users/paginate')
+      .query({ page: '1', pageSize: '10' })
+      .expect(CODE[400]);
+
+    expect(res.body.status).toBe(CODE[400]);
+    expect(res.body.success).toBe(SUCCESS.FALSE);
+    expect(res.body.message).toBe(MESSAGE.BAD_REQUEST);
+    expect(res.body.data).toBeNull();
   });
 });

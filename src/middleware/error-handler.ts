@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { ForeignKeyConstraintError } from 'sequelize';
 import jwt from 'jsonwebtoken';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
@@ -8,6 +8,7 @@ const ErrorHandler = (
   err: any,
   req: Request,
   res: Response,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: NextFunction,
 ) => {
   console.error(err);
@@ -22,9 +23,10 @@ const ErrorHandler = (
     errMsg = err.message || MESSAGE.SOMETHING_WENT_WRONG;
   }
 
-  const stack: any = process.env.NODE_ENV === 'local' || process.env.NODE_ENV === 'dev'
-    ? err.stack
-    : {};
+  const stack: any =
+    process.env.NODE_ENV === 'local' || process.env.NODE_ENV === 'dev'
+      ? err.stack
+      : {};
 
   const response = responseFormatter(errStatus, SUCCESS.TRUE, errMsg, stack);
   res.status(CODE[500]).send(response);

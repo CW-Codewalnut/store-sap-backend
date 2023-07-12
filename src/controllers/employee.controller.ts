@@ -41,6 +41,16 @@ const findWithPaginate = async (
     const limit = pageSize;
     let condition = {};
 
+    if (Number.isNaN(page) || Number.isNaN(pageSize) || search === undefined) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
     if (search) {
       condition = {
         [Op.or]: {
@@ -90,7 +100,10 @@ const findAll = async (req: Request, res: Response, next: NextFunction) => {
       query.push(condition);
     }
 
-    const users = await User.findAll({ attributes: ['employeeCode'], raw: true });
+    const users = await User.findAll({
+      attributes: ['employeeCode'],
+      raw: true,
+    });
 
     if (Array.isArray(users) && users.length) {
       const usersEmployeeCodes = users.map((user) => user.employeeCode);

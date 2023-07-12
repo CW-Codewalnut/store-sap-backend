@@ -9,19 +9,10 @@ const getGlAccounts = async (
   next: NextFunction,
 ) => {
   try {
-    const { businessTransactionId, glOf } = req.body;
-    let query = {};
-
-    if (businessTransactionId) {
-      query = { businessTransactionId };
-    } else if (glOf === 'vendor') {
-      query = { venderGl: true };
-    } else if (glOf === 'customer') {
-      query = { customerGl: true };
-    }
+    const { businessTransactionId } = req.body;
 
     const glAccounts = await GlAccount.findAll({
-      where: query,
+      where: { businessTransactionId },
     });
 
     const response = responseFormatter(

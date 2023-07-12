@@ -11,10 +11,12 @@ import checkResponsePropertiesExist, {
 } from '../utils/checkResponsePropertiesExist';
 import { sharedAgent } from '../utils/sharedAgent';
 import { stopServer } from '../utils/serverHandler';
+import CashDenomination from '../../src/models/cash-denomination';
+import CashDenominationModel from '../../src/interfaces/masters/cashDenomination.interface';
+import PettyCashModel from '../../src/interfaces/masters/pettyCash.interface';
 
-describe('Petty Routes', () => {
+describe('Petty Cash Routes', () => {
   let agent: SuperTest<Test>;
-  let pettyCashId: string;
   let pettyCashCreatedId: string;
 
   beforeAll(async () => {
@@ -28,25 +30,9 @@ describe('Petty Routes', () => {
     await stopServer();
   });
 
-  afterEach(async () => {
-    if (pettyCashId) {
-      await PettyCash.destroy({
-        where: {
-          id: pettyCashId,
-        },
-      });
-    }
-
-    if (pettyCashCreatedId) {
-      await PettyCash.destroy({
-        where: {
-          id: pettyCashCreatedId,
-        },
-      });
-    }
-  });
-
+  // Test cases for create function
   it('should return a 400 error due to a missing required property', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { amount, ...requestBodyWithError } = requestBody;
 
     const res = await agent
@@ -121,7 +107,7 @@ describe('Petty Routes', () => {
       .post('/petty-cash')
       .send(requestBodyWithError)
       .expect(400);
-      
+    
     expect(checkResponsePropertiesExist(res)).toEqual(true);
     expect(
       checkResponseBodyValue(
@@ -155,7 +141,8 @@ describe('Petty Routes', () => {
   });
 
   it('should successfully create a new petty cash entry', async () => {
-    await PettyCash.destroy({where: {documentStatus: 'Saved'}});
+    await PettyCash.destroy({ where: { documentStatus: 'Saved' } });
+
     const res = await agent.post('/petty-cash').send(requestBody).expect(200);
 
     pettyCashCreatedId = res.body.data.id;
@@ -172,7 +159,9 @@ describe('Petty Routes', () => {
     expect(res.body.data).not.toEqual(MESSAGE.NULL);
   });
 
+  // Test cases for findPaymentsWithPaginate function
   it('should return app payment transaction between dates when authenticated', async () => {
+    // eslint-disable-next-line no-shadow
     const requestBody = {
       fromDate: new Date(),
       toDate: new Date(),
@@ -197,7 +186,9 @@ describe('Petty Routes', () => {
     expect(Array.isArray(res.body.data.rows)).toBe(true);
   });
 
+  // Test cases for findReceiptsWithPaginate function
   it('should return app receipt transaction between dates when authenticated', async () => {
+    // eslint-disable-next-line no-shadow
     const requestBody = {
       fromDate: new Date(),
       toDate: new Date(),
@@ -222,7 +213,9 @@ describe('Petty Routes', () => {
     expect(Array.isArray(res.body.data.rows)).toBe(true);
   });
 
-  test('should return a bad request error if required data is missing', async () => {
+  // Test cases for getBalanceCalculation function
+  it('should return a bad request error if required data is missing', async () => {
+    // eslint-disable-next-line no-shadow
     const requestBody = {
       fromDate: '2023-01-01',
       toDate: '',
@@ -246,7 +239,8 @@ describe('Petty Routes', () => {
     expect(res.body.data).toEqual(MESSAGE.NULL);
   });
 
-  test('should return a success for balance calculation', async () => {
+  it('should return a success for balance calculation', async () => {
+    // eslint-disable-next-line no-shadow
     const requestBody = {
       fromDate: new Date(),
       toDate: new Date(),
@@ -261,6 +255,452 @@ describe('Petty Routes', () => {
     expect(checkResponsePropertiesExist(res)).toEqual(true);
     expect(
       checkResponseBodyValue(res, CODE[200], SUCCESS.TRUE, MESSAGE.FETCHED),
+    ).toEqual(true);
+    expect(res.body.data).not.toEqual(MESSAGE.NULL);
+  });
+
+  // Test cases for update function
+  it('should return a 400 error due to invalid amount type', async () => {
+    const requestBodyWithError = { ...requestBody, amount: '5000' };
+
+    const res = await agent
+      .patch('/petty-cash/xnH6TKvkUfoL7yRF')
+      .send(requestBodyWithError)
+      .expect(400);
+
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).toEqual(MESSAGE.NULL);
+  });
+
+  it("should return a 400 error due to missing 'text' field", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { text, ...requestBodyWithMissingField } = requestBody;
+
+    const res = await agent
+      .patch('/petty-cash/xnH6TKvkUfoL7yRF')
+      .send(requestBodyWithMissingField)
+      .expect(400);
+
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).toEqual(MESSAGE.NULL);
+  });
+
+  it('should return a success for petty cash update if document status is Updated', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const transactionData = await PettyCash.findOne({
+      where: { documentStatus: 'Updated' },
+      raw: true,
+    });
+
+    const { id, ...restTransactionData } = transactionData as PettyCashModel;
+
+    const requestBodyData = {
+      ...restTransactionData,
+      refDocNo: requestBody.refDocNo,
+      assignment: requestBody.assignment,
+      text: requestBody.text,
+      fromDate: new Date(),
+      toDate: new Date(),
+    };
+
+    const res = await agent
+      .patch(`/petty-cash/${id}`)
+      .send(requestBodyData)
+      .expect(200);
+
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[200],
+        SUCCESS.TRUE,
+        MESSAGE.DOCUMENT_UPDATED,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).not.toEqual(MESSAGE.NULL);
+  });
+
+  it('should return a 400 error due to invalid transaction Id', async () => {
+    const res = await agent
+      .patch('/petty-cash/12345')
+      .send(requestBody)
+      .expect(400);
+
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.TRANSACTION_ID_NOT_FOUND,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).toEqual(MESSAGE.NULL);
+  });
+
+  it('should return a 400 error when the tax code is invalid', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const transactionData = await PettyCash.findOne({
+      where: { documentStatus: 'Saved' },
+      raw: true,
+    });
+
+    const { id, ...restTransactionData } = transactionData as PettyCashModel;
+
+    const requestBodyWithWrongTaxCodeId = {
+      ...restTransactionData,
+      taxCodeId: '2T9kgBIQXd2nYLVd',
+      fromDate: new Date(),
+      toDate: new Date(),
+    };
+
+    const res = await agent
+      .patch(`/petty-cash/${id}`)
+      .send(requestBodyWithWrongTaxCodeId)
+      .expect(400);
+
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.TAX_CODE_INVALID,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).toEqual(MESSAGE.NULL);
+  });
+
+  it('should return a 400 error when the amount is invalid', async () => {
+    const transactionData = await PettyCash.findOne({
+      where: { documentStatus: 'Saved' },
+      raw: true,
+    });
+
+    const { id, ...restTransactionData } = transactionData as PettyCashModel;
+
+    const requestBodyWithWrongAmount = {
+      ...restTransactionData,
+      amount: 10001,
+      fromDate: new Date(),
+      toDate: new Date(),
+    };
+    const res = await agent
+      .patch(`/petty-cash/${id}`)
+      .send(requestBodyWithWrongAmount)
+      .expect(400);
+
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.PETTY_CASH_LIMIT,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).toEqual(MESSAGE.NULL);
+  });
+
+  it('should return a success for petty cash update if document status is Saved', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const transactionData = await PettyCash.findOne({
+      where: { documentStatus: 'Saved' },
+      raw: true,
+    });
+
+    const { id, ...restTransactionData } = transactionData as PettyCashModel;
+
+    const requestBodyData = {
+      ...restTransactionData,
+      fromDate: new Date(),
+      toDate: new Date(),
+    };
+    const res = await agent
+      .patch(`/petty-cash/${id}`)
+      .send(requestBodyData)
+      .expect(200);
+
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[200],
+        SUCCESS.TRUE,
+        MESSAGE.DOCUMENT_UPDATED,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).not.toEqual(MESSAGE.NULL);
+  });
+
+  // Test cases for updateDocumentStatus function
+  it('should return a 400 for missing cash denomination while update the document status', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const transactionData = await PettyCash.findOne({
+      where: { documentStatus: 'Saved' },
+      raw: true,
+    });
+
+    const { id, ...restTransactionData } = transactionData as PettyCashModel;
+
+    const requestBodyData = {
+      transactionIds: [id],
+      documentStatus: 'Updated',
+      cashJournalId: restTransactionData.cashJournalId,
+      fromDate: new Date(),
+      toDate: new Date(),
+    };
+
+    const res = await agent
+      .post(`/petty-cash/update/status`)
+      .send(requestBodyData)
+      .expect(400);
+
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).toEqual(MESSAGE.NULL);
+  });
+
+  it('should return a 400 if cash denomination does not match the closing balance while updating document status', async () => {
+    const cashDenominationData = await CashDenomination.findOne({
+      where: {
+        plantId: requestBody.plantId,
+        cashJournalId: requestBody.cashJournalId,
+      },
+      raw: true,
+    });
+
+    const { id, ...cashDenomination } =
+      cashDenominationData as CashDenominationModel;
+
+    const requestBodyData = {
+      transactionIds: [pettyCashCreatedId],
+      documentStatus: 'Updated',
+      cashJournalId: requestBody.cashJournalId,
+      fromDate: new Date(),
+      toDate: new Date(),
+      denominationId: id,
+      cashDenomination,
+    };
+
+    const res = await agent
+      .post(`/petty-cash/update/status`)
+      .send(requestBodyData)
+      .expect(400);
+
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.DENOMINATION_NOT_MATCH,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).toEqual(MESSAGE.NULL);
+  });
+
+  // This specific test case is related to transactionReverse function but placed here to pass
+  it('should return a 400 when attempting to reverse a non-updated document', async () => {
+    const requestBodyData = {
+      transactionIds: [pettyCashCreatedId],
+      documentStatus: 'Updated Reversed',
+      cashJournalId: requestBody.cashJournalId,
+      cashDenomination: {},
+      fromDate: new Date(),
+      toDate: new Date(),
+    };
+
+    const res = await agent
+      .post(`/petty-cash/transaction-reverse`)
+      .send(requestBodyData)
+      .expect(400);
+
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.TRANSACTION_REVERSED_CONTAINS,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).toEqual(MESSAGE.NULL);
+  });
+
+  it('should return success on document status update', async () => {
+    const cashDenominationData = await CashDenomination.findOne({
+      where: {
+        plantId: requestBody.plantId,
+        cashJournalId: requestBody.cashJournalId,
+      },
+      raw: true,
+    });
+
+    const { id, ...cashDenomination } =
+      cashDenominationData as CashDenominationModel;
+
+    const { qty500INR } = cashDenomination;
+    cashDenomination.qty500INR = qty500INR + 1;
+
+    const requestBodyData = {
+      transactionIds: [pettyCashCreatedId],
+      documentStatus: 'Updated',
+      cashJournalId: requestBody.cashJournalId,
+      fromDate: new Date(),
+      toDate: new Date(),
+      denominationId: id,
+      cashDenomination,
+    };
+
+    const res = await agent
+      .post(`/petty-cash/update/status`)
+      .send(requestBodyData)
+      .expect(200);
+
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[200],
+        SUCCESS.TRUE,
+        MESSAGE.DOCUMENT_LOCKED,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).not.toEqual(MESSAGE.NULL);
+  });
+
+  // Test cases for transactionReverse function
+  it('should return a 400 for missing cash denomination while reverse the transaction', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const transactionData = await PettyCash.findOne({
+      where: { documentStatus: 'Updated' },
+      raw: true,
+    });
+
+    const { id, ...restTransactionData } = transactionData as PettyCashModel;
+
+    const requestBodyData = {
+      transactionIds: [id],
+      documentStatus: 'Updated',
+      cashJournalId: restTransactionData.cashJournalId,
+      fromDate: new Date(),
+      toDate: new Date(),
+    };
+
+    const res = await agent
+      .post(`/petty-cash/transaction-reverse`)
+      .send(requestBodyData)
+      .expect(400);
+
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).toEqual(MESSAGE.NULL);
+  });
+
+  it('should return a 400 if cash denomination does not match while doing transaction reverse', async () => {
+    const cashDenomination = await CashDenomination.findOne({
+      where: {
+        plantId: requestBody.plantId,
+        cashJournalId: requestBody.cashJournalId,
+      },
+      raw: true,
+    });
+
+    const requestBodyData = {
+      transactionIds: [pettyCashCreatedId],
+      documentStatus: 'Updated',
+      cashJournalId: requestBody.cashJournalId,
+      fromDate: new Date(),
+      toDate: new Date(),
+      cashDenomination,
+    };
+
+    const res = await agent
+      .post(`/petty-cash/transaction-reverse`)
+      .send(requestBodyData)
+      .expect(400);
+
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.DENOMINATION_NOT_MATCH,
+      ),
+    ).toEqual(true);
+    expect(res.body.data).toEqual(MESSAGE.NULL);
+  });
+
+  it('should return success when document reversed', async () => {
+    const cashDenominationData = await CashDenomination.findOne({
+      where: {
+        plantId: requestBody.plantId,
+        cashJournalId: requestBody.cashJournalId,
+      },
+      raw: true,
+    });
+
+    const { id, ...cashDenomination } =
+      cashDenominationData as CashDenominationModel;
+
+    const { qty500INR } = cashDenomination;
+    cashDenomination.qty500INR = qty500INR - 1;
+
+    const requestBodyData = {
+      transactionIds: [pettyCashCreatedId],
+      documentStatus: 'Updated Reversed',
+      cashJournalId: requestBody.cashJournalId,
+      fromDate: new Date(),
+      toDate: new Date(),
+      denominationId: id,
+      cashDenomination,
+    };
+
+    const res = await agent
+      .post(`/petty-cash/transaction-reverse`)
+      .send(requestBodyData)
+      .expect(200);
+
+    expect(checkResponsePropertiesExist(res)).toEqual(true);
+    expect(
+      checkResponseBodyValue(
+        res,
+        CODE[200],
+        SUCCESS.TRUE,
+        MESSAGE.TRANSACTION_REVERSED,
+      ),
     ).toEqual(true);
     expect(res.body.data).not.toEqual(MESSAGE.NULL);
   });

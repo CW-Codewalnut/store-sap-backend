@@ -14,11 +14,11 @@ import Employee from '../models/employee';
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (
-      !req.body
-      || !req.body.name
-      || !req.body.description
-      || !Array.isArray(req.body.permissionIds)
-      || !req.body.permissionIds.length
+      !req.body ||
+      !req.body.name ||
+      !req.body.description ||
+      !Array.isArray(req.body.permissionIds) ||
+      !req.body.permissionIds.length
     ) {
       const response = responseFormatter(
         CODE[400],
@@ -29,7 +29,9 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(CODE[400]).send(response);
     }
 
-    const doesRoleExist = await Role.findOne({ where: { name: req.body.name } });
+    const doesRoleExist = await Role.findOne({
+      where: { name: req.body.name },
+    });
 
     if (doesRoleExist) {
       const response = responseFormatter(
@@ -46,18 +48,15 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     const role = await Role.create(req.body);
     const { id } = role;
 
-    const rolePermissions = [];
-
-    for (const permissionId of req.body.permissionIds) {
-      const rolePermissionData: any = {
+    const rolePermissions = req.body.permissionIds.map(
+      (permissionId: string) => ({
         id: nanoid(16),
         roleId: id,
         permissionId,
         createdBy: req.user.id,
         updatedBy: req.user.id,
-      };
-      rolePermissions.push(rolePermissionData);
-    }
+      }),
+    );
 
     await RolePermission.bulkCreate(rolePermissions);
 
@@ -190,6 +189,7 @@ const findRolePermissions = async (
   }
 };
 
+// eslint-disable-next-line complexity
 const updateRolePermissions = async (
   req: Request,
   res: Response,
@@ -197,10 +197,10 @@ const updateRolePermissions = async (
 ) => {
   try {
     if (
-      !req.body
-      || !req.params
-      || !Array.isArray(req.body.permissionIds)
-      || !req.body.permissionIds.length
+      !req.body ||
+      !req.params ||
+      !Array.isArray(req.body.permissionIds) ||
+      !req.body.permissionIds.length
     ) {
       const response = responseFormatter(
         CODE[400],
@@ -231,18 +231,23 @@ const updateRolePermissions = async (
     });
     let response;
     if (permissionIds && permissionIds.length > 0) {
+      // eslint-disable-next-line no-restricted-syntax
       for (const id of permissionIds) {
+        // eslint-disable-next-line no-await-in-loop
         const data = await RolePermission.findOne({
-          where: { [Op.and]: [{ roleId: req.params.id }, { permissionId: id }] },
+          where: {
+            [Op.and]: [{ roleId: req.params.id }, { permissionId: id }],
+          },
         });
 
         if (data == null || !data) {
-          const rolePermissionData: any = {
+          const rolePermissionData = {
             roleId: req.params.id,
             permissionId: id,
             createdBy: req.user.id,
             updatedBy: req.user.id,
-          };
+          } as RolePermissionModel;
+          // eslint-disable-next-line no-await-in-loop
           await RolePermission.create(rolePermissionData);
         }
       }
@@ -251,9 +256,9 @@ const updateRolePermissions = async (
         attributes: ['permissionId'],
         raw: true,
       });
-      const _permissionIds = ids.map((id) => id.permissionId);
+      const permissionIdArray = ids.map((id) => id.permissionId);
       const permissions = await Permission.findAll({
-        where: { id: { [Op.in]: _permissionIds } },
+        where: { id: { [Op.in]: permissionIdArray } },
       });
       const groupedPermission = groupBy(permissions, 'groupName');
 
