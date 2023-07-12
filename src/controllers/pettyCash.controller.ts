@@ -1570,7 +1570,6 @@ const transactionReverse = async (
     next(err);
   }
 };
-
 export default {
   create,
   findPaymentsWithPaginate,
