@@ -26,6 +26,11 @@ import PosMidListController from '../controllers/posMidList.controller';
 import DocumentTypeController from '../controllers/documentType.controller';
 import SalesReceiptController from '../controllers/salesReceipt.controller';
 import OneTimeCustomerController from '../controllers/oneTimeCustomer.controller';
+import SpecialGlIndicatorController from '../controllers/specialGlIndicator.controller';
+import BusinessPlaceController from '../controllers/businessPlace.controller';
+import SectionCodeController from '../controllers/sectionCode.controller';
+import WithholdingTaxController from '../controllers/withholdingTax.controller';
+import ExpenseController from '../controllers/expense.controller';
 
 const routesMiddleware = (app: Application) => {
   // Auth api
@@ -299,6 +304,51 @@ const routesMiddleware = (app: Application) => {
     '/sales-receipt/export',
     checkAuthenticated,
     SalesReceiptController.exportSalesReceipt,
+  );
+  app.get(
+    '/special-gl-accounts',
+    checkAuthenticated,
+    SpecialGlIndicatorController.findAll,
+  );
+  app.get(
+    '/business-places',
+    checkAuthenticated,
+    BusinessPlaceController.findAll,
+  );
+  app.get(
+    '/section-codes',
+    checkAuthenticated,
+    SectionCodeController.getSectionCodeByBusinessPlaceId,
+  );
+  app.get(
+    '/withholding-taxes',
+    checkAuthenticated,
+    WithholdingTaxController.findAll,
+  );
+  app.post(
+    '/expenses/header',
+    checkAuthenticated,
+    ExpenseController.exportSalesReceipt,
+  );
+  app.post(
+    '/expenses/debit',
+    checkAuthenticated,
+    ExpenseController.exportSalesReceipt,
+  );
+  app.post(
+    '/expenses/credit',
+    checkAuthenticated,
+    ExpenseController.exportSalesReceipt,
+  );
+  app.post(
+    '/expenses/transaction-reverse',
+    checkAuthenticated,
+    ExpenseController.exportSalesReceipt,
+  );
+  app.post(
+    '/expenses/update-document-status',
+    checkAuthenticated,
+    ExpenseController.exportSalesReceipt,
   );
 };
 

@@ -4,7 +4,6 @@ import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import MESSAGE from '../config/message.json';
 import CashDenomination from '../models/cash-denomination';
 import Session from '../models/session';
-import SessionModel from '../interfaces/masters/session.interface';
 
 const getDenomination = async (
   req: Request,
@@ -16,7 +15,9 @@ const getDenomination = async (
 
     let cashDenomination;
 
-    const sessionData = await Session.findOne({ where: { sid: req.session.id } });
+    const sessionData = await Session.findOne({
+      where: { sid: req.session.id },
+    });
 
     if (sessionData) {
       const expressSessionData = JSON.parse(sessionData.data);
