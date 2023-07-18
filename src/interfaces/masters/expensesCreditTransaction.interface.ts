@@ -6,7 +6,7 @@ interface ExpensesCreditTransactionModel
     InferCreationAttributes<ExpensesCreditTransactionModel>
   > {
   id: string;
-  salesHeaderId: string;
+  expensesHeaderId: string;
   vendorId: string;
   description: string;
   postingKeyId: string;

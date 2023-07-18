@@ -6,7 +6,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.STRING(16),
       },
-      salesHeaderId: {
+      expensesHeaderId: {
         allowNull: false,
         type: Sequelize.STRING(16),
         references: {

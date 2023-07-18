@@ -6,7 +6,7 @@ interface ExpensesDebitTransactionModel
     InferCreationAttributes<ExpensesDebitTransactionModel>
   > {
   id: string;
-  salesHeaderId: string;
+  expensesHeaderId: string;
   businessTransactionId: string;
   glAccountId: string;
   description: string;

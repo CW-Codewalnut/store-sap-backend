@@ -2,6 +2,7 @@ import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import ExpensesHeaderModel from '../interfaces/masters/expensesHeader.interface';
+import Plant from './plant';
 
 const ExpensesHeader = sequelize.define<ExpensesHeaderModel>(
   'expenses_header',
@@ -77,5 +78,9 @@ const ExpensesHeader = sequelize.define<ExpensesHeaderModel>(
     },
   },
 );
+
+ExpensesHeader.belongsTo(Plant, {
+  foreignKey: 'plantId',
+});
 
 export default ExpensesHeader;

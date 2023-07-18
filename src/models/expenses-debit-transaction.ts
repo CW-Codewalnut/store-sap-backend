@@ -13,7 +13,7 @@ const ExpensesDebitTransaction =
         allowNull: false,
         defaultValue: () => nanoid(16),
       },
-      salesHeaderId: {
+      expensesHeaderId: {
         allowNull: false,
         type: DataTypes.STRING(16),
       },

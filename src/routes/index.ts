@@ -328,17 +328,17 @@ const routesMiddleware = (app: Application) => {
   app.post(
     '/expenses/header',
     checkAuthenticated,
-    ExpenseController.exportSalesReceipt,
+    ExpenseController.createExpensesHeader,
   );
   app.post(
     '/expenses/debit',
     checkAuthenticated,
-    ExpenseController.exportSalesReceipt,
+    ExpenseController.createExpensesDebitTransaction,
   );
   app.post(
     '/expenses/credit',
     checkAuthenticated,
-    ExpenseController.exportSalesReceipt,
+    ExpenseController.createExpensesCreditTransaction,
   );
   app.post(
     '/expenses/transaction-reverse',
