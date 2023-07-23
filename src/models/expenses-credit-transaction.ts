@@ -2,6 +2,13 @@ import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import ExpensesCreditTransactionModel from '../interfaces/masters/expensesCreditTransaction.interface';
+import PostingKey from './posting-key';
+import SpecialGlIndicator from './special-gl-indicator';
+import BusinessPlace from './business-place';
+import TaxCode from './tax-code';
+import SectionCode from './section-code';
+import WithholdingTax from './withholding-tax';
+import Vendor from './vendor';
 
 const ExpensesCreditTransaction =
   sequelize.define<ExpensesCreditTransactionModel>(
@@ -53,6 +60,10 @@ const ExpensesCreditTransaction =
         allowNull: true,
         type: DataTypes.STRING(16),
       },
+      paymentTerms: {
+        allowNull: false,
+        type: DataTypes.STRING(50),
+      },
       assignment: {
         allowNull: true,
         type: DataTypes.STRING(18),
@@ -79,5 +90,27 @@ const ExpensesCreditTransaction =
       },
     },
   );
+
+ExpensesCreditTransaction.belongsTo(Vendor, {
+  foreignKey: 'vendorId',
+});
+ExpensesCreditTransaction.belongsTo(PostingKey, {
+  foreignKey: 'postingKeyId',
+});
+ExpensesCreditTransaction.belongsTo(SpecialGlIndicator, {
+  foreignKey: 'specialGlIndicatorId',
+});
+ExpensesCreditTransaction.belongsTo(TaxCode, {
+  foreignKey: 'taxCodeId',
+});
+ExpensesCreditTransaction.belongsTo(BusinessPlace, {
+  foreignKey: 'businessPlaceId',
+});
+ExpensesCreditTransaction.belongsTo(SectionCode, {
+  foreignKey: 'sectionCodeId',
+});
+ExpensesCreditTransaction.belongsTo(WithholdingTax, {
+  foreignKey: 'withholdingTaxId',
+});
 
 export default ExpensesCreditTransaction;

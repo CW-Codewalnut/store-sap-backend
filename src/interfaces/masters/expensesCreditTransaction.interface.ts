@@ -1,4 +1,11 @@
 import { InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import VendorModel from './vendor.interface';
+import PostingKeyModel from './postingKey.interface';
+import SpecialGlIndicatorModel from './specialGlIndicator.interface';
+import TaxCodeModel from './taxCode.interface';
+import BusinessPlaceModel from './businessPlace.interface';
+import SectionCodeModel from './sectionCode.interface';
+import WithholdingTaxModel from './withholdingTax.interface';
 
 interface ExpensesCreditTransactionModel
   extends Model<
@@ -16,6 +23,7 @@ interface ExpensesCreditTransactionModel
   businessPlaceId: string;
   sectionCodeId: string;
   withholdingTaxId: string;
+  paymentTerms: string;
   assignment: string;
   text: string;
   createdBy: string;
@@ -24,4 +32,16 @@ interface ExpensesCreditTransactionModel
   updatedAt: Date;
 }
 
+interface ExpensesCreditTransactionModelWithIncludes
+  extends ExpensesCreditTransactionModel {
+  vendor?: VendorModel;
+  posting_key?: PostingKeyModel;
+  special_gl_indicator?: SpecialGlIndicatorModel;
+  tax_code?: TaxCodeModel;
+  business_place?: BusinessPlaceModel;
+  section_code?: SectionCodeModel;
+  withholding_tax?: WithholdingTaxModel;
+}
+
 export default ExpensesCreditTransactionModel;
+export { ExpensesCreditTransactionModelWithIncludes };

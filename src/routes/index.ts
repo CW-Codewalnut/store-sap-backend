@@ -287,7 +287,6 @@ const routesMiddleware = (app: Application) => {
     checkAuthenticated,
     SalesReceiptController.deleteDocument,
   );
-
   app.get(
     '/sales-receipt/last-document',
     checkAuthenticated,
@@ -316,7 +315,7 @@ const routesMiddleware = (app: Application) => {
     BusinessPlaceController.findAll,
   );
   app.get(
-    '/section-codes',
+    '/section-codes/:businessPlaceId',
     checkAuthenticated,
     SectionCodeController.getSectionCodeByBusinessPlaceId,
   );
@@ -343,12 +342,37 @@ const routesMiddleware = (app: Application) => {
   app.post(
     '/expenses/transaction-reverse',
     checkAuthenticated,
-    ExpenseController.exportSalesReceipt,
+    ExpenseController.transactionReverse,
   );
   app.post(
-    '/expenses/update-document-status',
+    '/expenses/update/status',
     checkAuthenticated,
-    ExpenseController.exportSalesReceipt,
+    ExpenseController.updateDocumentStatus,
+  );
+  app.get(
+    '/expenses/last-document',
+    checkAuthenticated,
+    ExpenseController.getLastDocument,
+  );
+  app.get(
+    '/expenses/:documentNumber',
+    checkAuthenticated,
+    ExpenseController.findByDocumentNumber,
+  );
+  app.delete(
+    '/expenses/delete',
+    checkAuthenticated,
+    ExpenseController.deleteDocument,
+  );
+  app.post(
+    '/expenses/export',
+    checkAuthenticated,
+    ExpenseController.exportExpenses,
+  );
+  app.delete(
+    '/expenses/line-item/delete',
+    checkAuthenticated,
+    ExpenseController.deleteLineItem,
   );
 };
 

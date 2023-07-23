@@ -42,6 +42,14 @@ module.exports = {
           key: 'id',
         },
       },
+      specialGlIndicatorId: {
+        type: Sequelize.STRING(16),
+        allowNull: false,
+        references: {
+          model: 'special_gl_indicators',
+          key: 'id',
+        },
+      },
       amount: {
         allowNull: false,
         type: Sequelize.DECIMAL(13, 2),

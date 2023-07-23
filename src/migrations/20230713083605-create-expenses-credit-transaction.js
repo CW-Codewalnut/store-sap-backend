@@ -78,6 +78,10 @@ module.exports = {
           key: 'id',
         },
       },
+      paymentTerms: {
+        allowNull: false,
+        type: Sequelize.STRING(50),
+      },
       assignment: {
         allowNull: true,
         type: Sequelize.STRING(18),

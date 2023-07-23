@@ -2,6 +2,14 @@ import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import ExpensesDebitTransactionModel from '../interfaces/masters/expensesDebitTransaction.interface';
+import BusinessTransaction from './business-transaction';
+import GlAccount from './gl-account';
+import PostingKey from './posting-key';
+import ProfitCentre from './profit-centre';
+import TaxCode from './tax-code';
+import BusinessPlace from './business-place';
+import CostCentre from './cost-centre';
+import SpecialGlIndicator from './special-gl-indicator';
 
 const ExpensesDebitTransaction =
   sequelize.define<ExpensesDebitTransactionModel>(
@@ -30,6 +38,10 @@ const ExpensesDebitTransaction =
         allowNull: false,
       },
       postingKeyId: {
+        type: DataTypes.STRING(16),
+        allowNull: false,
+      },
+      specialGlIndicatorId: {
         type: DataTypes.STRING(16),
         allowNull: false,
       },
@@ -79,5 +91,30 @@ const ExpensesDebitTransaction =
       },
     },
   );
+
+ExpensesDebitTransaction.belongsTo(BusinessTransaction, {
+  foreignKey: 'businessTransactionId',
+});
+ExpensesDebitTransaction.belongsTo(GlAccount, {
+  foreignKey: 'glAccountId',
+});
+ExpensesDebitTransaction.belongsTo(PostingKey, {
+  foreignKey: 'postingKeyId',
+});
+ExpensesDebitTransaction.belongsTo(SpecialGlIndicator, {
+  foreignKey: 'specialGlIndicatorId',
+});
+ExpensesDebitTransaction.belongsTo(CostCentre, {
+  foreignKey: 'costCentreId',
+});
+ExpensesDebitTransaction.belongsTo(ProfitCentre, {
+  foreignKey: 'profitCentreId',
+});
+ExpensesDebitTransaction.belongsTo(TaxCode, {
+  foreignKey: 'taxCodeId',
+});
+ExpensesDebitTransaction.belongsTo(BusinessPlace, {
+  foreignKey: 'businessPlaceId',
+});
 
 export default ExpensesDebitTransaction;

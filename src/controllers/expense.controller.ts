@@ -7,7 +7,6 @@ import MESSAGE from '../config/message.json';
 import SalesHeader from '../models/sales-header';
 import SalesDebitTransaction from '../models/sales-debit-transaction';
 import SalesCreditTransaction from '../models/sales-credit-transaction';
-import CashLedger from '../models/cash-ledger';
 import BusinessTransaction from '../models/business-transaction';
 import GlAccount from '../models/gl-account';
 import Customer from '../models/customer';
@@ -27,6 +26,19 @@ import { SalesDebitTransactionModelWithIncludes } from '../interfaces/masters/sa
 import OneTimeCustomerModel from '../interfaces/masters/oneTimeCustomer.interface';
 import ExpensesHeader from '../models/expenses-header';
 import ExpensesDebitTransaction from '../models/expenses-debit-transaction';
+import CostCentre from '../models/cost-centre';
+import TaxCode from '../models/tax-code';
+import BusinessPlace from '../models/business-place';
+import SpecialGlIndicator from '../models/special-gl-indicator';
+import ExpensesHeaderModel, {
+  ExpensesHeaderWithDocumentLabel,
+} from '../interfaces/masters/expensesHeader.interface';
+import ExpensesCreditTransaction from '../models/expenses-credit-transaction';
+import { ExpensesDebitTransactionModelWithIncludes } from '../interfaces/masters/expensesDebitTransaction.interface';
+import Vendor from '../models/vendor';
+import SectionCode from '../models/section-code';
+import WithholdingTax from '../models/withholding-tax';
+import { ExpensesCreditTransactionModelWithIncludes } from '../interfaces/masters/expensesCreditTransaction.interface';
 
 const createExpensesHeader = async (
   req: Request,
@@ -99,7 +111,7 @@ const createExpensesDebitTransaction = async (
     }
 
     await ExpensesDebitTransaction.upsert(debitTransaction);
-    const salesDebitTransactions = await ExpensesDebitTransaction.findAll({
+    const expensesDebitTransactions = await ExpensesDebitTransaction.findAll({
       where: {
         expensesHeaderId: req.body.expensesHeaderId,
       },
@@ -111,10 +123,19 @@ const createExpensesDebitTransaction = async (
           model: GlAccount,
         },
         {
-          model: DocumentType,
+          model: PostingKey,
         },
         {
-          model: PostingKey,
+          model: SpecialGlIndicator,
+        },
+        {
+          model: TaxCode,
+        },
+        {
+          model: BusinessPlace,
+        },
+        {
+          model: CostCentre,
         },
         {
           model: ProfitCentre,
@@ -128,7 +149,7 @@ const createExpensesDebitTransaction = async (
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.FETCHED,
-      salesDebitTransactions,
+      expensesDebitTransactions,
     );
     res.status(CODE[200]).send(response);
   } catch (err) {
@@ -184,16 +205,16 @@ const getSumOfAmountForCash = async (
 
 /**
  * Check line item one consist at least one transaction;
- * @param salesHeaderId
+ * @param expensesHeaderId
  * @returns
  */
 const checkLineItemOneExist = async (
-  salesHeaderId: string,
+  expensesHeaderId: string,
 ): Promise<number> => {
   try {
-    const debitTransactionCount = await SalesDebitTransaction.count({
+    const debitTransactionCount = await ExpensesDebitTransaction.count({
       where: {
-        salesHeaderId,
+        expensesHeaderId,
       },
     });
 
@@ -211,20 +232,20 @@ const checkLineItemOneExist = async (
  * @returns
  */
 const calculateTotalAmount = async (
-  salesHeaderId: string,
+  expensesHeaderId: string,
   transactionType: 'credit' | 'debit',
 ): Promise<number> => {
   try {
     let transactionModel: any;
 
     if (transactionType === 'credit') {
-      transactionModel = SalesCreditTransaction;
+      transactionModel = ExpensesCreditTransaction;
     } else {
-      transactionModel = SalesDebitTransaction;
+      transactionModel = ExpensesDebitTransaction;
     }
 
     const totalAmount = await transactionModel.sum('amount', {
-      where: { salesHeaderId },
+      where: { expensesHeaderId },
     });
 
     return totalAmount ?? 0;
@@ -247,7 +268,7 @@ const createExpensesCreditTransaction = async (
     };
 
     // Check line item 1 debit transaction is exist
-    if (!(await checkLineItemOneExist(req.body.salesHeaderId))) {
+    if (!(await checkLineItemOneExist(req.body.expensesHeaderId))) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -257,42 +278,37 @@ const createExpensesCreditTransaction = async (
       return res.status(400).send(response);
     }
 
-    if (req.body.paymentMethod.toLowerCase() === 'cash') {
-      const sumOfAmount = await getSumOfAmountForCash(req.body.salesHeaderId);
-
-      const amount = new BigNumber(req.body.amount).toNumber();
-      const totalAmount = sumOfAmount + amount;
-      if (!(await checkValidAmount(totalAmount))) {
-        const response = responseFormatter(
-          CODE[400],
-          SUCCESS.FALSE,
-          MESSAGE.SALES_RECEIPT_CASH_LIMIT,
-          null,
-        );
-        return res.status(400).send(response);
-      }
-    }
-
-    if (req.body.salesCreditTransactionId) {
+    if (req.body.expensesCreditTransactionId) {
       Object.assign(creditTransaction, {
-        id: req.body.salesCreditTransactionId,
+        id: req.body.expensesCreditTransactionId,
       });
     }
-
-    await SalesCreditTransaction.upsert(creditTransaction);
-    const salesCreditTransactions = await SalesCreditTransaction.findAll({
+    await ExpensesCreditTransaction.upsert(creditTransaction);
+    const expensesCreditTransactions = await ExpensesCreditTransaction.findAll({
       where: {
-        salesHeaderId: req.body.salesHeaderId,
+        expensesHeaderId: req.body.expensesHeaderId,
       },
       include: [
         {
-          model: Customer,
+          model: Vendor,
         },
         {
           model: PostingKey,
         },
         {
-          model: PosMidList,
+          model: SpecialGlIndicator,
+        },
+        {
+          model: TaxCode,
+        },
+        {
+          model: BusinessPlace,
+        },
+        {
+          model: SectionCode,
+        },
+        {
+          model: WithholdingTax,
         },
       ],
       raw: true,
@@ -303,35 +319,36 @@ const createExpensesCreditTransaction = async (
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.FETCHED,
-      salesCreditTransactions,
+      expensesCreditTransactions,
     );
     res.status(CODE[200]).send(response);
   } catch (err) {
+    console.log('err=> ', err);
     next(err);
   }
 };
 
-interface UpdateSalesHeaderArgs {
+interface UpdateExpensesHeaderArgs {
   newDocumentStatus: 'Updated' | 'Updated Reversed';
   oldDocumentStatus: 'Saved' | 'Updated';
-  salesHeaderId: string;
+  expensesHeaderId: string;
   reversalId?: string;
 }
 
-const updateSalesHeader = ({
+const updateExpensesHeader = ({
   newDocumentStatus,
   oldDocumentStatus,
-  salesHeaderId,
+  expensesHeaderId,
   reversalId,
-}: UpdateSalesHeaderArgs) =>
-  SalesHeader.update(
+}: UpdateExpensesHeaderArgs) =>
+  ExpensesHeader.update(
     { documentStatus: newDocumentStatus, reversalId },
-    { where: { id: salesHeaderId, documentStatus: oldDocumentStatus } },
+    { where: { id: expensesHeaderId, documentStatus: oldDocumentStatus } },
   );
 
-const getSaleHeaderData = (salesHeaderId: string) =>
-  SalesHeader.findOne({
-    where: { id: salesHeaderId },
+const getExpensesHeaderData = (expensesHeaderId: string) =>
+  ExpensesHeader.findOne({
+    where: { id: expensesHeaderId },
     raw: true,
   });
 
@@ -341,9 +358,9 @@ const updateDocumentStatus = async (
   next: NextFunction,
 ) => {
   try {
-    const { salesHeaderId } = req.body;
+    const { expensesHeaderId } = req.body;
 
-    if (!salesHeaderId) {
+    if (!expensesHeaderId) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -354,9 +371,12 @@ const updateDocumentStatus = async (
     }
 
     // Check debit equal to credit transaction
-    const totalDebitAmount = await calculateTotalAmount(salesHeaderId, 'debit');
+    const totalDebitAmount = await calculateTotalAmount(
+      expensesHeaderId,
+      'debit',
+    );
     const totalCreditAmount = await calculateTotalAmount(
-      salesHeaderId,
+      expensesHeaderId,
       'credit',
     );
     if (totalDebitAmount !== totalCreditAmount) {
@@ -369,10 +389,10 @@ const updateDocumentStatus = async (
       return res.status(400).send(response);
     }
 
-    const [updateStatus] = await updateSalesHeader({
+    const [updateStatus] = await updateExpensesHeader({
       newDocumentStatus: 'Updated',
       oldDocumentStatus: 'Saved',
-      salesHeaderId,
+      expensesHeaderId,
     });
 
     if (!updateStatus) {
@@ -385,13 +405,13 @@ const updateDocumentStatus = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const salesHeaderData = await getSaleHeaderData(salesHeaderId);
+    const expensesHeaderData = await getExpensesHeaderData(expensesHeaderId);
 
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.DOCUMENT_LOCKED,
-      salesHeaderData,
+      expensesHeaderData,
     );
     res.status(CODE[200]).send(response);
   } catch (err) {
@@ -441,14 +461,14 @@ const transactionReverse = async (
   next: NextFunction,
 ) => {
   try {
-    const { debitTransactionIds, creditTransactionIds, salesHeaderId } =
+    const { debitTransactionIds, creditTransactionIds, expensesHeaderId } =
       req.body;
 
     if (
       !validateRequestBody(
         debitTransactionIds,
         creditTransactionIds,
-        salesHeaderId,
+        expensesHeaderId,
       )
     ) {
       const response = responseFormatter(
@@ -460,12 +480,12 @@ const transactionReverse = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const saleHeader = await SalesHeader.findOne({
-      where: { id: salesHeaderId, documentStatus: 'Updated' },
+    const expensesHeader = await ExpensesHeader.findOne({
+      where: { id: expensesHeaderId, documentStatus: 'Updated' },
       raw: true,
     });
 
-    if (!saleHeader) {
+    if (!expensesHeader) {
       const response = responseFormatter(
         CODE[401],
         SUCCESS.FALSE,
@@ -475,38 +495,46 @@ const transactionReverse = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const reverseSalesHeader = {
-      ...saleHeader,
+    const reverseExpensesHeader = {
+      ...expensesHeader,
       id: undefined,
       createdAt: undefined,
       updatedAt: undefined,
       createdBy: req.user.id,
       updatedBy: req.user.id,
       documentStatus: 'Updated Reversed',
-    } as unknown as SalesHeaderModel;
+    } as unknown as ExpensesHeaderModel;
 
-    const reversedSalesHeader = await SalesHeader.create(reverseSalesHeader);
+    const reversedExpensesHeader = await ExpensesHeader.create(
+      reverseExpensesHeader,
+    );
 
     // Debit Transaction Reversal
     const debitTransactions = await Promise.all(
       debitTransactionIds.map(async (debitTransactionId: string) => {
-        const salesDebitTransaction = await SalesDebitTransaction.findOne({
-          where: { id: debitTransactionId },
-        });
+        const expensesDebitTransaction = await ExpensesDebitTransaction.findOne(
+          {
+            where: { id: debitTransactionId },
+          },
+        );
         const postingKeyData = await PostingKey.findOne({
-          where: { id: salesDebitTransaction?.postingKeyId },
+          where: { id: expensesDebitTransaction?.postingKeyId },
         });
         return {
-          salesHeaderId: reversedSalesHeader?.id,
-          businessTransactionId: salesDebitTransaction?.businessTransactionId,
-          glAccountId: salesDebitTransaction?.glAccountId,
-          documentTypeId: salesDebitTransaction?.documentTypeId,
-          description: salesDebitTransaction?.description,
+          expensesHeaderId: reversedExpensesHeader?.id,
+          businessTransactionId:
+            expensesDebitTransaction?.businessTransactionId,
+          glAccountId: expensesDebitTransaction?.glAccountId,
+          specialGlIndicatorId: expensesDebitTransaction?.specialGlIndicatorId,
+          description: expensesDebitTransaction?.description,
           postingKeyId: postingKeyData?.postingKeyReversalId,
-          amount: salesDebitTransaction?.amount,
-          profitCentreId: salesDebitTransaction?.profitCentreId,
-          assignment: salesDebitTransaction?.assignment,
-          text: salesDebitTransaction?.text,
+          amount: expensesDebitTransaction?.amount,
+          taxCodeId: expensesDebitTransaction?.taxCodeId,
+          businessPlaceId: expensesDebitTransaction?.businessPlaceId,
+          costCentreId: expensesDebitTransaction?.costCentreId,
+          profitCentreId: expensesDebitTransaction?.profitCentreId,
+          assignment: expensesDebitTransaction?.assignment,
+          text: expensesDebitTransaction?.text,
           createdBy: req.user.id,
           updatedBy: req.user.id,
           createdAt: new Date(),
@@ -514,36 +542,32 @@ const transactionReverse = async (
         };
       }),
     );
-    await SalesDebitTransaction.bulkCreate(debitTransactions);
+    await ExpensesDebitTransaction.bulkCreate(debitTransactions);
 
     // Credit Transaction Reversal
     const creditTransactions = await Promise.all(
       creditTransactionIds.map(async (creditTransactionId: string) => {
-        const salesCreditTransaction = await SalesCreditTransaction.findOne({
-          where: { id: creditTransactionId },
-        });
+        const expensesCreditTransaction =
+          await ExpensesCreditTransaction.findOne({
+            where: { id: creditTransactionId },
+          });
         const postingKeyData = await PostingKey.findOne({
-          where: { id: salesCreditTransaction?.postingKeyId },
+          where: { id: expensesCreditTransaction?.postingKeyId },
         });
         return {
-          salesHeaderId: reversedSalesHeader?.id,
-          customerId: salesCreditTransaction?.customerId,
-          description: salesCreditTransaction?.description,
+          expensesHeaderId: reversedExpensesHeader?.id,
+          vendorId: expensesCreditTransaction?.vendorId,
+          description: expensesCreditTransaction?.description,
           postingKeyId: postingKeyData?.postingKeyReversalId,
-          amount: salesCreditTransaction?.amount,
-          baselineDate: salesCreditTransaction?.baselineDate,
-          paymentMethod: salesCreditTransaction?.paymentMethod,
-          cardType: salesCreditTransaction?.cardType,
-          cardSubType: salesCreditTransaction?.cardSubType,
-          posMidId: salesCreditTransaction?.posMidId,
-          remitterName: salesCreditTransaction?.remitterName,
-          RemitterContactNumber: salesCreditTransaction?.RemitterContactNumber,
-          UpiDetails: salesCreditTransaction?.UpiDetails,
-          qrCode: salesCreditTransaction?.qrCode,
-          rtgsOrNeftDetails: salesCreditTransaction?.rtgsOrNeftDetails,
-          customerBankName: salesCreditTransaction?.customerBankName,
-          assignment: salesCreditTransaction?.assignment,
-          text: salesCreditTransaction?.text,
+          amount: expensesCreditTransaction?.amount,
+          specialGlIndicatorId: expensesCreditTransaction?.specialGlIndicatorId,
+          taxCodeId: expensesCreditTransaction?.taxCodeId,
+          businessPlaceId: expensesCreditTransaction?.businessPlaceId,
+          sectionCodeId: expensesCreditTransaction?.sectionCodeId,
+          withholdingTaxId: expensesCreditTransaction?.withholdingTaxId,
+          paymentTerms: expensesCreditTransaction?.paymentTerms,
+          assignment: expensesCreditTransaction?.assignment,
+          text: expensesCreditTransaction?.text,
           createdBy: req.user.id,
           updatedBy: req.user.id,
           createdAt: new Date(),
@@ -551,56 +575,50 @@ const transactionReverse = async (
         };
       }),
     );
-    await SalesCreditTransaction.bulkCreate(creditTransactions);
+    await ExpensesCreditTransaction.bulkCreate(creditTransactions);
 
-    await createOneTimeCustomer(
-      req.user.id,
-      reversedSalesHeader?.id,
-      salesHeaderId,
-    );
-
-    await updateSalesHeader({
+    await updateExpensesHeader({
       newDocumentStatus: 'Updated Reversed',
       oldDocumentStatus: 'Updated',
-      salesHeaderId,
-      reversalId: reversedSalesHeader?.id,
+      expensesHeaderId,
+      reversalId: reversedExpensesHeader?.id,
     });
 
-    const salesHeaderData = await getSaleHeaderData(salesHeaderId);
+    const expensesHeaderData = await getExpensesHeaderData(expensesHeaderId);
 
-    let newSalesHeaderData = salesHeaderData;
+    let newExpensesHeaderData = expensesHeaderData;
 
     if (
-      salesHeaderData &&
-      salesHeaderData.documentStatus === 'Updated Reversed' &&
-      salesHeaderData.reversalId === null
+      expensesHeaderData &&
+      expensesHeaderData.documentStatus === 'Updated Reversed' &&
+      expensesHeaderData.reversalId === null
     ) {
-      const reversalDocument = (await SalesHeader.findOne({
+      const reversalDocument = (await ExpensesHeader.findOne({
         attributes: ['id'],
-        where: { reversalId: salesHeaderData.id },
+        where: { reversalId: expensesHeaderData.id },
         raw: true,
-      })) as SalesHeaderModel;
-      newSalesHeaderData = {
-        ...salesHeaderData,
+      })) as ExpensesHeaderModel;
+      newExpensesHeaderData = {
+        ...expensesHeaderData,
         documentLabel: MESSAGE.REVERSAL_DOCUMENT,
         reversalId: reversalDocument.id,
-      } as SalesHeaderWithDocumentLabel;
+      } as ExpensesHeaderWithDocumentLabel;
     } else if (
-      salesHeaderData &&
-      salesHeaderData.documentStatus === 'Updated Reversed' &&
-      salesHeaderData.reversalId !== null
+      expensesHeaderData &&
+      expensesHeaderData.documentStatus === 'Updated Reversed' &&
+      expensesHeaderData.reversalId !== null
     ) {
-      newSalesHeaderData = {
-        ...salesHeaderData,
+      newExpensesHeaderData = {
+        ...expensesHeaderData,
         documentLabel: MESSAGE.ORIGINAL_DOCUMENT,
-      } as SalesHeaderWithDocumentLabel;
+      } as ExpensesHeaderWithDocumentLabel;
     }
 
     const response = responseFormatter(
       CODE[200],
       SUCCESS.TRUE,
       MESSAGE.TRANSACTION_REVERSED,
-      newSalesHeaderData,
+      newExpensesHeaderData,
     );
     res.status(CODE[200]).send(response);
   } catch (err) {
@@ -629,11 +647,11 @@ const deleteLineItem = async (
     let transactionModel: any;
 
     if (transactionType === 'credit') {
-      transactionModel = SalesCreditTransaction;
+      transactionModel = ExpensesCreditTransaction;
     } else {
-      transactionModel = SalesDebitTransaction;
+      transactionModel = ExpensesDebitTransaction;
     }
-
+    console.log('tt+> ', transactionId);
     const transactionData = await transactionModel.findOne({
       where: { id: transactionId },
       raw: true,
@@ -648,10 +666,10 @@ const deleteLineItem = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const saleHeaderData = await SalesHeader.findOne({
-      where: { id: transactionData?.salesHeaderId, documentStatus: 'Saved' },
+    const expensesHeaderData = await ExpensesHeader.findOne({
+      where: { id: transactionData?.expensesHeaderId, documentStatus: 'Saved' },
     });
-    if (!saleHeaderData) {
+    if (!expensesHeaderData) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -683,12 +701,12 @@ const findByDocumentNumber = async (
   try {
     const { documentNumber } = req.params;
 
-    const salesHeaderFromDocumentNumber = await SalesHeader.findOne({
+    const expensesHeaderFromDocumentNumber = await ExpensesHeader.findOne({
       where: { id: documentNumber },
       raw: true,
     });
 
-    if (!salesHeaderFromDocumentNumber) {
+    if (!expensesHeaderFromDocumentNumber) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -698,36 +716,36 @@ const findByDocumentNumber = async (
       return res.status(400).send(response);
     }
 
-    let newSalesHeaderFromDocumentNumber = salesHeaderFromDocumentNumber;
+    let newExpensesHeaderFromDocumentNumber = expensesHeaderFromDocumentNumber;
 
     if (
-      salesHeaderFromDocumentNumber &&
-      salesHeaderFromDocumentNumber.documentStatus === 'Updated Reversed' &&
-      salesHeaderFromDocumentNumber.reversalId === null
+      expensesHeaderFromDocumentNumber &&
+      expensesHeaderFromDocumentNumber.documentStatus === 'Updated Reversed' &&
+      expensesHeaderFromDocumentNumber.reversalId === null
     ) {
-      const reversalDocument = (await SalesHeader.findOne({
+      const reversalDocument = (await ExpensesHeader.findOne({
         attributes: ['id'],
-        where: { reversalId: salesHeaderFromDocumentNumber.id },
+        where: { reversalId: expensesHeaderFromDocumentNumber.id },
         raw: true,
-      })) as SalesHeaderModel;
-      newSalesHeaderFromDocumentNumber = {
-        ...salesHeaderFromDocumentNumber,
+      })) as ExpensesHeaderModel;
+      newExpensesHeaderFromDocumentNumber = {
+        ...expensesHeaderFromDocumentNumber,
         documentLabel: MESSAGE.REVERSAL_DOCUMENT,
         reversalId: reversalDocument.id,
-      } as SalesHeaderWithDocumentLabel;
+      } as ExpensesHeaderWithDocumentLabel;
     } else if (
-      salesHeaderFromDocumentNumber &&
-      salesHeaderFromDocumentNumber.documentStatus === 'Updated Reversed' &&
-      salesHeaderFromDocumentNumber.reversalId !== null
+      expensesHeaderFromDocumentNumber &&
+      expensesHeaderFromDocumentNumber.documentStatus === 'Updated Reversed' &&
+      expensesHeaderFromDocumentNumber.reversalId !== null
     ) {
-      newSalesHeaderFromDocumentNumber = {
-        ...salesHeaderFromDocumentNumber,
+      newExpensesHeaderFromDocumentNumber = {
+        ...expensesHeaderFromDocumentNumber,
         documentLabel: MESSAGE.ORIGINAL_DOCUMENT,
-      } as SalesHeaderWithDocumentLabel;
+      } as ExpensesHeaderWithDocumentLabel;
     }
 
-    const debitTransactionData = await SalesDebitTransaction.findAll({
-      where: { salesHeaderId: salesHeaderFromDocumentNumber.id },
+    const debitTransactionData = await ExpensesDebitTransaction.findAll({
+      where: { expensesHeaderId: expensesHeaderFromDocumentNumber.id },
       include: [
         {
           model: BusinessTransaction,
@@ -736,10 +754,19 @@ const findByDocumentNumber = async (
           model: GlAccount,
         },
         {
-          model: DocumentType,
+          model: PostingKey,
         },
         {
-          model: PostingKey,
+          model: SpecialGlIndicator,
+        },
+        {
+          model: BusinessPlace,
+        },
+        {
+          model: TaxCode,
+        },
+        {
+          model: CostCentre,
         },
         {
           model: ProfitCentre,
@@ -749,33 +776,39 @@ const findByDocumentNumber = async (
       nest: true,
     });
 
-    const creditTransactionData = await SalesCreditTransaction.findAll({
-      where: { salesHeaderId: salesHeaderFromDocumentNumber.id },
+    const creditTransactionData = await ExpensesCreditTransaction.findAll({
+      where: { expensesHeaderId: expensesHeaderFromDocumentNumber.id },
       include: [
         {
-          model: Customer,
+          model: Vendor,
         },
         {
           model: PostingKey,
         },
         {
-          model: PosMidList,
+          model: SpecialGlIndicator,
+        },
+        {
+          model: TaxCode,
+        },
+        {
+          model: BusinessPlace,
+        },
+        {
+          model: SectionCode,
+        },
+        {
+          model: WithholdingTax,
         },
       ],
       raw: true,
       nest: true,
     });
 
-    const oneTimeCustomerData = await OneTimeCustomer.findOne({
-      where: { salesHeaderId: salesHeaderFromDocumentNumber.id },
-      raw: true,
-    });
-
     const data = {
-      saleHeaderData: newSalesHeaderFromDocumentNumber,
+      expensesHeaderData: newExpensesHeaderFromDocumentNumber,
       debitTransactionData,
       creditTransactionData,
-      oneTimeCustomerData,
     };
     const response = responseFormatter(
       CODE[200],
@@ -795,12 +828,12 @@ const getLastDocument = async (
   next: NextFunction,
 ) => {
   try {
-    const salesHeaderFromPlantId = await SalesHeader.findOne({
+    const expensesHeaderFromPlantId = await ExpensesHeader.findOne({
       where: { plantId: req.session.activePlantId },
       order: [['createdAt', 'desc']],
       raw: true,
     });
-    if (!salesHeaderFromPlantId) {
+    if (!expensesHeaderFromPlantId) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -810,36 +843,36 @@ const getLastDocument = async (
       return res.status(400).send(response);
     }
 
-    let newSalesHeaderFromPlantId = salesHeaderFromPlantId;
+    let newExpensesHeaderFromPlantId = expensesHeaderFromPlantId;
 
     if (
-      salesHeaderFromPlantId &&
-      salesHeaderFromPlantId.documentStatus === 'Updated Reversed' &&
-      salesHeaderFromPlantId.reversalId === null
+      expensesHeaderFromPlantId &&
+      expensesHeaderFromPlantId.documentStatus === 'Updated Reversed' &&
+      expensesHeaderFromPlantId.reversalId === null
     ) {
-      const reversalDocument = (await SalesHeader.findOne({
+      const reversalDocument = (await ExpensesHeader.findOne({
         attributes: ['id'],
-        where: { reversalId: salesHeaderFromPlantId.id },
+        where: { reversalId: expensesHeaderFromPlantId.id },
         raw: true,
-      })) as SalesHeaderModel;
-      newSalesHeaderFromPlantId = {
-        ...salesHeaderFromPlantId,
+      })) as ExpensesHeaderModel;
+      newExpensesHeaderFromPlantId = {
+        ...expensesHeaderFromPlantId,
         documentLabel: MESSAGE.REVERSAL_DOCUMENT,
         reversalId: reversalDocument.id,
-      } as SalesHeaderWithDocumentLabel;
+      } as ExpensesHeaderWithDocumentLabel;
     } else if (
-      salesHeaderFromPlantId &&
-      salesHeaderFromPlantId.documentStatus === 'Updated Reversed' &&
-      salesHeaderFromPlantId.reversalId !== null
+      expensesHeaderFromPlantId &&
+      expensesHeaderFromPlantId.documentStatus === 'Updated Reversed' &&
+      expensesHeaderFromPlantId.reversalId !== null
     ) {
-      newSalesHeaderFromPlantId = {
-        ...salesHeaderFromPlantId,
+      newExpensesHeaderFromPlantId = {
+        ...expensesHeaderFromPlantId,
         documentLabel: MESSAGE.ORIGINAL_DOCUMENT,
-      } as SalesHeaderWithDocumentLabel;
+      } as ExpensesHeaderWithDocumentLabel;
     }
 
-    const debitTransactionData = await SalesDebitTransaction.findAll({
-      where: { salesHeaderId: salesHeaderFromPlantId.id },
+    const debitTransactionData = await ExpensesDebitTransaction.findAll({
+      where: { expensesHeaderId: expensesHeaderFromPlantId.id },
       include: [
         {
           model: BusinessTransaction,
@@ -848,10 +881,19 @@ const getLastDocument = async (
           model: GlAccount,
         },
         {
-          model: DocumentType,
+          model: PostingKey,
         },
         {
-          model: PostingKey,
+          model: SpecialGlIndicator,
+        },
+        {
+          model: BusinessPlace,
+        },
+        {
+          model: TaxCode,
+        },
+        {
+          model: CostCentre,
         },
         {
           model: ProfitCentre,
@@ -861,33 +903,39 @@ const getLastDocument = async (
       nest: true,
     });
 
-    const creditTransactionData = await SalesCreditTransaction.findAll({
-      where: { salesHeaderId: salesHeaderFromPlantId.id },
+    const creditTransactionData = await ExpensesCreditTransaction.findAll({
+      where: { expensesHeaderId: expensesHeaderFromPlantId.id },
       include: [
         {
-          model: Customer,
+          model: Vendor,
         },
         {
           model: PostingKey,
         },
         {
-          model: PosMidList,
+          model: SpecialGlIndicator,
+        },
+        {
+          model: TaxCode,
+        },
+        {
+          model: BusinessPlace,
+        },
+        {
+          model: SectionCode,
+        },
+        {
+          model: WithholdingTax,
         },
       ],
       raw: true,
       nest: true,
     });
 
-    const oneTimeCustomerData = await OneTimeCustomer.findOne({
-      where: { salesHeaderId: salesHeaderFromPlantId.id },
-      raw: true,
-    });
-
     const data = {
-      saleHeaderData: newSalesHeaderFromPlantId,
+      expensesHeaderData: newExpensesHeaderFromPlantId,
       debitTransactionData,
       creditTransactionData,
-      oneTimeCustomerData,
     };
     const response = responseFormatter(
       CODE[200],
@@ -901,15 +949,14 @@ const getLastDocument = async (
   }
 };
 
-const exportSalesReceipt = async (
+const exportExpenses = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const { salesHeaderId } = req.body;
-
-    if (!salesHeaderId) {
+    const { expensesHeaderId } = req.body;
+    if (!expensesHeaderId) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -918,13 +965,11 @@ const exportSalesReceipt = async (
       );
       return res.status(CODE[400]).send(response);
     }
-
-    const saleHeaderData = await SalesHeader.findOne({
-      where: { id: salesHeaderId, documentStatus: 'Updated' },
+    const expensesHeaderData = await ExpensesHeader.findOne({
+      where: { id: expensesHeaderId, documentStatus: 'Updated' },
       raw: true,
     });
-
-    if (!saleHeaderData) {
+    if (!expensesHeaderData) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -933,9 +978,8 @@ const exportSalesReceipt = async (
       );
       return res.status(CODE[400]).send(response);
     }
-
-    const debitTransactionData = (await SalesDebitTransaction.findAll({
-      where: { salesHeaderId: saleHeaderData.id },
+    const debitTransactionData = (await ExpensesDebitTransaction.findAll({
+      where: { expensesHeaderId: expensesHeaderData.id },
       include: [
         {
           model: BusinessTransaction,
@@ -944,10 +988,19 @@ const exportSalesReceipt = async (
           model: GlAccount,
         },
         {
-          model: DocumentType,
+          model: PostingKey,
         },
         {
-          model: PostingKey,
+          model: SpecialGlIndicator,
+        },
+        {
+          model: BusinessPlace,
+        },
+        {
+          model: TaxCode,
+        },
+        {
+          model: CostCentre,
         },
         {
           model: ProfitCentre,
@@ -955,64 +1008,100 @@ const exportSalesReceipt = async (
       ],
       raw: true,
       nest: true,
-    })) as SalesDebitTransactionModelWithIncludes[];
+    })) as ExpensesDebitTransactionModelWithIncludes[];
 
-    const creditTransactionData = (await SalesCreditTransaction.findAll({
-      where: { salesHeaderId: saleHeaderData.id },
+    const creditTransactionData = (await ExpensesCreditTransaction.findAll({
+      where: { expensesHeaderId: expensesHeaderData.id },
       include: [
         {
-          model: Customer,
+          model: Vendor,
         },
         {
           model: PostingKey,
         },
         {
-          model: PosMidList,
+          model: SpecialGlIndicator,
+        },
+        {
+          model: TaxCode,
+        },
+        {
+          model: BusinessPlace,
+        },
+        {
+          model: SectionCode,
+        },
+        {
+          model: WithholdingTax,
         },
       ],
       raw: true,
       nest: true,
-    })) as SalesCreditTransactionModelWithIncludes[];
-
-    const saleReceiptData = [
+    })) as ExpensesCreditTransactionModelWithIncludes[];
+    const expensesData = [
       {
-        postingDate: dateFormat(saleHeaderData.postingDate, '.', false),
-        documentDate: dateFormat(saleHeaderData.documentDate, '.', false),
-        customerNo: creditTransactionData[0]?.customer?.customerNo
-          ? creditTransactionData[0]?.customer?.customerNo
-          : '',
-        amount: creditTransactionData[0].amount,
-        PostingKey: debitTransactionData[0]?.posting_key?.postingKey,
-        profitCentre: debitTransactionData[0]?.profit_centre?.profitCentre,
-        text: creditTransactionData[0].text,
+        documentDate: dateFormat(expensesHeaderData.documentDate, '.', false),
+        companyCode: expensesHeaderData.companyCode,
+        postingDate: dateFormat(expensesHeaderData.postingDate, '.', false),
+        currency: expensesHeaderData.currency,
+        reference: expensesHeaderData.reference,
+        documentHeaderText: expensesHeaderData.documentHeaderText,
+
+        postingKeyDr: debitTransactionData[0]?.posting_key?.postingKey,
+        glAccount: debitTransactionData[0]?.gl_account?.glAccounts,
+        amountDR: debitTransactionData[0].amount,
+        taxCode: debitTransactionData[0]?.tax_code?.taxCode,
+        businessPlaceDr:
+          debitTransactionData[0]?.business_place?.businessPlaceCode,
+        costCentre: debitTransactionData[0]?.cost_centre?.costCentre,
+        assignment: debitTransactionData[0]?.assignment,
+        textDr: debitTransactionData[0]?.text,
+
+        postingKeyCr: creditTransactionData[0]?.posting_key?.postingKey,
+        venderNo: creditTransactionData[0]?.vendor?.vendorNo,
+        amountCr: creditTransactionData[0]?.amount,
+        businessPlaceCr:
+          creditTransactionData[0]?.business_place?.businessPlaceCode,
+        section: creditTransactionData[0]?.section_code?.sectionCode,
+        textCr: creditTransactionData[0].text,
       },
     ];
-
     const heading = [
       [
         'Document Date',
-        'Posting Date',
-        'CustomerNo',
-        'Amount',
-        'PostingKey',
-        'ProfitCenter',
-        'Text',
+        'COM CODE',
+        'POST DATE',
+        'CURRENCY',
+        'REFERENCE',
+        'DOC HEADER TEXT',
+
+        'PST KEY',
+        'GL ACCOUNT',
+        'AMOUNT',
+        'TAX CODE',
+        'BUSINESS AREA',
+        'COST CENTER',
+        'ASSIGNMENT',
+        'TEXT',
+
+        'POST KEY',
+        'ACC NO',
+        'AMOUNT',
+        'BUS AREA',
+        'SECTION',
+        'TEXT',
       ],
     ];
-
     // Had to create a new workbook and then add the header
     const workbook = xlsx.utils.book_new();
     const worksheet: xlsx.WorkSheet = xlsx.utils.json_to_sheet([]);
     xlsx.utils.sheet_add_aoa(worksheet, heading);
-
     // Starting in the second row to avoid overriding and skipping headers
-    xlsx.utils.sheet_add_json(worksheet, saleReceiptData, {
+    xlsx.utils.sheet_add_json(worksheet, expensesData, {
       origin: 'A2',
       skipHeader: true,
     });
-
     xlsx.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-
     // send workbook as a download
     const buffer = xlsx.write(workbook, { type: 'buffer' });
     res.setHeader('Content-Disposition', 'attachment; filename=export.xlsx');
@@ -1032,9 +1121,9 @@ const deleteDocument = async (
   next: NextFunction,
 ) => {
   try {
-    const { salesHeaderId } = req.body;
+    const { expensesHeaderId } = req.body;
 
-    if (!salesHeaderId) {
+    if (!expensesHeaderId) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -1044,10 +1133,10 @@ const deleteDocument = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const saleHeaderData = await SalesHeader.findOne({
-      where: { id: salesHeaderId, documentStatus: 'Saved' },
+    const expensesHeaderData = await ExpensesHeader.findOne({
+      where: { id: expensesHeaderId, documentStatus: 'Saved' },
     });
-    if (!saleHeaderData) {
+    if (!expensesHeaderData) {
       const response = responseFormatter(
         CODE[400],
         SUCCESS.FALSE,
@@ -1057,10 +1146,9 @@ const deleteDocument = async (
       return res.status(CODE[400]).send(response);
     }
 
-    await OneTimeCustomer.destroy({ where: { salesHeaderId } });
-    await SalesDebitTransaction.destroy({ where: { salesHeaderId } });
-    await SalesCreditTransaction.destroy({ where: { salesHeaderId } });
-    await SalesHeader.destroy({ where: { id: salesHeaderId } });
+    await ExpensesDebitTransaction.destroy({ where: { expensesHeaderId } });
+    await ExpensesCreditTransaction.destroy({ where: { expensesHeaderId } });
+    await ExpensesHeader.destroy({ where: { id: expensesHeaderId } });
 
     const response = responseFormatter(
       CODE[200],
@@ -1083,6 +1171,6 @@ export default {
   deleteLineItem,
   findByDocumentNumber,
   getLastDocument,
-  exportSalesReceipt,
+  exportExpenses,
   deleteDocument,
 };

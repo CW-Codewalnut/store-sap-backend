@@ -23,4 +23,9 @@ interface ExpensesHeaderModel
   updatedAt: Date;
 }
 
+interface ExpensesHeaderWithDocumentLabel extends ExpensesHeaderModel {
+  documentLabel: string;
+}
+
 export default ExpensesHeaderModel;
+export { ExpensesHeaderWithDocumentLabel };
