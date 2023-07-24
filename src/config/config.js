@@ -26,7 +26,7 @@ module.exports = {
     dialect: 'mssql',
     host: process.env.TEST_HOST,
     serverPort: process.env.TEST_PORT,
-    logging: false,
+    logging: console.log,
     autoBackup: false,
     sessionSecret: process.env.SESSION_SECRET_KEY,
     jwtSecret: process.env.JWT_SECRET_KEY,
