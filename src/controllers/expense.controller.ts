@@ -1,29 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
-import { BigNumber } from 'bignumber.js';
 import * as xlsx from 'xlsx';
-import { Op } from 'sequelize';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import MESSAGE from '../config/message.json';
-import SalesHeader from '../models/sales-header';
-import SalesDebitTransaction from '../models/sales-debit-transaction';
-import SalesCreditTransaction from '../models/sales-credit-transaction';
 import BusinessTransaction from '../models/business-transaction';
 import GlAccount from '../models/gl-account';
-import Customer from '../models/customer';
-import DocumentType from '../models/document-type';
 import PostingKey from '../models/posting-key';
-import PosMidList from '../models/pos-mid-list';
 import ProfitCentre from '../models/profit-centre';
 import Plant from '../models/plant';
-import Preference from '../models/preference';
-import OneTimeCustomer from '../models/one-time-customer';
-import SalesHeaderModel, {
-  SalesHeaderWithDocumentLabel,
-} from '../interfaces/masters/salesHeader.interface';
 import { dateFormat } from '../utils/helper';
-import { SalesCreditTransactionModelWithIncludes } from '../interfaces/masters/salesCreditTransaction.interface';
-import { SalesDebitTransactionModelWithIncludes } from '../interfaces/masters/salesDebitTransaction.interface';
-import OneTimeCustomerModel from '../interfaces/masters/oneTimeCustomer.interface';
 import ExpensesHeader from '../models/expenses-header';
 import ExpensesDebitTransaction from '../models/expenses-debit-transaction';
 import CostCentre from '../models/cost-centre';
@@ -154,52 +138,6 @@ const createExpensesDebitTransaction = async (
     res.status(CODE[200]).send(response);
   } catch (err) {
     next(err);
-  }
-};
-
-/**
- * This function returns false if the provided amount exceeds the specified limit;
- * otherwise, it returns true.
- * @param amount
- * @returns
- */
-const checkValidAmount = async (amount: number): Promise<boolean> => {
-  try {
-    const isValidAmount = await Preference.findOne({
-      where: {
-        [Op.and]: [
-          { name: 'salesReceiptCashLimit' },
-          { value: { [Op.gt]: amount } },
-        ],
-      },
-      raw: true,
-    });
-    return !!isValidAmount;
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-};
-
-/**
- * Calculate amount if payment method is cash
- * @param salesHeaderId
- * @returns
- */
-const getSumOfAmountForCash = async (
-  salesHeaderId: string,
-): Promise<number> => {
-  try {
-    const totalUpdatingAmount = await SalesCreditTransaction.sum('amount', {
-      where: {
-        [Op.and]: [{ salesHeaderId }, { paymentMethod: 'Cash' }],
-      },
-    });
-
-    return totalUpdatingAmount ?? 0;
-  } catch (err) {
-    console.error(err);
-    throw err;
   }
 };
 
@@ -429,31 +367,6 @@ const validateRequestBody = (
   Array.isArray(creditTransactionIds) &&
   creditTransactionIds.length &&
   salesHeaderId;
-
-const createOneTimeCustomer = async (
-  userId: string,
-  reversedSalesHeaderId: string,
-  salesHeaderId: string,
-) => {
-  const oneTimeCustomerData = await OneTimeCustomer.findOne({
-    where: { salesHeaderId },
-    raw: true,
-  });
-
-  if (oneTimeCustomerData) {
-    const newOneTimeCustomerData = {
-      ...oneTimeCustomerData,
-      id: undefined,
-      createdAt: undefined,
-      updatedAt: undefined,
-      salesHeaderId: reversedSalesHeaderId,
-      createdBy: userId,
-      updatedBy: userId,
-    } as unknown as OneTimeCustomerModel;
-
-    return OneTimeCustomer.create(newOneTimeCustomerData);
-  }
-};
 
 const transactionReverse = async (
   req: Request,
