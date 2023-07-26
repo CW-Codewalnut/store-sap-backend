@@ -103,7 +103,6 @@ describe('Expense Routes', () => {
       expensesHeaderId,
       ...creditRequestBody,
     };
-    console.log('test=> ', creditBody);
     const res = await agent
       .post('/expenses/credit')
       .send(creditBody)
