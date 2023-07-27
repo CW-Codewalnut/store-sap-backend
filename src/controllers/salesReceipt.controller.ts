@@ -262,7 +262,7 @@ const createSalesCreditTransaction = async (
       updatedBy: req.user.id,
     };
 
-    // Check line item 1 debit transaction is exist
+    // Check line item 1 debit transaction exist
     if (!(await checkLineItemOneExist(req.body.salesHeaderId))) {
       const response = responseFormatter(
         CODE[400],
