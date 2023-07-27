@@ -239,7 +239,7 @@ const createExpensesCreditTransaction = async (
       updatedBy: req.user.id,
     };
 
-    // Check line item 1 debit transaction is exist
+    // Check line item 1 debit transaction exists
     if (!(await checkLineItemOneExist(req.body.expensesHeaderId))) {
       const response = responseFormatter(
         CODE[400],
@@ -381,10 +381,10 @@ const findExpensesHeaderByDocumentStatus = (
 
 // Create a reversed expenses header
 const createReversedExpensesHeader = async (
-  expensesHeader: any,
+  expensesHeader: ExpensesHeaderModel,
   req: Request,
-) =>
-  ExpensesHeader.create({
+) => {
+  const expensesHeaderData = {
     ...expensesHeader,
     id: undefined,
     createdAt: undefined,
@@ -392,7 +392,10 @@ const createReversedExpensesHeader = async (
     createdBy: req.user.id,
     updatedBy: req.user.id,
     documentStatus: 'Updated Reversed',
-  });
+  } as unknown as ExpensesHeaderModel;
+
+  return ExpensesHeader.create(expensesHeaderData);
+};
 
 // Perform debit transaction reversal
 const reverseDebitTransactions = async (
