@@ -379,7 +379,7 @@ const findExpensesHeaderByDocumentStatus = (
     raw: true,
   });
 
-// Function to create a reversed expenses header
+// Create a reversed expenses header
 const createReversedExpensesHeader = async (
   expensesHeader: any,
   req: Request,
