@@ -22,9 +22,32 @@ import SalesHeaderModel, {
   SalesHeaderWithDocumentLabel,
 } from '../interfaces/masters/salesHeader.interface';
 import { dateFormat } from '../utils/helper';
-import { SalesCreditTransactionModelWithIncludes } from '../interfaces/masters/salesCreditTransaction.interface';
-import { SalesDebitTransactionModelWithIncludes } from '../interfaces/masters/salesDebitTransaction.interface';
+import SalesCreditTransactionModel, {
+  SalesCreditTransactionModelWithIncludes,
+} from '../interfaces/masters/salesCreditTransaction.interface';
+import SalesDebitTransactionModel, {
+  SalesDebitTransactionModelWithIncludes,
+} from '../interfaces/masters/salesDebitTransaction.interface';
 import OneTimeCustomerModel from '../interfaces/masters/oneTimeCustomer.interface';
+
+const getSalesHeaderData = (salesHeaderId: string) =>
+  SalesHeader.findOne({
+    where: {
+      id: salesHeaderId,
+    },
+    include: [
+      {
+        model: Plant,
+      },
+    ],
+    raw: true,
+    nest: true,
+  });
+
+const findCashLedgerByPlantId = (plantId: string) =>
+  CashLedger.findOne({
+    where: { plantId },
+  });
 
 const createSalesHeader = async (
   req: Request,
@@ -42,9 +65,7 @@ const createSalesHeader = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const cashLedger = await CashLedger.findOne({
-      where: { plantId: req.session.activePlantId },
-    });
+    const cashLedger = await findCashLedgerByPlantId(req.session.activePlantId);
 
     if (!cashLedger) {
       const response = responseFormatter(
@@ -69,17 +90,7 @@ const createSalesHeader = async (
     }
 
     const [salesHeader] = await SalesHeader.upsert(headerBody);
-
-    const salesHeaderData = await SalesHeader.findOne({
-      where: {
-        id: salesHeader.id,
-      },
-      include: [
-        {
-          model: Plant,
-        },
-      ],
-    });
+    const salesHeaderData = await getSalesHeaderData(salesHeader.id);
 
     const response = responseFormatter(
       CODE[200],
@@ -92,6 +103,30 @@ const createSalesHeader = async (
     next(err);
   }
 };
+
+const getSalesDebitTransaction = (salesHeaderId: string) =>
+  SalesDebitTransaction.findAll({
+    where: { salesHeaderId },
+    include: [
+      {
+        model: BusinessTransaction,
+      },
+      {
+        model: GlAccount,
+      },
+      {
+        model: DocumentType,
+      },
+      {
+        model: PostingKey,
+      },
+      {
+        model: ProfitCentre,
+      },
+    ],
+    raw: true,
+    nest: true,
+  });
 
 const createSalesDebitTransaction = async (
   req: Request,
@@ -110,30 +145,9 @@ const createSalesDebitTransaction = async (
     }
 
     await SalesDebitTransaction.upsert(debitTransaction);
-    const salesDebitTransactions = await SalesDebitTransaction.findAll({
-      where: {
-        salesHeaderId: req.body.salesHeaderId,
-      },
-      include: [
-        {
-          model: BusinessTransaction,
-        },
-        {
-          model: GlAccount,
-        },
-        {
-          model: DocumentType,
-        },
-        {
-          model: PostingKey,
-        },
-        {
-          model: ProfitCentre,
-        },
-      ],
-      raw: true,
-      nest: true,
-    });
+    const salesDebitTransactions = await getSalesDebitTransaction(
+      req.body.salesHeaderId,
+    );
 
     const response = responseFormatter(
       CODE[200],
@@ -154,21 +168,16 @@ const createSalesDebitTransaction = async (
  * @returns
  */
 const checkValidAmount = async (amount: number): Promise<boolean> => {
-  try {
-    const isValidAmount = await Preference.findOne({
-      where: {
-        [Op.and]: [
-          { name: 'salesReceiptCashLimit' },
-          { value: { [Op.gt]: amount } },
-        ],
-      },
-      raw: true,
-    });
-    return !!isValidAmount;
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
+  const isValidAmount = await Preference.findOne({
+    where: {
+      [Op.and]: [
+        { name: 'salesReceiptCashLimit' },
+        { value: { [Op.gt]: amount } },
+      ],
+    },
+    raw: true,
+  });
+  return !!isValidAmount;
 };
 
 /**
@@ -179,18 +188,13 @@ const checkValidAmount = async (amount: number): Promise<boolean> => {
 const getSumOfAmountForCash = async (
   salesHeaderId: string,
 ): Promise<number> => {
-  try {
-    const totalUpdatingAmount = await SalesCreditTransaction.sum('amount', {
-      where: {
-        [Op.and]: [{ salesHeaderId }, { paymentMethod: 'Cash' }],
-      },
-    });
+  const totalUpdatingAmount = await SalesCreditTransaction.sum('amount', {
+    where: {
+      [Op.and]: [{ salesHeaderId }, { paymentMethod: 'Cash' }],
+    },
+  });
 
-    return totalUpdatingAmount ?? 0;
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
+  return totalUpdatingAmount ?? 0;
 };
 
 /**
@@ -198,22 +202,10 @@ const getSumOfAmountForCash = async (
  * @param salesHeaderId
  * @returns
  */
-const checkLineItemOneExist = async (
-  salesHeaderId: string,
-): Promise<number> => {
-  try {
-    const debitTransactionCount = await SalesDebitTransaction.count({
-      where: {
-        salesHeaderId,
-      },
-    });
-
-    return debitTransactionCount;
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-};
+const checkLineItemOneExist = async (salesHeaderId: string) =>
+  SalesDebitTransaction.count({
+    where: { salesHeaderId },
+  });
 
 /**
  * Calculate and return total amount based on transaction type
@@ -225,25 +217,38 @@ const calculateTotalAmount = async (
   salesHeaderId: string,
   transactionType: 'credit' | 'debit',
 ): Promise<number> => {
-  try {
-    let transactionModel: any;
+  let transactionModel: any;
 
-    if (transactionType === 'credit') {
-      transactionModel = SalesCreditTransaction;
-    } else {
-      transactionModel = SalesDebitTransaction;
-    }
-
-    const totalAmount = await transactionModel.sum('amount', {
-      where: { salesHeaderId },
-    });
-
-    return totalAmount ?? 0;
-  } catch (err) {
-    console.error(err);
-    throw err;
+  if (transactionType === 'credit') {
+    transactionModel = SalesCreditTransaction;
+  } else {
+    transactionModel = SalesDebitTransaction;
   }
+
+  const totalAmount = await transactionModel.sum('amount', {
+    where: { salesHeaderId },
+  });
+
+  return totalAmount ?? 0;
 };
+
+const getSalesCreditTransaction = (salesHeaderId: string) =>
+  SalesCreditTransaction.findAll({
+    where: { salesHeaderId },
+    include: [
+      {
+        model: Customer,
+      },
+      {
+        model: PostingKey,
+      },
+      {
+        model: PosMidList,
+      },
+    ],
+    raw: true,
+    nest: true,
+  });
 
 const createSalesCreditTransaction = async (
   req: Request,
@@ -291,24 +296,9 @@ const createSalesCreditTransaction = async (
     }
 
     await SalesCreditTransaction.upsert(creditTransaction);
-    const salesCreditTransactions = await SalesCreditTransaction.findAll({
-      where: {
-        salesHeaderId: req.body.salesHeaderId,
-      },
-      include: [
-        {
-          model: Customer,
-        },
-        {
-          model: PostingKey,
-        },
-        {
-          model: PosMidList,
-        },
-      ],
-      raw: true,
-      nest: true,
-    });
+    const salesCreditTransactions = await getSalesCreditTransaction(
+      req.body.salesHeaderId,
+    );
 
     const response = responseFormatter(
       CODE[200],
@@ -339,12 +329,6 @@ const updateSalesHeader = ({
     { documentStatus: newDocumentStatus, reversalId },
     { where: { id: salesHeaderId, documentStatus: oldDocumentStatus } },
   );
-
-const getSaleHeaderData = (salesHeaderId: string) =>
-  SalesHeader.findOne({
-    where: { id: salesHeaderId },
-    raw: true,
-  });
 
 const updateDocumentStatus = async (
   req: Request,
@@ -396,7 +380,7 @@ const updateDocumentStatus = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const salesHeaderData = await getSaleHeaderData(salesHeaderId);
+    const salesHeaderData = await getSalesHeaderData(salesHeaderId);
 
     const response = responseFormatter(
       CODE[200],
@@ -421,15 +405,20 @@ const validateRequestBody = (
   creditTransactionIds.length &&
   salesHeaderId;
 
+const getOneTimeCustomerBySalesHeaderId = (salesHeaderId: string) =>
+  OneTimeCustomer.findOne({
+    where: { salesHeaderId },
+    raw: true,
+  });
+
 const createOneTimeCustomer = async (
   userId: string,
   reversedSalesHeaderId: string,
   salesHeaderId: string,
 ) => {
-  const oneTimeCustomerData = await OneTimeCustomer.findOne({
-    where: { salesHeaderId },
-    raw: true,
-  });
+  const oneTimeCustomerData = await getOneTimeCustomerBySalesHeaderId(
+    salesHeaderId,
+  );
 
   if (oneTimeCustomerData) {
     const newOneTimeCustomerData = {
@@ -443,6 +432,136 @@ const createOneTimeCustomer = async (
     } as unknown as OneTimeCustomerModel;
 
     return OneTimeCustomer.create(newOneTimeCustomerData);
+  }
+};
+
+const findSalesHeaderByDocumentStatus = (
+  salesHeaderId: string,
+  documentStatus: string,
+) =>
+  SalesHeader.findOne({
+    where: { id: salesHeaderId, documentStatus },
+    raw: true,
+  });
+
+const getReversalDocument = (reversalId: string) =>
+  SalesHeader.findOne({
+    attributes: ['id'],
+    where: { reversalId },
+    raw: true,
+  });
+
+// Create a reversed sales header
+const createReversedSalesHeader = async (
+  salesHeader: SalesHeaderModel,
+  req: Request,
+) => {
+  const salesHeaderData = {
+    ...salesHeader,
+    id: undefined,
+    createdAt: undefined,
+    updatedAt: undefined,
+    createdBy: req.user.id,
+    updatedBy: req.user.id,
+    documentStatus: 'Updated Reversed',
+  } as unknown as SalesHeaderModel;
+
+  return SalesHeader.create(salesHeaderData);
+};
+
+// Perform debit transaction reversal
+const reverseDebitTransactions = async (
+  debitTransactionIds: string[],
+  reversedSalesHeaderId: string,
+  req: Request,
+): Promise<void> => {
+  try {
+    const debitTransactions = await SalesDebitTransaction.findAll({
+      where: { id: debitTransactionIds },
+    });
+
+    // Create an array to store the updated reversed debit transactions
+    const reversedDebitTransactions = (await Promise.all(
+      debitTransactions.map(async (debitTransaction) => {
+        const postingKeyData = await PostingKey.findOne({
+          where: { id: debitTransaction.postingKeyId },
+        });
+
+        // Create the reversed debit transaction object
+        return {
+          salesHeaderId: reversedSalesHeaderId,
+          businessTransactionId: debitTransaction?.businessTransactionId,
+          glAccountId: debitTransaction?.glAccountId,
+          documentTypeId: debitTransaction?.documentTypeId,
+          description: debitTransaction?.description,
+          postingKeyId: postingKeyData?.postingKeyReversalId,
+          amount: debitTransaction?.amount,
+          profitCentreId: debitTransaction?.profitCentreId,
+          assignment: debitTransaction?.assignment,
+          text: debitTransaction?.text,
+          createdBy: req.user.id,
+          updatedBy: req.user.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      }),
+    )) as SalesDebitTransactionModel[];
+
+    await SalesDebitTransaction.bulkCreate(reversedDebitTransactions);
+  } catch (error) {
+    throw new Error('Failed to perform debit transaction reversal.');
+  }
+};
+
+// Perform credit transaction reversal
+const reverseCreditTransactions = async (
+  creditTransactionIds: string[],
+  reversedSalesHeaderId: string,
+  req: Request,
+): Promise<void> => {
+  try {
+    const creditTransactions = await SalesCreditTransaction.findAll({
+      where: { id: creditTransactionIds },
+    });
+
+    // Create an array to store the updated reversed credit transactions
+    const reversedCreditTransactions = (await Promise.all(
+      creditTransactions.map(async (creditTransaction) => {
+        const postingKeyData = await PostingKey.findOne({
+          where: { id: creditTransaction.postingKeyId },
+        });
+
+        // Create the reversed credit transaction object
+        return {
+          salesHeaderId: reversedSalesHeaderId,
+          customerId: creditTransaction?.customerId,
+          description: creditTransaction?.description,
+          postingKeyId: postingKeyData?.postingKeyReversalId,
+          amount: creditTransaction?.amount,
+          baselineDate: creditTransaction?.baselineDate,
+          paymentMethod: creditTransaction?.paymentMethod,
+          cardType: creditTransaction?.cardType,
+          cardSubType: creditTransaction?.cardSubType,
+          posMidId: creditTransaction?.posMidId,
+          remitterName: creditTransaction?.remitterName,
+          RemitterContactNumber: creditTransaction?.RemitterContactNumber,
+          UpiDetails: creditTransaction?.UpiDetails,
+          qrCode: creditTransaction?.qrCode,
+          rtgsOrNeftDetails: creditTransaction?.rtgsOrNeftDetails,
+          customerBankName: creditTransaction?.customerBankName,
+          assignment: creditTransaction?.assignment,
+          text: creditTransaction?.text,
+          createdBy: req.user.id,
+          updatedBy: req.user.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      }),
+    )) as SalesCreditTransactionModel[];
+
+    await SalesCreditTransaction.bulkCreate(reversedCreditTransactions);
+  } catch (error) {
+    throw new Error('Failed to perform credit transaction reversal.');
   }
 };
 
@@ -471,12 +590,12 @@ const transactionReverse = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const saleHeader = await SalesHeader.findOne({
-      where: { id: salesHeaderId, documentStatus: 'Updated' },
-      raw: true,
-    });
+    const salesHeader = (await findSalesHeaderByDocumentStatus(
+      salesHeaderId,
+      'Updated',
+    )) as SalesHeaderModel;
 
-    if (!saleHeader) {
+    if (!salesHeader) {
       const response = responseFormatter(
         CODE[401],
         SUCCESS.FALSE,
@@ -486,83 +605,25 @@ const transactionReverse = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const reverseSalesHeader = {
-      ...saleHeader,
-      id: undefined,
-      createdAt: undefined,
-      updatedAt: undefined,
-      createdBy: req.user.id,
-      updatedBy: req.user.id,
-      documentStatus: 'Updated Reversed',
-    } as unknown as SalesHeaderModel;
-
-    const reversedSalesHeader = await SalesHeader.create(reverseSalesHeader);
+    // Create a reversed sales header
+    const reversedSalesHeader = (await createReversedSalesHeader(
+      salesHeader,
+      req,
+    )) as SalesHeaderModel;
 
     // Debit Transaction Reversal
-    const debitTransactions = await Promise.all(
-      debitTransactionIds.map(async (debitTransactionId: string) => {
-        const salesDebitTransaction = await SalesDebitTransaction.findOne({
-          where: { id: debitTransactionId },
-        });
-        const postingKeyData = await PostingKey.findOne({
-          where: { id: salesDebitTransaction?.postingKeyId },
-        });
-        return {
-          salesHeaderId: reversedSalesHeader?.id,
-          businessTransactionId: salesDebitTransaction?.businessTransactionId,
-          glAccountId: salesDebitTransaction?.glAccountId,
-          documentTypeId: salesDebitTransaction?.documentTypeId,
-          description: salesDebitTransaction?.description,
-          postingKeyId: postingKeyData?.postingKeyReversalId,
-          amount: salesDebitTransaction?.amount,
-          profitCentreId: salesDebitTransaction?.profitCentreId,
-          assignment: salesDebitTransaction?.assignment,
-          text: salesDebitTransaction?.text,
-          createdBy: req.user.id,
-          updatedBy: req.user.id,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-      }),
+    await reverseDebitTransactions(
+      debitTransactionIds,
+      reversedSalesHeader?.id,
+      req,
     );
-    await SalesDebitTransaction.bulkCreate(debitTransactions);
 
     // Credit Transaction Reversal
-    const creditTransactions = await Promise.all(
-      creditTransactionIds.map(async (creditTransactionId: string) => {
-        const salesCreditTransaction = await SalesCreditTransaction.findOne({
-          where: { id: creditTransactionId },
-        });
-        const postingKeyData = await PostingKey.findOne({
-          where: { id: salesCreditTransaction?.postingKeyId },
-        });
-        return {
-          salesHeaderId: reversedSalesHeader?.id,
-          customerId: salesCreditTransaction?.customerId,
-          description: salesCreditTransaction?.description,
-          postingKeyId: postingKeyData?.postingKeyReversalId,
-          amount: salesCreditTransaction?.amount,
-          baselineDate: salesCreditTransaction?.baselineDate,
-          paymentMethod: salesCreditTransaction?.paymentMethod,
-          cardType: salesCreditTransaction?.cardType,
-          cardSubType: salesCreditTransaction?.cardSubType,
-          posMidId: salesCreditTransaction?.posMidId,
-          remitterName: salesCreditTransaction?.remitterName,
-          RemitterContactNumber: salesCreditTransaction?.RemitterContactNumber,
-          UpiDetails: salesCreditTransaction?.UpiDetails,
-          qrCode: salesCreditTransaction?.qrCode,
-          rtgsOrNeftDetails: salesCreditTransaction?.rtgsOrNeftDetails,
-          customerBankName: salesCreditTransaction?.customerBankName,
-          assignment: salesCreditTransaction?.assignment,
-          text: salesCreditTransaction?.text,
-          createdBy: req.user.id,
-          updatedBy: req.user.id,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-      }),
+    await reverseCreditTransactions(
+      creditTransactionIds,
+      reversedSalesHeader?.id,
+      req,
     );
-    await SalesCreditTransaction.bulkCreate(creditTransactions);
 
     await createOneTimeCustomer(
       req.user.id,
@@ -577,7 +638,7 @@ const transactionReverse = async (
       reversalId: reversedSalesHeader?.id,
     });
 
-    const salesHeaderData = await getSaleHeaderData(salesHeaderId);
+    const salesHeaderData = await getSalesHeaderData(salesHeaderId);
 
     let newSalesHeaderData = salesHeaderData;
 
@@ -586,11 +647,10 @@ const transactionReverse = async (
       salesHeaderData.documentStatus === 'Updated Reversed' &&
       salesHeaderData.reversalId === null
     ) {
-      const reversalDocument = (await SalesHeader.findOne({
-        attributes: ['id'],
-        where: { reversalId: salesHeaderData.id },
-        raw: true,
-      })) as SalesHeaderModel;
+      const reversalDocument = (await getReversalDocument(
+        salesHeaderData.id,
+      )) as SalesHeaderModel;
+
       newSalesHeaderData = {
         ...salesHeaderData,
         documentLabel: MESSAGE.REVERSAL_DOCUMENT,
@@ -649,6 +709,7 @@ const deleteLineItem = async (
       where: { id: transactionId },
       raw: true,
     });
+
     if (!transactionData) {
       const response = responseFormatter(
         CODE[400],
@@ -659,9 +720,11 @@ const deleteLineItem = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const saleHeaderData = await SalesHeader.findOne({
-      where: { id: transactionData?.salesHeaderId, documentStatus: 'Saved' },
-    });
+    const saleHeaderData = await findSalesHeaderByDocumentStatus(
+      transactionData?.salesHeaderId,
+      'Saved',
+    );
+
     if (!saleHeaderData) {
       const response = responseFormatter(
         CODE[400],
@@ -694,10 +757,9 @@ const findByDocumentNumber = async (
   try {
     const { documentNumber } = req.params;
 
-    const salesHeaderFromDocumentNumber = await SalesHeader.findOne({
-      where: { id: documentNumber },
-      raw: true,
-    });
+    const salesHeaderFromDocumentNumber = await getSalesHeaderData(
+      documentNumber,
+    );
 
     if (!salesHeaderFromDocumentNumber) {
       const response = responseFormatter(
@@ -716,11 +778,10 @@ const findByDocumentNumber = async (
       salesHeaderFromDocumentNumber.documentStatus === 'Updated Reversed' &&
       salesHeaderFromDocumentNumber.reversalId === null
     ) {
-      const reversalDocument = (await SalesHeader.findOne({
-        attributes: ['id'],
-        where: { reversalId: salesHeaderFromDocumentNumber.id },
-        raw: true,
-      })) as SalesHeaderModel;
+      const reversalDocument = (await getReversalDocument(
+        salesHeaderFromDocumentNumber.id,
+      )) as SalesHeaderModel;
+
       newSalesHeaderFromDocumentNumber = {
         ...salesHeaderFromDocumentNumber,
         documentLabel: MESSAGE.REVERSAL_DOCUMENT,
@@ -737,50 +798,17 @@ const findByDocumentNumber = async (
       } as SalesHeaderWithDocumentLabel;
     }
 
-    const debitTransactionData = await SalesDebitTransaction.findAll({
-      where: { salesHeaderId: salesHeaderFromDocumentNumber.id },
-      include: [
-        {
-          model: BusinessTransaction,
-        },
-        {
-          model: GlAccount,
-        },
-        {
-          model: DocumentType,
-        },
-        {
-          model: PostingKey,
-        },
-        {
-          model: ProfitCentre,
-        },
-      ],
-      raw: true,
-      nest: true,
-    });
+    const debitTransactionData = await getSalesDebitTransaction(
+      salesHeaderFromDocumentNumber.id,
+    );
 
-    const creditTransactionData = await SalesCreditTransaction.findAll({
-      where: { salesHeaderId: salesHeaderFromDocumentNumber.id },
-      include: [
-        {
-          model: Customer,
-        },
-        {
-          model: PostingKey,
-        },
-        {
-          model: PosMidList,
-        },
-      ],
-      raw: true,
-      nest: true,
-    });
+    const creditTransactionData = await getSalesCreditTransaction(
+      salesHeaderFromDocumentNumber.id,
+    );
 
-    const oneTimeCustomerData = await OneTimeCustomer.findOne({
-      where: { salesHeaderId: salesHeaderFromDocumentNumber.id },
-      raw: true,
-    });
+    const oneTimeCustomerData = await getOneTimeCustomerBySalesHeaderId(
+      salesHeaderFromDocumentNumber.id,
+    );
 
     const data = {
       saleHeaderData: newSalesHeaderFromDocumentNumber,
@@ -811,6 +839,7 @@ const getLastDocument = async (
       order: [['createdAt', 'desc']],
       raw: true,
     });
+
     if (!salesHeaderFromPlantId) {
       const response = responseFormatter(
         CODE[400],
@@ -828,11 +857,10 @@ const getLastDocument = async (
       salesHeaderFromPlantId.documentStatus === 'Updated Reversed' &&
       salesHeaderFromPlantId.reversalId === null
     ) {
-      const reversalDocument = (await SalesHeader.findOne({
-        attributes: ['id'],
-        where: { reversalId: salesHeaderFromPlantId.id },
-        raw: true,
-      })) as SalesHeaderModel;
+      const reversalDocument = (await getReversalDocument(
+        salesHeaderFromPlantId.id,
+      )) as SalesHeaderModel;
+
       newSalesHeaderFromPlantId = {
         ...salesHeaderFromPlantId,
         documentLabel: MESSAGE.REVERSAL_DOCUMENT,
@@ -849,50 +877,17 @@ const getLastDocument = async (
       } as SalesHeaderWithDocumentLabel;
     }
 
-    const debitTransactionData = await SalesDebitTransaction.findAll({
-      where: { salesHeaderId: salesHeaderFromPlantId.id },
-      include: [
-        {
-          model: BusinessTransaction,
-        },
-        {
-          model: GlAccount,
-        },
-        {
-          model: DocumentType,
-        },
-        {
-          model: PostingKey,
-        },
-        {
-          model: ProfitCentre,
-        },
-      ],
-      raw: true,
-      nest: true,
-    });
+    const debitTransactionData = await getSalesDebitTransaction(
+      salesHeaderFromPlantId.id,
+    );
 
-    const creditTransactionData = await SalesCreditTransaction.findAll({
-      where: { salesHeaderId: salesHeaderFromPlantId.id },
-      include: [
-        {
-          model: Customer,
-        },
-        {
-          model: PostingKey,
-        },
-        {
-          model: PosMidList,
-        },
-      ],
-      raw: true,
-      nest: true,
-    });
+    const creditTransactionData = await getSalesCreditTransaction(
+      salesHeaderFromPlantId.id,
+    );
 
-    const oneTimeCustomerData = await OneTimeCustomer.findOne({
-      where: { salesHeaderId: salesHeaderFromPlantId.id },
-      raw: true,
-    });
+    const oneTimeCustomerData = await getOneTimeCustomerBySalesHeaderId(
+      salesHeaderFromPlantId.id,
+    );
 
     const data = {
       saleHeaderData: newSalesHeaderFromPlantId,
@@ -930,10 +925,10 @@ const exportSalesReceipt = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const saleHeaderData = await SalesHeader.findOne({
-      where: { id: salesHeaderId, documentStatus: 'Updated' },
-      raw: true,
-    });
+    const saleHeaderData = await findSalesHeaderByDocumentStatus(
+      salesHeaderId,
+      'Updated',
+    );
 
     if (!saleHeaderData) {
       const response = responseFormatter(
@@ -945,45 +940,13 @@ const exportSalesReceipt = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const debitTransactionData = (await SalesDebitTransaction.findAll({
-      where: { salesHeaderId: saleHeaderData.id },
-      include: [
-        {
-          model: BusinessTransaction,
-        },
-        {
-          model: GlAccount,
-        },
-        {
-          model: DocumentType,
-        },
-        {
-          model: PostingKey,
-        },
-        {
-          model: ProfitCentre,
-        },
-      ],
-      raw: true,
-      nest: true,
-    })) as SalesDebitTransactionModelWithIncludes[];
+    const debitTransactionData = (await getSalesDebitTransaction(
+      saleHeaderData.id,
+    )) as SalesDebitTransactionModelWithIncludes[];
 
-    const creditTransactionData = (await SalesCreditTransaction.findAll({
-      where: { salesHeaderId: saleHeaderData.id },
-      include: [
-        {
-          model: Customer,
-        },
-        {
-          model: PostingKey,
-        },
-        {
-          model: PosMidList,
-        },
-      ],
-      raw: true,
-      nest: true,
-    })) as SalesCreditTransactionModelWithIncludes[];
+    const creditTransactionData = (await getSalesCreditTransaction(
+      saleHeaderData.id,
+    )) as SalesCreditTransactionModelWithIncludes[];
 
     const saleReceiptData = [
       {
@@ -1055,9 +1018,11 @@ const deleteDocument = async (
       return res.status(CODE[400]).send(response);
     }
 
-    const saleHeaderData = await SalesHeader.findOne({
-      where: { id: salesHeaderId, documentStatus: 'Saved' },
-    });
+    const saleHeaderData = await findSalesHeaderByDocumentStatus(
+      salesHeaderId,
+      'Saved',
+    );
+
     if (!saleHeaderData) {
       const response = responseFormatter(
         CODE[400],
