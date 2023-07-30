@@ -9,6 +9,7 @@ import TaxCode from './tax-code';
 import SectionCode from './section-code';
 import WithholdingTax from './withholding-tax';
 import Vendor from './vendor';
+import PaymentTerm from './payment-term';
 
 const ExpensesCreditTransaction =
   sequelize.define<ExpensesCreditTransactionModel>(
@@ -42,7 +43,7 @@ const ExpensesCreditTransaction =
       },
       amount: {
         allowNull: false,
-        type: DataTypes.DECIMAL(13, 2),
+        type: DataTypes.DECIMAL(23, 2),
       },
       taxCodeId: {
         allowNull: true,
@@ -60,7 +61,7 @@ const ExpensesCreditTransaction =
         allowNull: true,
         type: DataTypes.STRING(16),
       },
-      paymentTerms: {
+      paymentTermId: {
         allowNull: false,
         type: DataTypes.STRING(50),
       },
@@ -70,7 +71,7 @@ const ExpensesCreditTransaction =
       },
       text: {
         allowNull: true,
-        type: DataTypes.STRING(25),
+        type: DataTypes.STRING(50),
       },
       createdBy: {
         allowNull: true,
@@ -111,6 +112,9 @@ ExpensesCreditTransaction.belongsTo(SectionCode, {
 });
 ExpensesCreditTransaction.belongsTo(WithholdingTax, {
   foreignKey: 'withholdingTaxId',
+});
+ExpensesCreditTransaction.belongsTo(PaymentTerm, {
+  foreignKey: 'paymentTermId',
 });
 
 export default ExpensesCreditTransaction;

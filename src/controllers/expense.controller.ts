@@ -27,6 +27,7 @@ import WithholdingTax from '../models/withholding-tax';
 import ExpensesCreditTransactionModel, {
   ExpensesCreditTransactionModelWithIncludes,
 } from '../interfaces/masters/expensesCreditTransaction.interface';
+import PaymentTerm from '../models/payment-term';
 
 const getExpensesHeaderData = (expensesHeaderId: string) =>
   ExpensesHeader.findOne({
@@ -221,6 +222,9 @@ const getExpensesCreditTransaction = (expensesHeaderId: string) =>
       },
       {
         model: WithholdingTax,
+      },
+      {
+        model: PaymentTerm,
       },
     ],
     raw: true,
@@ -474,7 +478,7 @@ const reverseCreditTransactions = async (
           businessPlaceId: creditTransaction.businessPlaceId,
           sectionCodeId: creditTransaction.sectionCodeId,
           withholdingTaxId: creditTransaction.withholdingTaxId,
-          paymentTerms: creditTransaction.paymentTerms,
+          paymentTermId: creditTransaction.paymentTermId,
           assignment: creditTransaction.assignment,
           text: creditTransaction.text,
           createdBy: req.user.id,
