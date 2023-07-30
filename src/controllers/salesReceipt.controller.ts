@@ -188,13 +188,13 @@ const checkValidAmount = async (amount: number): Promise<boolean> => {
 const getSumOfAmountForCash = async (
   salesHeaderId: string,
 ): Promise<number> => {
-  const totalUpdatingAmount = await SalesCreditTransaction.sum('amount', {
+  const totalAmount = await SalesCreditTransaction.sum('amount', {
     where: {
       [Op.and]: [{ salesHeaderId }, { paymentMethod: 'Cash' }],
     },
   });
 
-  return totalUpdatingAmount ?? 0;
+  return totalAmount ?? 0;
 };
 
 /**
@@ -277,7 +277,7 @@ const createSalesCreditTransaction = async (
       const sumOfAmount = await getSumOfAmountForCash(req.body.salesHeaderId);
 
       const amount = new BigNumber(req.body.amount).toNumber();
-      const totalAmount = sumOfAmount + amount;
+      const totalAmount = +new BigNumber(sumOfAmount).plus(amount);
       if (!(await checkValidAmount(totalAmount))) {
         const response = responseFormatter(
           CODE[400],
@@ -480,14 +480,12 @@ const reverseDebitTransactions = async (
       where: { id: debitTransactionIds },
     });
 
-    // Create an array to store the updated reversed debit transactions
     const reversedDebitTransactions = (await Promise.all(
       debitTransactions.map(async (debitTransaction) => {
         const postingKeyData = await PostingKey.findOne({
           where: { id: debitTransaction.postingKeyId },
         });
 
-        // Create the reversed debit transaction object
         return {
           salesHeaderId: reversedSalesHeaderId,
           businessTransactionId: debitTransaction?.businessTransactionId,
@@ -513,7 +511,6 @@ const reverseDebitTransactions = async (
   }
 };
 
-// Perform credit transaction reversal
 const reverseCreditTransactions = async (
   creditTransactionIds: string[],
   reversedSalesHeaderId: string,
