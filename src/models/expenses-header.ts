@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid';
 import { sequelize } from '.';
 import ExpensesHeaderModel from '../interfaces/masters/expensesHeader.interface';
 import Plant from './plant';
+import DocumentType from './document-type';
 
 const ExpensesHeader = sequelize.define<ExpensesHeaderModel>(
   'expenses_header',
@@ -37,6 +38,10 @@ const ExpensesHeader = sequelize.define<ExpensesHeaderModel>(
     period: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    documentTypeId: {
+      allowNull: false,
+      type: DataTypes.STRING(16),
     },
     documentHeaderText: {
       type: DataTypes.STRING(25),
@@ -81,6 +86,9 @@ const ExpensesHeader = sequelize.define<ExpensesHeaderModel>(
 
 ExpensesHeader.belongsTo(Plant, {
   foreignKey: 'plantId',
+});
+ExpensesHeader.belongsTo(DocumentType, {
+  foreignKey: 'documentTypeId',
 });
 
 export default ExpensesHeader;

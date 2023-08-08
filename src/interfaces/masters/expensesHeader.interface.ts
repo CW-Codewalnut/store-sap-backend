@@ -12,6 +12,7 @@ interface ExpensesHeaderModel
   documentDate: Date;
   reference: string;
   period: string;
+  documentTypeId: string;
   documentHeaderText: string;
   plantId: string;
   reversalId: string;

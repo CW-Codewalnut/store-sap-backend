@@ -28,6 +28,7 @@ import ExpensesCreditTransactionModel, {
   ExpensesCreditTransactionModelWithIncludes,
 } from '../interfaces/masters/expensesCreditTransaction.interface';
 import PaymentTerm from '../models/payment-term';
+import DocumentType from '../models/document-type';
 
 const getExpensesHeaderData = (expensesHeaderId: string) =>
   ExpensesHeader.findOne({
@@ -37,6 +38,9 @@ const getExpensesHeaderData = (expensesHeaderId: string) =>
     include: [
       {
         model: Plant,
+      },
+      {
+        model: DocumentType,
       },
     ],
     raw: true,
