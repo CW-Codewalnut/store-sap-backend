@@ -324,6 +324,11 @@ const routesMiddleware = (app: Application) => {
     checkAuthenticated,
     WithholdingTaxController.findAll,
   );
+  app.get(
+    '/expenses/document-types',
+    checkAuthenticated,
+    DocumentTypeController.getExpensesDocumentTypes,
+  );
   app.post(
     '/expenses/header',
     checkAuthenticated,

@@ -18,7 +18,7 @@ module.exports = {
       },
       businessTransactionId: {
         type: Sequelize.STRING(16),
-        allowNull: false,
+        allowNull: true,
         references: {
           model: 'business_transactions',
           key: 'id',

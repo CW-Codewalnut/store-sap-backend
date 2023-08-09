@@ -5,6 +5,7 @@ const headerRequestBody = {
   reference: 'reference text',
   period: '3',
   documentHeaderText: 'test',
+  documentTypeId: 'vVFFA66kbOq1Eout',
 };
 
 export { headerRequestBody };

@@ -47,7 +47,7 @@ const ExpensesDebitTransaction =
       },
       amount: {
         allowNull: false,
-        type: DataTypes.DECIMAL(13, 2),
+        type: DataTypes.DECIMAL(23, 2),
       },
       taxCodeId: {
         allowNull: true,
@@ -71,7 +71,7 @@ const ExpensesDebitTransaction =
       },
       text: {
         allowNull: true,
-        type: DataTypes.STRING(25),
+        type: DataTypes.STRING(50),
       },
       createdBy: {
         allowNull: true,

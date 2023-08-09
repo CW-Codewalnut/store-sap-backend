@@ -22,7 +22,7 @@ const DocumentType = sequelize.define<DocumentTypeModel>('document_type', {
   },
   businessTransactionId: {
     type: DataTypes.STRING(16),
-    allowNull: false,
+    allowNull: true,
   },
   createdBy: {
     allowNull: true,

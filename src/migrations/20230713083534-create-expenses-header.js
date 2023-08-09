@@ -31,6 +31,14 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      documentTypeId: {
+        allowNull: false,
+        type: Sequelize.STRING(16),
+        references: {
+          model: 'document_types',
+          key: 'id',
+        },
+      },
       documentHeaderText: {
         type: Sequelize.STRING(25),
         allowNull: false,

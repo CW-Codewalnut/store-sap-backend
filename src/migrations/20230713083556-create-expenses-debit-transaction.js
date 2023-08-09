@@ -52,7 +52,7 @@ module.exports = {
       },
       amount: {
         allowNull: false,
-        type: Sequelize.DECIMAL(13, 2),
+        type: Sequelize.DECIMAL(23, 2),
       },
       taxCodeId: {
         allowNull: true,
@@ -92,7 +92,7 @@ module.exports = {
       },
       text: {
         allowNull: true,
-        type: Sequelize.STRING(25),
+        type: Sequelize.STRING(50),
       },
       createdBy: {
         allowNull: true,

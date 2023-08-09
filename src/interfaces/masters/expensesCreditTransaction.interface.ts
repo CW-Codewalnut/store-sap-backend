@@ -6,6 +6,7 @@ import TaxCodeModel from './taxCode.interface';
 import BusinessPlaceModel from './businessPlace.interface';
 import SectionCodeModel from './sectionCode.interface';
 import WithholdingTaxModel from './withholdingTax.interface';
+import PaymentTermModel from './paymentTerm.interface';
 
 interface ExpensesCreditTransactionModel
   extends Model<
@@ -23,7 +24,7 @@ interface ExpensesCreditTransactionModel
   businessPlaceId: string;
   sectionCodeId: string;
   withholdingTaxId: string;
-  paymentTerms: string;
+  paymentTermId: string;
   assignment: string;
   text: string;
   createdBy: string;
@@ -41,6 +42,7 @@ interface ExpensesCreditTransactionModelWithIncludes
   business_place?: BusinessPlaceModel;
   section_code?: SectionCodeModel;
   withholding_tax?: WithholdingTaxModel;
+  payment_term?: PaymentTermModel;
 }
 
 export default ExpensesCreditTransactionModel;
