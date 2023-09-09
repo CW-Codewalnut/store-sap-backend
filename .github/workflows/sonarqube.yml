@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Set Node heap size
+      - name: Set Node.js Heap size
         env:
           NODE_OPTIONS: '--max-old-space-size=5120'
       
@@ -39,7 +39,6 @@ jobs:
           TEST_MAIL_PASS: ${{ secrets.TEST_MAIL_PASS }}
           TEST_MAIL_FROM: ${{ secrets.TEST_MAIL_FROM }}
           TEST_APP_BASE_URL: ${{ secrets.TEST_APP_BASE_URL }}
-          
         run: npm run test:report
 
       - name: Run SonarQube analysis
