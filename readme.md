@@ -1,56 +1,52 @@
-# Readme
+Store SAP manages multiple stores, integrates with SAP for real-time data exchange,
+and uses Node.js with Express and MSSQL for the backend, offering the flexibility
+to use other SQL databases via Sequelize ORM.
 
-# Getting Started with Store SAP Node API
+## SAP Features
 
-Setup db config
+- Petty cash (FBCJ)
+- Sale receipts (F-02)
+- Expenses (F-02)
 
-- Goto root project/config/config.json
-  "development": {
-  "username": "db_username",
-  "password": "db_password",
-  "database": "db_name",
-  "host": "127.0.0.1",
-  "dialect": "mysql",
-  "timezone": "+05:30"
-  },
+## Quick Start
 
-In the project directory, you can run:
+1. Navigate to the root directory of the project and install the required dependencies:
 
-## `npm install`
+```console
+$ npm install
+```
 
-It will install required dependency to run the node project.
+2. Rename the file .env.example to .env and provide the necessary credentials.
+   If you opt for a different database other than MSSQL, remember to modify the
+   dialect within the src/config/config.js file.
 
-## `npx sequelize-cli db:create`
+3. Execute the database migration process:
 
-It will create database for you in your
+```console
+$ npx sequelize-cli db:migrate
+```
 
-note: if you get error make sure you have valid .env file in your root directory.
+4. Launch the application by running:
 
-## `npx sequelize-cli db:migrate`
+```console
+$ npm run dev
+```
 
-It will create all required tables in the database.
+Expected Output:
 
-## `npx sequelize-cli db:seed:all`
+```console
+[1] Environment running on: local
+[1] Server is running on port: 3000
+[1] Database connection has been established.
+```
 
-It will added required rows on tables to getting started. eg. demo user
+# Run Test
 
-Note: Please run only once
+We employ Jest for our test cases. You can initiate the tests by executing the following command:
 
-## `export NODE_ENV="development" && echo $NODE_ENV`
+```console
+$ npm run test
+```
 
-To set and check local environment
-
-### `npm start`
-
-It will run you node start
-
-on the successfully run you will prompt with following info:
-
-Environment running on: dev
-Server is running on port: 3013
-Executing (default): SELECT 1+1 AS result
-Database connection has been established.
-
--default environment is dev, if you not pass any param on command-cli
-
-Note: To run specific environment you can pass "prod/dev"
+Note: There are many use full script for generating test report, linting, prettier formatting
+you can use those as per your need.
