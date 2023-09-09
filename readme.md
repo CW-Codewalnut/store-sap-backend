@@ -48,5 +48,5 @@ We employ Jest for our test cases. You can initiate the tests by executing the f
 $ npm run test
 ```
 
-Note: There are many use full script for generating test report, linting, prettier formatting
+Note: There are many useful script such as, generating test report, ESlinting, Prettier formatting
 you can use those as per your need.
