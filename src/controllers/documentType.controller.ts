@@ -21,4 +21,27 @@ const findAll = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export default { findAll };
+const getExpensesDocumentTypes = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const documentTypes = await DocumentType.findAll({
+      where: {
+        documentType: ['KR', 'KG'],
+      },
+    });
+    const response = responseFormatter(
+      CODE[200],
+      SUCCESS.TRUE,
+      MESSAGE.FETCHED,
+      documentTypes,
+    );
+    res.status(CODE[200]).send(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export default { findAll, getExpensesDocumentTypes };

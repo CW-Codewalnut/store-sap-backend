@@ -26,6 +26,11 @@ import PosMidListController from '../controllers/posMidList.controller';
 import DocumentTypeController from '../controllers/documentType.controller';
 import SalesReceiptController from '../controllers/salesReceipt.controller';
 import OneTimeCustomerController from '../controllers/oneTimeCustomer.controller';
+import SpecialGlIndicatorController from '../controllers/specialGlIndicator.controller';
+import BusinessPlaceController from '../controllers/businessPlace.controller';
+import SectionCodeController from '../controllers/sectionCode.controller';
+import WithholdingTaxController from '../controllers/withholdingTax.controller';
+import ExpenseController from '../controllers/expense.controller';
 
 const routesMiddleware = (app: Application) => {
   // Auth api
@@ -282,7 +287,6 @@ const routesMiddleware = (app: Application) => {
     checkAuthenticated,
     SalesReceiptController.deleteDocument,
   );
-
   app.get(
     '/sales-receipt/last-document',
     checkAuthenticated,
@@ -299,6 +303,81 @@ const routesMiddleware = (app: Application) => {
     '/sales-receipt/export',
     checkAuthenticated,
     SalesReceiptController.exportSalesReceipt,
+  );
+  app.get(
+    '/special-gl-accounts',
+    checkAuthenticated,
+    SpecialGlIndicatorController.findAll,
+  );
+  app.get(
+    '/business-places',
+    checkAuthenticated,
+    BusinessPlaceController.findAll,
+  );
+  app.get(
+    '/section-codes/:businessPlaceId',
+    checkAuthenticated,
+    SectionCodeController.getSectionCodeByBusinessPlaceId,
+  );
+  app.get(
+    '/withholding-taxes',
+    checkAuthenticated,
+    WithholdingTaxController.findAll,
+  );
+  app.get(
+    '/expenses/document-types',
+    checkAuthenticated,
+    DocumentTypeController.getExpensesDocumentTypes,
+  );
+  app.post(
+    '/expenses/header',
+    checkAuthenticated,
+    ExpenseController.createExpensesHeader,
+  );
+  app.post(
+    '/expenses/debit',
+    checkAuthenticated,
+    ExpenseController.createExpensesDebitTransaction,
+  );
+  app.post(
+    '/expenses/credit',
+    checkAuthenticated,
+    ExpenseController.createExpensesCreditTransaction,
+  );
+  app.post(
+    '/expenses/transaction-reverse',
+    checkAuthenticated,
+    ExpenseController.transactionReverse,
+  );
+  app.post(
+    '/expenses/update/status',
+    checkAuthenticated,
+    ExpenseController.updateDocumentStatus,
+  );
+  app.get(
+    '/expenses/last-document',
+    checkAuthenticated,
+    ExpenseController.getLastDocument,
+  );
+  app.get(
+    '/expenses/:documentNumber',
+    checkAuthenticated,
+    ExpenseController.findByDocumentNumber,
+  );
+  app.delete(
+    '/expenses/delete',
+    checkAuthenticated,
+    ExpenseController.deleteDocument,
+  );
+  app.post(
+    '/expenses/export',
+    checkAuthenticated,
+    ExpenseController.exportExpenses,
+  );
+  app.delete(
+    '/expenses/line-item/delete',
+    checkAuthenticated,
+    ExpenseController.deleteLineItem,
   );
 };
 

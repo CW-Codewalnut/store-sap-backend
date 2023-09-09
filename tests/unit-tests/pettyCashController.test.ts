@@ -107,7 +107,7 @@ describe('Petty Cash Routes', () => {
       .post('/petty-cash')
       .send(requestBodyWithError)
       .expect(400);
-    
+
     expect(checkResponsePropertiesExist(res)).toEqual(true);
     expect(
       checkResponseBodyValue(

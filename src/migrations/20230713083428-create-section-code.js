@@ -1,26 +1,26 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('document_types', {
+    await queryInterface.createTable('section_codes', {
       id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING(16),
       },
-      documentType: {
-        type: Sequelize.STRING(3),
+      sectionCode: {
+        type: Sequelize.STRING(6),
         allowNull: false,
         unique: true,
       },
-      description: {
-        type: Sequelize.STRING,
+      name: {
+        type: Sequelize.STRING(100),
         allowNull: false,
         unique: true,
       },
-      businessTransactionId: {
+      businessPlaceId: {
         type: Sequelize.STRING(16),
-        allowNull: true,
+        allowNull: false,
         references: {
-          model: 'business_transactions',
+          model: 'business_places',
           key: 'id',
         },
       },
@@ -43,6 +43,6 @@ module.exports = {
     });
   },
   async down(queryInterface) {
-    await queryInterface.dropTable('document_types');
+    await queryInterface.dropTable('section_codes');
   },
 };

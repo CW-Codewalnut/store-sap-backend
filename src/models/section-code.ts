@@ -1,28 +1,28 @@
 import { DataTypes } from 'sequelize';
 import { nanoid } from 'nanoid';
 import { sequelize } from '.';
-import DocumentTypeModel from '../interfaces/masters/documentType.interface';
+import SectionCodeModel from '../interfaces/masters/sectionCode.interface';
 
-const DocumentType = sequelize.define<DocumentTypeModel>('document_type', {
+const SectionCode = sequelize.define<SectionCodeModel>('section_code', {
   id: {
     type: DataTypes.STRING(16),
     primaryKey: true,
     allowNull: false,
     defaultValue: () => nanoid(16),
   },
-  documentType: {
-    type: DataTypes.STRING(3),
+  sectionCode: {
+    type: DataTypes.STRING(6),
     allowNull: false,
     unique: true,
   },
-  description: {
-    type: DataTypes.STRING,
+  name: {
+    type: DataTypes.STRING(100),
     allowNull: false,
     unique: true,
   },
-  businessTransactionId: {
+  businessPlaceId: {
     type: DataTypes.STRING(16),
-    allowNull: true,
+    allowNull: false,
   },
   createdBy: {
     allowNull: true,
@@ -42,4 +42,4 @@ const DocumentType = sequelize.define<DocumentTypeModel>('document_type', {
   },
 });
 
-export default DocumentType;
+export default SectionCode;
