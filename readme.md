@@ -3,6 +3,14 @@ Store SAP manages multiple stores, integrates with SAP for real-time data exchan
 and uses Node.js with Express and MSSQL for the backend, offering the flexibility
 to use other SQL databases via Sequelize ORM. [Know more](https://docs.google.com/document/d/1ULlRpf-jDfHKAeWKCAUe1FJY_7_CHd-mLi5Ct5wLt1o)
 
+ Image 1 | Image 2 |
+|---------|---------|
+| ![Petty Cash](https://dev-assets.codewalnut.com/sap-store/petty-cash.png) | ![Sales Receipts](https://dev-assets.codewalnut.com/sap-store/sales.png) |
+
+| Image 3 | Image 4 |
+|---------|---------|
+| ![Expenses Accounts](https://dev-assets.codewalnut.com/sap-store/expenses.png) | ![User](https://dev-assets.codewalnut.com/sap-store/user.png) |
+
 ## System requirement:
 1. NodeJs >= 16
 2. NPM >= 8.X
