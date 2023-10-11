@@ -26,11 +26,13 @@ $ npm install
    If you opt for a different database other than MSSQL, remember to modify the
    dialect within the src/config/config.js file.
    for the quick start just provide the below config. then later you can add as per need:
+   ```console
    LOCAL_DB=DATABASE_NAME
    LOCAL_DB_USER=DATABASE_USER
    LOCAL_DB_PASS=DATABSE_PASSWORD
    LOCAL_HOST=HOST_NAME
    LOCAL_PORT=PORT_NUMBER
+   ```
 
 3. Execute the database migration process:
 
