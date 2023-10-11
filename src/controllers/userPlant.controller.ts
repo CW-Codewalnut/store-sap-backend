@@ -10,15 +10,6 @@ const updateUserActivePlant = async (
 ) => {
   try {
     const { plantId } = req.params;
-    if (!plantId) {
-      const response = responseFormatter(
-        CODE[400],
-        SUCCESS.FALSE,
-        MESSAGE.BAD_REQUEST,
-        null,
-      );
-      return res.status(CODE[400]).send(response);
-    }
 
     const userId = req.user.id;
     const userPlant = await UserPlant.findOne({
@@ -26,6 +17,7 @@ const updateUserActivePlant = async (
         userId,
         plantId,
       },
+      raw: true,
     });
 
     if (userPlant) {

@@ -1,9 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import SessionActivity from '../models/session-activity';
-import sessionActivityArgs from '../interfaces/sessionActivity/sessionActivity.interface';
+import SessionActivityArgs from '../interfaces/sessionActivity/sessionActivity.interface';
 import MESSAGE from '../config/message.json';
-import SessionActivityModel from '../interfaces/masters/sessionActivity.interface';
 
 const checkAuthenticated = (
   req: Request,
@@ -35,7 +34,7 @@ const checkLoggedIn = (req: Request, res: Response, next: NextFunction) => {
   return next();
 };
 
-const verifyRouteAccess = (req: Request, res: Response, next: NextFunction) => {
+const verifyRouteAccess = (req: Request, res: Response) => {
   if (req.isAuthenticated()) {
     const response = responseFormatter(
       CODE[200],
@@ -59,10 +58,11 @@ const saveSessionActivity = ({
   userId,
   sessionId,
   callBackFn,
-}: sessionActivityArgs) => {
+}: SessionActivityArgs) => {
   try {
-    const ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim()
-      || req.socket.remoteAddress;
+    const ip =
+      (req.headers['x-forwarded-for'] || '').split(',').pop().trim() ||
+      req.socket.remoteAddress;
     const device = req.headers['user-agent'];
 
     const body = {

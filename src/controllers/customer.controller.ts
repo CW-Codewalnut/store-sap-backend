@@ -4,6 +4,7 @@ import Customer from '../models/customer';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import PaymentTerm from '../models/payment-term';
 import MESSAGE from '../config/message.json';
+import GlAccount from '../models/gl-account';
 
 const findWithPaginate = async (
   req: Request,
@@ -18,16 +19,22 @@ const findWithPaginate = async (
     const limit = pageSize;
     let condition = {};
 
+    if (Number.isNaN(page) || Number.isNaN(pageSize) || search === undefined) {
+      const response = responseFormatter(
+        CODE[400],
+        SUCCESS.FALSE,
+        MESSAGE.BAD_REQUEST,
+        null,
+      );
+      return res.status(CODE[400]).send(response);
+    }
+
     if (search) {
       condition = {
         [Op.or]: {
           customerNo: { [Op.like]: `%${search}%` },
-          customerName1: { [Op.like]: `%${search}%` },
-          customerName2: { [Op.like]: `%${search}%` },
-          customerName3: { [Op.like]: `%${search}%` },
           mobile: { [Op.like]: `%${search}%` },
-          email1: { [Op.like]: `%${search}%` },
-          email2: { [Op.like]: `%${search}%` },
+          gstNo: { [Op.like]: `%${search}%` },
         },
       };
     }
@@ -36,6 +43,12 @@ const findWithPaginate = async (
       include: [
         {
           model: PaymentTerm,
+          attributes: {
+            exclude: ['createdBy', 'updatedBy', 'createdAt', 'updatedAt'],
+          },
+        },
+        {
+          model: GlAccount,
           attributes: {
             exclude: ['createdBy', 'updatedBy', 'createdAt', 'updatedAt'],
           },

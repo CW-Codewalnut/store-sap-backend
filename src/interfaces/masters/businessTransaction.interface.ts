@@ -10,9 +10,9 @@ interface BusinessTransactionModel
   shortText: string;
   longText: string;
   moduleId: string;
-  vendorMandatory: boolean;
-  customerMandatory: boolean;
-  isExpenses: boolean;
+  vendorField: string;
+  customerField: string;
+  houseBankField: string;
   createdBy: string;
   updatedBy: string;
   createdAt: Date;

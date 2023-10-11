@@ -1,16 +1,19 @@
 const validateEmail = (email: string) => {
-  const regex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  const regex =
+    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return regex.test(String(email).toLowerCase());
 };
 
 const getIdArrays = (data: any) => data.map((x: any) => x.id);
 
-const dateFormat = (_date: string) => {
-  const date = new Date(_date); // Create a new Date object with the current date and time.
-  const day = date.getDate().toString().padStart(2, '0'); // Get the day of the month as a two-digit string (e.g. "03").
+const dateFormat = (_date: any, separator: string, formatReverse = true) => {
+  const date = new Date(Date.parse(_date)); // Create a new Date object with the current date and time.
+  const day = date.getDate().toString().padStart(2, '0'); // Get the day of the month as a two-digit string (e.g. "03")
   const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Get the month as a two-digit string (e.g. "07"), adding 1 to account for 0-based indexing
   const year = date.getFullYear().toString(); // Get the year as a four-digit string (e.g. "2023")
-  return `${day}.${month}.${year}`; // Concatenate the day, month, and year strings with the period separator
+  return formatReverse
+    ? `${year}${separator}${month}${separator}${day}`
+    : `${day}${separator}${month}${separator}${year}`; // Concatenate the day, month, and year strings with the period separator
 };
 
 const convertFromDate = (_date: string) => {
@@ -29,6 +32,13 @@ const convertToDate = (_date: string) => {
   return `${year}-${month}-${day} 23:59:59.999 +05:30`;
 };
 
+const isNumber = (value: any): boolean => typeof value === 'number';
+
 export {
-  validateEmail, getIdArrays, dateFormat, convertFromDate, convertToDate,
+  validateEmail,
+  getIdArrays,
+  dateFormat,
+  convertFromDate,
+  convertToDate,
+  isNumber,
 };

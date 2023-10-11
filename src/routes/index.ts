@@ -20,7 +20,17 @@ import UserPlantController from '../controllers/userPlant.controller';
 
 import { checkAuthenticated, verifyRouteAccess } from '../middleware/auth';
 import CashJournalController from '../controllers/cashJournal.controller';
-import PlantClosingDenominationController from '../controllers/plantClosingDenomination.controller';
+import CashDenominationController from '../controllers/cashDenomination.controller';
+import PostingKeyController from '../controllers/postingKey.controller';
+import PosMidListController from '../controllers/posMidList.controller';
+import DocumentTypeController from '../controllers/documentType.controller';
+import SalesReceiptController from '../controllers/salesReceipt.controller';
+import OneTimeCustomerController from '../controllers/oneTimeCustomer.controller';
+import SpecialGlIndicatorController from '../controllers/specialGlIndicator.controller';
+import BusinessPlaceController from '../controllers/businessPlace.controller';
+import SectionCodeController from '../controllers/sectionCode.controller';
+import WithholdingTaxController from '../controllers/withholdingTax.controller';
+import ExpenseController from '../controllers/expense.controller';
 
 const routesMiddleware = (app: Application) => {
   // Auth api
@@ -72,6 +82,8 @@ const routesMiddleware = (app: Application) => {
     RoleController.updateRolePermissions,
   );
 
+  app.get('/permissions', checkAuthenticated, RoleController.getAllPermissions);
+
   app.get(
     '/user/plants',
     checkAuthenticated,
@@ -90,6 +102,12 @@ const routesMiddleware = (app: Application) => {
     '/profit-centres/:costCentreId',
     checkAuthenticated,
     ProfitCenterController.getProfitCentreByCostCentreId,
+  );
+
+  app.get(
+    '/profit-centres/by/:plantId',
+    checkAuthenticated,
+    ProfitCenterController.getProfitCentreByPlantId,
   );
 
   app.get(
@@ -121,6 +139,12 @@ const routesMiddleware = (app: Application) => {
   );
 
   app.get(
+    '/employees/paginate',
+    checkAuthenticated,
+    EmployeeController.findWithPaginate,
+  );
+
+  app.get(
     '/employees/:plantId',
     checkAuthenticated,
     EmployeeController.getEmployeesByPlantId,
@@ -140,12 +164,6 @@ const routesMiddleware = (app: Application) => {
     '/customers/paginate',
     checkAuthenticated,
     CustomerController.findWithPaginate,
-  );
-
-  app.get(
-    '/employees/:plantId/paginate',
-    checkAuthenticated,
-    EmployeeController.findWithPaginate,
   );
 
   app.get('/employees', checkAuthenticated, EmployeeController.findAll);
@@ -202,8 +220,8 @@ const routesMiddleware = (app: Application) => {
     UserPlantController.updateUserActivePlant,
   );
 
-  app.get(
-    '/petty-cash/transaction-reverse/:transactionId',
+  app.post(
+    '/petty-cash/transaction-reverse',
     checkAuthenticated,
     PettyCashController.transactionReverse,
   );
@@ -214,10 +232,152 @@ const routesMiddleware = (app: Application) => {
     CashJournalController.getCashJournalByPlantId,
   );
 
-  app.post(
-    '/close-day',
+  app.get(
+    '/cash-denomination/:cashJournalId',
     checkAuthenticated,
-    PlantClosingDenominationController.storeDenomination,
+    CashDenominationController.getDenomination,
+  );
+
+  app.get('/posting-keys', checkAuthenticated, PostingKeyController.findAll);
+
+  app.get('/pos-mis-lists', checkAuthenticated, PosMidListController.findAll);
+
+  app.get(
+    '/document-types/:businessTransactionId',
+    checkAuthenticated,
+    DocumentTypeController.findAll,
+  );
+  app.post(
+    '/sales-receipt/header',
+    checkAuthenticated,
+    SalesReceiptController.createSalesHeader,
+  );
+  app.post(
+    '/sales-receipt/debit',
+    checkAuthenticated,
+    SalesReceiptController.createSalesDebitTransaction,
+  );
+  app.post(
+    '/sales-receipt/credit',
+    checkAuthenticated,
+    SalesReceiptController.createSalesCreditTransaction,
+  );
+  app.post(
+    '/one-time-customer',
+    checkAuthenticated,
+    OneTimeCustomerController.create,
+  );
+  app.post(
+    '/sales-receipt/transaction-reverse',
+    checkAuthenticated,
+    SalesReceiptController.transactionReverse,
+  );
+  app.post(
+    '/sales-receipt/update/status',
+    checkAuthenticated,
+    SalesReceiptController.updateDocumentStatus,
+  );
+  app.delete(
+    '/sales-receipt/line-item/delete',
+    checkAuthenticated,
+    SalesReceiptController.deleteLineItem,
+  );
+  app.delete(
+    '/sales-receipt/delete',
+    checkAuthenticated,
+    SalesReceiptController.deleteDocument,
+  );
+  app.get(
+    '/sales-receipt/last-document',
+    checkAuthenticated,
+    SalesReceiptController.getLastDocument,
+  );
+
+  app.get(
+    '/sales-receipt/:documentNumber',
+    checkAuthenticated,
+    SalesReceiptController.findByDocumentNumber,
+  );
+
+  app.post(
+    '/sales-receipt/export',
+    checkAuthenticated,
+    SalesReceiptController.exportSalesReceipt,
+  );
+  app.get(
+    '/special-gl-accounts',
+    checkAuthenticated,
+    SpecialGlIndicatorController.findAll,
+  );
+  app.get(
+    '/business-places',
+    checkAuthenticated,
+    BusinessPlaceController.findAll,
+  );
+  app.get(
+    '/section-codes/:businessPlaceId',
+    checkAuthenticated,
+    SectionCodeController.getSectionCodeByBusinessPlaceId,
+  );
+  app.get(
+    '/withholding-taxes',
+    checkAuthenticated,
+    WithholdingTaxController.findAll,
+  );
+  app.get(
+    '/expenses/document-types',
+    checkAuthenticated,
+    DocumentTypeController.getExpensesDocumentTypes,
+  );
+  app.post(
+    '/expenses/header',
+    checkAuthenticated,
+    ExpenseController.createExpensesHeader,
+  );
+  app.post(
+    '/expenses/debit',
+    checkAuthenticated,
+    ExpenseController.createExpensesDebitTransaction,
+  );
+  app.post(
+    '/expenses/credit',
+    checkAuthenticated,
+    ExpenseController.createExpensesCreditTransaction,
+  );
+  app.post(
+    '/expenses/transaction-reverse',
+    checkAuthenticated,
+    ExpenseController.transactionReverse,
+  );
+  app.post(
+    '/expenses/update/status',
+    checkAuthenticated,
+    ExpenseController.updateDocumentStatus,
+  );
+  app.get(
+    '/expenses/last-document',
+    checkAuthenticated,
+    ExpenseController.getLastDocument,
+  );
+  app.get(
+    '/expenses/:documentNumber',
+    checkAuthenticated,
+    ExpenseController.findByDocumentNumber,
+  );
+  app.delete(
+    '/expenses/delete',
+    checkAuthenticated,
+    ExpenseController.deleteDocument,
+  );
+  app.post(
+    '/expenses/export',
+    checkAuthenticated,
+    ExpenseController.exportExpenses,
+  );
+  app.delete(
+    '/expenses/line-item/delete',
+    checkAuthenticated,
+    ExpenseController.deleteLineItem,
   );
 };
 

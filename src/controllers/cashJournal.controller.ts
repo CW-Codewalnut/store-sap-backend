@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import { Op } from 'sequelize';
 import { responseFormatter, CODE, SUCCESS } from '../config/response';
 import MESSAGE from '../config/message.json';
 import CashJournal from '../models/cash-journal';

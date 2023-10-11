@@ -1,8 +1,5 @@
 import express, { Application } from 'express';
-import helmet from 'helmet';
-import http from 'http';
 import cors, { CorsOptions } from 'cors';
-import debug from 'debug';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
@@ -20,16 +17,12 @@ const config = configs[env];
 
 const app: Application = express();
 
-// Globals
-global.baseDir = __dirname;
-
-/**
- * Helmet helps to secure express to setting a various header.
- */
-// app.use(helmet());
-
 const corsOptions: CorsOptions = {
-  origin: ['http://localhost:3000', 'https://sap-dev.codewalnut.com'],
+  origin: [
+    'http://localhost:3000',
+    'https://sap-dev.codewalnut.com',
+    'https://sap-uat.codewalnut.com',
+  ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   optionsSuccessStatus: 200,
   credentials: true,
@@ -61,9 +54,8 @@ app.use(ErrorHandler);
 
 const port = parseInt(config.serverPort, 10);
 app.set('port', port);
-const server = http.createServer(app);
 
-server.listen(port, () => {
+const server = app.listen(port, () => {
   console.info(`Environment running on:  ${process.env.NODE_ENV}`);
   console.info(`Server is running on port: ${port}`);
 });
@@ -72,7 +64,7 @@ server.listen(port, () => {
  * Event listener for HTTP server "error" event.
  */
 
-function onError(error: any) {
+const onError = (error: any) => {
   if (error.syscall !== 'listen') {
     throw error;
   }
@@ -92,19 +84,12 @@ function onError(error: any) {
     default:
       throw error;
   }
-}
+};
 
 /**
- * Event listener for HTTP server "listening" event.
+ * Event listener for HTTP server "error" event.
  */
-
-function onListening() {
-  const addr = server.address();
-  const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr?.port}`;
-  debug(`Listening on ${bind}`);
-}
-
 server.on('error', onError);
-server.on('listening', onListening);
 
-module.exports = app;
+export default app;
+export { server };
