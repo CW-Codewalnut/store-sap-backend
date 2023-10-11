@@ -57,6 +57,8 @@ Expected Output:
 Feel free to explore our range of accessible APIs for experimentation and use.
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/23806839-9a57aa45-b4ba-467c-9c65-524d8d950c71?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D23806839-9a57aa45-b4ba-467c-9c65-524d8d950c71%26entityType%3Dcollection%26workspaceId%3Da68c1bb8-614b-4703-b8f8-c3ff51919c10)
 
+Furthermore, for more detailed information about a specific API, you can refer to the API documentation within Postman, accessible through the options on the right side of the interface.
+
 # Run Test
 
 We employ Jest for our test cases. You can initiate the tests by executing the following command:
