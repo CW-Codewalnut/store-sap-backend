@@ -53,6 +53,9 @@ Expected Output:
 [1] Server is running on port: 3000
 [1] Database connection has been established.
 ```
+# Available API's
+Feel free to explore our range of accessible APIs for experimentation and use.
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/23806839-9a57aa45-b4ba-467c-9c65-524d8d950c71?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D23806839-9a57aa45-b4ba-467c-9c65-524d8d950c71%26entityType%3Dcollection%26workspaceId%3Da68c1bb8-614b-4703-b8f8-c3ff51919c10)
 
 # Run Test
 
