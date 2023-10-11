@@ -1,7 +1,7 @@
 # Store SAP API
 Store SAP manages multiple stores, integrates with SAP for real-time data exchange,
 and uses Node.js with Express and MSSQL for the backend, offering the flexibility
-to use other SQL databases via Sequelize ORM.
+to use other SQL databases via Sequelize ORM. [Know more](https://docs.google.com/document/d/1ULlRpf-jDfHKAeWKCAUe1FJY_7_CHd-mLi5Ct5wLt1o)
 
 ## System requirement:
 1. NodeJs >= 16
