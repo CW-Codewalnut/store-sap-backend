@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npx tsc",
     "start": "node dist/app.js",
-    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/app.js\"",
+    "dev": "if [ ! -d \"dist\" ]; then npm run build; fi && concurrently \"npx tsc --watch\" \"nodemon -q dist/app.js\"",
     "test": "NODE_ENV=test jest",
     "test:watch": "jest --watchAll",
     "test:coverage": "NODE_ENV=test jest --coverage",
