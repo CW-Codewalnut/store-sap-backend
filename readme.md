@@ -10,6 +10,7 @@ to use other SQL databases via Sequelize ORM. [Know more](https://docs.google.co
 | Expenses Accounting | User |
 |---------|---------|
 | ![Expenses Accounting](https://dev-assets.codewalnut.com/sap-store/expenses.png) | ![User](https://dev-assets.codewalnut.com/sap-store/user.png) |
+Note: This screenshot are just for example. this repo don't have view.
 
 ## System requirement:
 1. NodeJs >= 16
