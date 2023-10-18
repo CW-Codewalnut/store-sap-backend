@@ -1,5 +1,5 @@
 # Store SAP API
-Store SAP manages multiple stores, integrates with SAP for real-time data exchange,
+Store SAP manages multiple stores, provides api for petty cash, sales reciepts and expenses accounting,
 and uses Node.js with Express and MSSQL for the backend, offering the flexibility
 to use other SQL databases via Sequelize ORM. [Know more](https://docs.google.com/document/d/1ULlRpf-jDfHKAeWKCAUe1FJY_7_CHd-mLi5Ct5wLt1o)
 
@@ -27,13 +27,13 @@ to use other SQL databases via Sequelize ORM. [Know more](https://docs.google.co
 1. Navigate to the root directory of the project and install the required dependencies:
 
 ```console
-$ npm install
+ npm install
 ```
 
 2. Rename the file .env.example to .env and provide the necessary credentials.
    If you opt for a different database other than MSSQL, remember to modify the
    dialect within the src/config/config.js file.
-   for the quick start just provide the below config. then later you can add as per need:
+   for the quick start in local machine just provide the below config. then later you can add as per need:
    ```console
    LOCAL_DB=DATABASE_NAME
    LOCAL_DB_USER=DATABASE_USER
@@ -45,13 +45,13 @@ $ npm install
 3. Execute the database migration process:
 
 ```console
-$ npx sequelize-cli db:migrate
+ npx sequelize-cli db:migrate
 ```
 
 4. Launch the application by running:
 
 ```console
-$ npm run dev
+ npm run dev
 ```
 
 Expected Output:
@@ -72,11 +72,16 @@ Furthermore, for more detailed information about a specific API, you can refer t
 We employ Jest for our test cases. You can initiate the tests by executing the following command:
 
 ```console
-$ npm run test
+ npm run test
 ```
 
 Note: There are many useful script such as, generating test report, ESlinting, Prettier formatting
 you can use those as per your need.
+
+# Environments
+
+We've set up various environment types like local, dev, uat, prod, and test
+in the src/config.js file. Feel free to utilize them based on your specific needs.
 
 # License
 
