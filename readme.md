@@ -77,3 +77,7 @@ $ npm run test
 
 Note: There are many useful script such as, generating test report, ESlinting, Prettier formatting
 you can use those as per your need.
+
+# License
+
+  [MIT](LICENSE)
