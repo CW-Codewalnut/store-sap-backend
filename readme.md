@@ -78,6 +78,10 @@ npm run test
 Note: There are many useful script such as, generating test report, ESlinting, Prettier formatting
 you can use those as per your need.
 
+# SonarQube Report
+
+![SonarQube Report](https://dev-assets.codewalnut.com/sap-store/sonar.png)
+
 # Environments
 
 We've set up various environment types like local, dev, uat, prod, and test
