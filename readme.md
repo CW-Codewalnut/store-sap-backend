@@ -27,7 +27,7 @@ to use other SQL databases via Sequelize ORM. [Know more](https://docs.google.co
 1. Navigate to the root directory of the project and install the required dependencies:
 
 ```console
- npm install
+npm install
 ```
 
 2. Rename the file .env.example to .env and provide the necessary credentials.
@@ -45,13 +45,13 @@ to use other SQL databases via Sequelize ORM. [Know more](https://docs.google.co
 3. Execute the database migration process:
 
 ```console
- npx sequelize-cli db:migrate
+npx sequelize-cli db:migrate
 ```
 
 4. Launch the application by running:
 
 ```console
- npm run dev
+npm run dev
 ```
 
 Expected Output:
@@ -72,7 +72,7 @@ Furthermore, for more detailed information about a specific API, you can refer t
 We employ Jest for our test cases. You can initiate the tests by executing the following command:
 
 ```console
- npm run test
+npm run test
 ```
 
 Note: There are many useful script such as, generating test report, ESlinting, Prettier formatting
@@ -85,4 +85,4 @@ in the src/config.js file. Feel free to utilize them based on your specific need
 
 # License
 
-  [MIT](LICENSE)
+[MIT](LICENSE)
